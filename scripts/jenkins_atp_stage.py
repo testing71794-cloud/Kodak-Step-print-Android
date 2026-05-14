@@ -3,7 +3,8 @@
 Jenkins CPS helper: run / validate / excel for one ATP folder in one process.
 Keeps Jenkinsfile small (avoids WorkflowScript MethodTooLargeException).
 
-Does not replace run_atp_testcase_flows.ps1 logic — only invokes existing scripts.
+Does not replace run_atp_testcase_flows.ps1 for manual runs — Jenkins ``cmd_run`` uses
+``python -m execution.atp_jenkins_orchestrator`` (blocking Stack A; same reports/status as ``run_one_flow_on_device.bat``).
 Suite ids match run_atp_testcase_flows.ps1 Get-AtpSuiteId(folder).
 """
 from __future__ import annotations
@@ -30,9 +31,18 @@ def touch_flag(name: str) -> None:
 
 def cmd_run(folder: str, app: str, clear_state: str, maestro_cmd: str) -> int:
     sid = folder_to_suite_id(folder)
-    bat = REPO / "scripts" / "run_atp_testcase_flows.bat"
+    # Stack A: blocking Python orchestrator (no detached PowerShell Start-Process chain).
     p = subprocess.run(
-        ["cmd.exe", "/c", "call", str(bat), app, clear_state, maestro_cmd, folder],
+        [
+            sys.executable,
+            "-m",
+            "execution.atp_jenkins_orchestrator",
+            str(REPO),
+            app,
+            clear_state,
+            maestro_cmd,
+            folder,
+        ],
         cwd=str(REPO),
     )
     if p.returncode != 0:

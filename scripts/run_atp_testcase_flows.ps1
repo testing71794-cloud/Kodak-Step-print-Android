@@ -1,5 +1,6 @@
 # ATP TestCase Flows - recursive Maestro runs (folder name = logical suite for reporting).
-# Does not modify existing run_suite_parallel_same_machine.ps1 (Printing / Non-printing unchanged).
+# Jenkins / run_atp_testcase_flows.bat use execution/atp_jenkins_orchestrator.py (blocking, no Start-Process).
+# This script remains for local PowerShell-only invocation if needed.
 
 param(
     [Parameter(Mandatory = $true)][string]$RepoRoot,

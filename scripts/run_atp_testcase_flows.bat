@@ -7,10 +7,11 @@ REM       Optional 4th arg runs only that child folder under "ATP TestCase Flows
 set "RR=%~dp0.."
 for %%I in ("%RR%") do set "RR=%%~fI"
 
+cd /d "%RR%"
 if "%~4"=="" (
-  powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0run_atp_testcase_flows.ps1" -RepoRoot "%RR%" -AppId "%~1" -ClearState "%~2" -MaestroCmd "%~3"
+  python -m execution.atp_jenkins_orchestrator "%RR%" "%~1" "%~2" "%~3" ""
 ) else (
-  powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0run_atp_testcase_flows.ps1" -RepoRoot "%RR%" -AppId "%~1" -ClearState "%~2" -MaestroCmd "%~3" -AtpSubfolder "%~4"
+  python -m execution.atp_jenkins_orchestrator "%RR%" "%~1" "%~2" "%~3" "%~4"
 )
 set "EC=%ERRORLEVEL%"
 endlocal
