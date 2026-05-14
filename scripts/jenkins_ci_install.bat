@@ -6,13 +6,26 @@ if "%~1"=="" (
 )
 cd /d "%~1"
 echo === SAFE DISK CLEANUP PRE ===
-REM %~dp0 = directory of this .bat (...\repo\scripts\) — works even if PATH/CWD is wrong.
-call "%~dp0safe_disk_cleanup.bat" PRE "%CD%"
+REM Run sibling .bats from the scripts directory (avoids broken quoting when repo path has spaces).
+pushd "%~dp0"
+if not exist "jenkins_resolve_python.bat" (
+  echo ERROR: jenkins_resolve_python.bat not found in %CD%
+  popd
+  exit /b 1
+)
+if not exist "safe_disk_cleanup.bat" (
+  echo ERROR: safe_disk_cleanup.bat not found in %CD%
+  popd
+  exit /b 1
+)
+call safe_disk_cleanup.bat PRE "%~1"
 
 REM Use the same Python 3.11–3.13 resolution as other Jenkins scripts. Bare "python" may hit
 REM a broken install (e.g. Python 3.14 preview with corrupted pip on PATH).
-call "%~dp0jenkins_resolve_python.bat"
-if errorlevel 1 (
+call jenkins_resolve_python.bat
+set "RESOLVE_EC=%ERRORLEVEL%"
+popd
+if not "%RESOLVE_EC%"=="0" (
   echo ERROR: jenkins_resolve_python.bat failed — install Python 3.12/3.13 or set PYTHON_EXE_OVERRIDE.
   echo 1> install_failed.flag
   exit /b 1
