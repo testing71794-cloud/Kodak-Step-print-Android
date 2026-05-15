@@ -9,7 +9,14 @@ Used by **opt-in** `Jenkinsfile.hybrid.gcp-windows` — not the default `Jenkins
 | `jenkins_ci_send_email.sh` | Email via venv Python (hybrid GCP stage) |
 | `_venv.sh` | Persistent venv helper (PEP 668 safe) |
 
-**Ubuntu agent:** install once per machine: `sudo apt install -y python3-venv python3-pip`
+**Ubuntu agent (recommended):** install once per machine:
+
+```bash
+sudo apt install -y python3.12-venv python3-pip
+# or: sudo apt install -y python3-venv
+```
+
+If `python3-venv` is missing, scripts fall back to `pip install --user` with `PIP_BREAK_SYSTEM_PACKAGES` (set `JENKINS_ORCHESTRATOR_ALLOW_USER_PIP=0` to fail instead).
 
 **Venv path (default):** `$HOME/jenkins-venvs/kodak-atp-orchestrator` — override with `JENKINS_ORCHESTRATOR_VENV`.
 
