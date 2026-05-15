@@ -6,16 +6,10 @@ cd "$ROOT"
 export JENKINS_WORKLOAD_PROFILE="${JENKINS_WORKLOAD_PROFILE:-gcp-orchestrator}"
 echo "[gcp-post] profile=${JENKINS_WORKLOAD_PROFILE} starting post-run processing"
 
-PY="${PYTHON_EXE:-}"
-if [[ -z "$PY" ]]; then
-  for c in python3.13 python3.12 python3.11 python3; do
-    if command -v "$c" >/dev/null 2>&1; then PY="$(command -v "$c")"; break; fi
-  done
-fi
-if [[ -z "$PY" ]]; then
-  echo "[gcp-post] ERROR: python3 not found"
-  exit 1
-fi
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=_venv.sh
+source "$SCRIPT_DIR/_venv.sh"
+resolve_gcp_python "$ROOT"
 
 if [[ -f build-summary/atp_suite_labels.json ]]; then
   echo "[gcp-post] merge ATP excel reports"

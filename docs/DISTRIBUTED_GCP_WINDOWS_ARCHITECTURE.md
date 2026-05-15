@@ -164,7 +164,7 @@ flowchart TB
 
 | Location | What to cache | What to avoid on Windows |
 |----------|---------------|---------------------------|
-| GCP | `~/.gradle/caches`, Android SDK (build), pip wheelhouse | — |
+| GCP | `~/.gradle/caches`, Android SDK (build), pip in **`$HOME/jenkins-venvs/kodak-atp-orchestrator`** (PEP 668 safe) | — |
 | Windows | None required for orchestration; keep `~/.maestro` trimmed via `safe_disk_cleanup.bat PRE` | Duplicate `npm`, full Gradle, second Git clone |
 | Jenkins controller | Stash excludes already trim `.git`, `reports/`, `build-summary/` (see `Jenkinsfile`) | `preserveStashes(buildCount: 2)` |
 
@@ -231,6 +231,14 @@ repo-root/
 ---
 
 ## 8. Safe migration steps (phased)
+
+### GCP agent one-time OS packages
+
+```bash
+sudo apt install -y python3-venv python3-pip
+```
+
+Orchestrator Python deps install into **`$HOME/jenkins-venvs/kodak-atp-orchestrator`** (not system pip). Override with `JENKINS_ORCHESTRATOR_VENV`.
 
 ### Phase 0 — Today (no pipeline change)
 
