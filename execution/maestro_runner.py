@@ -211,6 +211,144 @@ def post_run_validate(
         )
 
 
+def _device_slug(device_id: str) -> str:
+    slug = re.sub(r"[^\w\-.]+", "_", device_id.strip())
+    return slug or "device"
+
+
+def _parallel_maestro_isolation_enabled() -> bool:
+    return os.environ.get("ATP_MAESTRO_PARALLEL_ISOLATION", "1").strip().lower() not in (
+        "0",
+        "false",
+        "no",
+        "off",
+    )
+
+
+def _maestro_driver_host_port(launch_index: int) -> int | None:
+    """
+    Distinct Android driver host ports per parallel launch (avoids default localhost:7001 clashes).
+    Set ATP_MAESTRO_DRIVER_PORTS=0 to disable; override with ATP_MAESTRO_DRIVER_PORT.
+    """
+    if not _parallel_maestro_isolation_enabled():
+        return None
+    if os.environ.get("ATP_MAESTRO_DRIVER_PORTS", "1").strip().lower() in ("0", "false", "no", "off"):
+        return None
+    explicit = (os.environ.get("ATP_MAESTRO_DRIVER_PORT") or "").strip()
+    if explicit:
+        try:
+            return int(explicit)
+        except ValueError:
+            return None
+    try:
+        base = int((os.environ.get("ATP_MAESTRO_DRIVER_PORT_BASE") or "7010").strip())
+    except ValueError:
+        base = 7010
+    return base + max(0, launch_index)
+
+
+def _windows_popen_creationflags() -> int:
+    if os.name != "nt":
+        return 0
+    flags = 0
+    create_new_process_group = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+    create_no_window = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+    if create_new_process_group:
+        flags |= create_new_process_group
+    if create_no_window:
+        flags |= create_no_window
+    return flags
+
+
+def _windows_child_process_snapshot(root_pid: int) -> str:
+    """Best-effort list of direct child processes (cmd/java) for parallel-run diagnostics."""
+    if os.name != "nt" or root_pid <= 0:
+        return ""
+    ps = (
+        f"$pp={root_pid}; "
+        "Get-CimInstance Win32_Process | "
+        "Where-Object { $_.ParentProcessId -eq $pp } | "
+        "Select-Object ProcessId, Name, ParentProcessId | "
+        "Format-Table -AutoSize | Out-String -Width 4096"
+    )
+    try:
+        proc = subprocess.run(
+            ["powershell", "-NoProfile", "-NonInteractive", "-Command", ps],
+            capture_output=True,
+            text=True,
+            timeout=20,
+            check=False,
+        )
+        out = (proc.stdout or "").strip()
+        if out:
+            return out
+        return (proc.stderr or "").strip()[:2000]
+    except (OSError, subprocess.TimeoutExpired) as e:
+        return f"snapshot_error={e}"
+
+
+def _log_maestro_process_tree(device_id: str, cmd_pid: int) -> None:
+    time.sleep(4.0)
+    snap = _windows_child_process_snapshot(cmd_pid)
+    if snap:
+        print(
+            f"[ATP] maestro_subprocess_tree device={device_id} cmd_pid={cmd_pid}\n{snap}",
+            flush=True,
+        )
+
+
+def _apply_parallel_maestro_env(
+    env: dict[str, str],
+    *,
+    repo: Path,
+    suite_id: str,
+    flow_path: Path,
+    device_id: str,
+    launch_index: int,
+) -> dict[str, str | int | None]:
+    """Per-device subprocess env so parallel Maestro runs do not share driver port / temp / adb serial."""
+    meta: dict[str, str | int | None] = {
+        "driver_port": None,
+        "debug_output": None,
+        "workspace": None,
+        "maestro_user_home": None,
+    }
+    if not _parallel_maestro_isolation_enabled():
+        return meta
+
+    slug = _device_slug(device_id)
+    ws = (repo / ".maestro-workspace" / slug).resolve()
+    ws.mkdir(parents=True, exist_ok=True)
+    env["TMP"] = str(ws)
+    env["TEMP"] = str(ws)
+    meta["workspace"] = str(ws)
+
+    tmp_dir = (repo / ".maestro_tmp" / slug).resolve()
+    tmp_dir.mkdir(parents=True, exist_ok=True)
+    env["MAESTRO_TMP_DIR"] = str(tmp_dir)
+
+    runtime_home = (repo / ".maestro-runtime" / slug).resolve()
+    runtime_home.mkdir(parents=True, exist_ok=True)
+    env["MAESTRO_CLI_DIR"] = str(runtime_home)
+    env["ATP_MAESTRO_USER_HOME"] = str(runtime_home)
+    meta["maestro_user_home"] = str(runtime_home)
+
+    env["ANDROID_SERIAL"] = device_id
+    env.pop("ANDROID_DEBUG_SERIAL", None)
+
+    port = _maestro_driver_host_port(launch_index)
+    if port is not None:
+        env["ATP_MAESTRO_DRIVER_PORT"] = str(port)
+        meta["driver_port"] = port
+
+    debug_root = (repo / "reports" / suite_id / "maestro-debug").resolve()
+    debug_dir = debug_root / f"{flow_path.stem}__{slug}"
+    debug_dir.mkdir(parents=True, exist_ok=True)
+    env["ATP_MAESTRO_DEBUG_OUTPUT"] = str(debug_dir)
+    meta["debug_output"] = str(debug_dir)
+    return meta
+
+
 def run_run_one_flow_device_bat(
     *,
     repo: Path,
@@ -221,6 +359,7 @@ def run_run_one_flow_device_bat(
     clear_state: str,
     maestro_launcher: Path,
     include_tag: str = "__EMPTY__",
+    launch_index: int = 0,
 ) -> int:
     """
     Blocking invocation of scripts/run_one_flow_on_device.bat (preserves reports/status/csv layout).
@@ -229,13 +368,22 @@ def run_run_one_flow_device_bat(
     if not bat.is_file():
         raise FileNotFoundError(bat)
     env = os.environ.copy()
+    iso = _apply_parallel_maestro_env(
+        env,
+        repo=repo,
+        suite_id=suite_id,
+        flow_path=flow_path,
+        device_id=device_id,
+        launch_index=launch_index,
+    )
     # Ensure child cmd sees the same Maestro/Java discovery as Jenkins (set_maestro_java.bat still runs inside bat).
     timeout_sec = int(os.environ.get("ATP_FLOW_TIMEOUT_SEC", str(4 * 3600)))
 
+    # cmd /d /c <bat> (no "call") — one cmd.exe child per device; bat invokes Maestro without "call".
     cmd: list[str] = [
         "cmd.exe",
+        "/d",
         "/c",
-        "call",
         str(bat),
         suite_id,
         str(flow_path.resolve()),
@@ -249,29 +397,70 @@ def run_run_one_flow_device_bat(
         repo,
         suite_id,
         WorkerState.MAESTRO_STARTING,
-        "subprocess.run run_one_flow_on_device.bat",
+        "subprocess Popen run_one_flow_on_device.bat",
         device=device_id,
         flow=flow_path.name,
-        pid=os.getpid(),
+        parent_pid=os.getpid(),
+        driver_port=iso.get("driver_port"),
+        maestro_debug=iso.get("debug_output"),
     )
     print(
         f"[ATP] maestro_subprocess_launch device={device_id} flow={flow_path.stem} "
-        f"ts={time.time():.3f} pid={os.getpid()}",
+        f"ts={time.time():.3f} parent_pid={os.getpid()} launch_index={launch_index} "
+        f"driver_port={iso.get('driver_port')} workspace={iso.get('workspace')} "
+        f"maestro_user_home={iso.get('maestro_user_home')}",
         flush=True,
     )
+    popen_kw: dict[str, Any] = {
+        "cwd": str(repo.resolve()),
+        "env": env,
+        "stdin": subprocess.DEVNULL,
+    }
+    win_flags = _windows_popen_creationflags()
+    if win_flags:
+        popen_kw["creationflags"] = win_flags
+    tree_thread: threading.Thread | None = None
     try:
-        proc = subprocess.run(
-            cmd,
-            cwd=str(repo.resolve()),
-            env=env,
-            stdin=subprocess.DEVNULL,
-            timeout=timeout_sec,
-            check=False,
+        child = subprocess.Popen(cmd, **popen_kw)
+        print(
+            f"[ATP] maestro_subprocess_child device={device_id} flow={flow_path.stem} "
+            f"cmd_child_pid={child.pid}",
+            flush=True,
         )
-        code = int(proc.returncode)
-    except subprocess.TimeoutExpired:
-        log_lifecycle(repo, suite_id, WorkerState.FAILED, "flow timeout", device=device_id, flow=flow_path.name)
-        return 124
+        if os.environ.get("ATP_MAESTRO_LOG_PROCESS_TREE", "1").strip().lower() not in (
+            "0",
+            "false",
+            "no",
+            "off",
+        ):
+            tree_thread = threading.Thread(
+                target=_log_maestro_process_tree,
+                args=(device_id, child.pid),
+                name=f"maestro-tree-{device_id}",
+                daemon=True,
+            )
+            tree_thread.start()
+        try:
+            child.wait(timeout=timeout_sec)
+        except subprocess.TimeoutExpired:
+            child.kill()
+            child.wait(timeout=30)
+            log_lifecycle(
+                repo, suite_id, WorkerState.FAILED, "flow timeout", device=device_id, flow=flow_path.name
+            )
+            return 124
+        code = int(child.returncode or 0)
+    except OSError as e:
+        log_lifecycle(
+            repo,
+            suite_id,
+            WorkerState.FAILED,
+            "run_one_flow_on_device.bat launch failed",
+            device=device_id,
+            flow=flow_path.name,
+            error=str(e),
+        )
+        return 1
     log_lifecycle(
         repo,
         suite_id,

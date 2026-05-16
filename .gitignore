@@ -7,6 +7,9 @@ collected-artifacts/
 /build-summary/
 demo_intelligence_workspace/build-summary/
 .maestro/
+.maestro-workspace/
+.maestro-runtime/
+.maestro_tmp/
 .maestro-locks/
 .device_name_cache.json
 temp-runners/

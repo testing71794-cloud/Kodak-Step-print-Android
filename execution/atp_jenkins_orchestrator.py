@@ -38,7 +38,16 @@ from .maestro_runner import (
 from .flow_timing import read_status_fields
 
 # Bump when orchestration semantics change (visible in Jenkins console).
-ORCHESTRATOR_REV = "2026-05-parallel-wave-2"
+def _read_orchestrator_rev() -> str:
+    rev_file = Path(__file__).resolve().parent / "ORCHESTRATOR_REV.txt"
+    if rev_file.is_file():
+        line = rev_file.read_text(encoding="utf-8", errors="replace").strip().splitlines()
+        if line and line[0].strip():
+            return line[0].strip()
+    return "unknown"
+
+
+ORCHESTRATOR_REV = _read_orchestrator_rev()
 
 
 def add_adb_from_env_to_path() -> None:
@@ -297,6 +306,7 @@ def _execute_flow_on_device(
             app_id=app_id,
             clear_state=clear_state,
             maestro_launcher=maestro_launch,
+            launch_index=launch_index,
         )
     finally:
         lease.release()

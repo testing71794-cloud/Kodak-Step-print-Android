@@ -12,6 +12,34 @@ set /a "_ss_ping=!_ss!+1"
 ping 127.0.0.1 -n !_ss_ping! >nul
 exit /b 0
 
+REM Orchestrator may set ATP_MAESTRO_DRIVER_PORT / ATP_MAESTRO_DEBUG_OUTPUT per device (parallel isolation).
+:apply_maestro_parallel_isolation
+if defined ATP_MAESTRO_DRIVER_PORT (
+  set "MAESTRO_ARGS=--driver-host-port %ATP_MAESTRO_DRIVER_PORT% !MAESTRO_ARGS!"
+)
+if defined ATP_MAESTRO_DEBUG_OUTPUT (
+  set "MAESTRO_ARGS=!MAESTRO_ARGS! --debug-output "!ATP_MAESTRO_DEBUG_OUTPUT!""
+)
+exit /b 0
+
+REM Isolated Maestro: no "call" (separate process), optional per-device USERPROFILE for ~/.maestro.
+:run_maestro_isolated
+call :apply_maestro_parallel_isolation
+set "_MAESTRO_SAVED_USERPROFILE="
+if defined ATP_MAESTRO_USER_HOME (
+  set "_MAESTRO_SAVED_USERPROFILE=%USERPROFILE%"
+  set "USERPROFILE=%ATP_MAESTRO_USER_HOME%"
+  echo [INFO] Maestro isolated USERPROFILE=%USERPROFILE%>> "%LOG_FILE%"
+)
+echo Command: "%MAESTRO_BIN%" !MAESTRO_ARGS!>> "%LOG_FILE%"
+"%MAESTRO_BIN%" !MAESTRO_ARGS! >> "%LOG_FILE%" 2>&1
+set "RUN_EXIT=%ERRORLEVEL%"
+if defined _MAESTRO_SAVED_USERPROFILE (
+  set "USERPROFILE=%_MAESTRO_SAVED_USERPROFILE%"
+  set "_MAESTRO_SAVED_USERPROFILE="
+)
+exit /b
+
 :script_body
 REM Args:
 REM %1 = SUITE
@@ -216,10 +244,13 @@ set "MAESTRO_ARGS=--device "%DEVICE_ID%" test -e FULL_NAME=!FULL_NAME! -e EMAIL=
 if not "%INCLUDE_TAG%"=="" set "MAESTRO_ARGS=!MAESTRO_ARGS! --include-tags "%INCLUDE_TAG%""
 rem config.yaml: Maestro loads workspace config from the current directory (REPO); run from repo root
 
+for /f %%t in ('python -c "import time; print(int(time.time()*1000))" 2^>nul') do set "FLOW_START_MS=%%t"
+if not defined FLOW_START_MS set "FLOW_START_MS=0"
+echo [TIMING] flow_start_ms=!FLOW_START_MS!>> "%LOG_FILE%"
 echo Starting Maestro test (flow1b)... (PASSWORD is not written to the log^)>> "%LOG_FILE%"
 echo [flow1b] !MAESTRO_BIN! --device "%DEVICE_ID%" test -e ... "%FLOW_PATH%">> "%LOG_FILE%"
 echo. >> "%LOG_FILE%"
-call "%MAESTRO_BIN%" !MAESTRO_ARGS! >> "%LOG_FILE%" 2>&1
+call :run_maestro_isolated
 set "RUN_EXIT=%ERRORLEVEL%"
 if "!RUN_EXIT!"=="0" goto :after_flow1b_maestro
 
@@ -247,7 +278,7 @@ echo.>> "%LOG_FILE%"
 echo === Maestro retry (flow1b) ===>> "%LOG_FILE%"
 set "MAESTRO_ARGS=--device "%DEVICE_ID%" test -e FULL_NAME=!FULL_NAME! -e EMAIL=!EMAIL! -e PASSWORD=!PASSWORD! "%FLOW_PATH%""
 if not "%INCLUDE_TAG%"=="" set "MAESTRO_ARGS=!MAESTRO_ARGS! --include-tags "%INCLUDE_TAG%""
-call "%MAESTRO_BIN%" !MAESTRO_ARGS! >> "%LOG_FILE%" 2>&1
+call :run_maestro_isolated
 set "RUN_EXIT=%ERRORLEVEL%"
 if "!RUN_EXIT!"=="0" (
     set "STATUS_VALUE=FLAKY"
@@ -274,7 +305,7 @@ set "MAESTRO_ARGS=--device "%DEVICE_ID%" test "%FLOW_PATH%""
 if not "%INCLUDE_TAG%"=="" set "MAESTRO_ARGS=!MAESTRO_ARGS! --include-tags "%INCLUDE_TAG%""
 
 echo Starting Maestro test...>> "%LOG_FILE%"
-echo Command: call "%MAESTRO_BIN%" !MAESTRO_ARGS!>> "%LOG_FILE%"
+echo Command: "%MAESTRO_BIN%" !MAESTRO_ARGS!>> "%LOG_FILE%"
 echo. >> "%LOG_FILE%"
 
 REM ---- Default flows: require device online immediately before Maestro; one rerun if ADB drops mid-run (Jenkins logs: device not found / transport) ----
@@ -299,7 +330,11 @@ call :sleep_seconds 1
 goto :pre_maestro_adb
 :pre_maestro_adb_ok
 
-call "%MAESTRO_BIN%" !MAESTRO_ARGS! >> "%LOG_FILE%" 2>&1
+for /f %%t in ('python -c "import time; print(int(time.time()*1000))" 2^>nul') do set "FLOW_START_MS=%%t"
+if not defined FLOW_START_MS set "FLOW_START_MS=0"
+echo [TIMING] flow_start_ms=!FLOW_START_MS!>> "%LOG_FILE%"
+
+call :run_maestro_isolated
 set "RUN_EXIT=%ERRORLEVEL%"
 if "!RUN_EXIT!"=="0" goto :maestro_default_pass
 
@@ -356,6 +391,15 @@ goto :after_flow1b_maestro
 
 :after_flow1b_maestro
 
+for /f %%t in ('python -c "import time; print(int(time.time()*1000))" 2^>nul') do set "FLOW_END_MS=%%t"
+if not defined FLOW_END_MS set "FLOW_END_MS=0"
+if defined FLOW_START_MS if not "!FLOW_START_MS!"=="0" (
+  set /a "FLOW_DURATION_MS=!FLOW_END_MS!-!FLOW_START_MS!"
+) else (
+  set "FLOW_DURATION_MS=0"
+)
+echo [TIMING] flow_end_ms=!FLOW_END_MS! duration_ms=!FLOW_DURATION_MS!>> "%LOG_FILE%"
+
 :write_result
 if not defined DEVICE_NAME (
   for /f "delims=" %%N in ('python "%REPO_ROOT%\scripts\resolve_device_name.py" "%DEVICE_ID%" 2^>nul') do set "DEVICE_NAME=%%N"
@@ -376,6 +420,7 @@ if not defined DEVICE_NAME set "DEVICE_NAME=%DEVICE_ID%"
     echo retry_count=!SIGNUP_RETRY_USED!
     echo maestro_device_reconnect_retry=!MAESTRO_DEVICE_RETRY_USED!
     echo maestro_driver_7001_retry=!MAESTRO_DRIVER_7001_RETRY!
+    echo duration_ms=!FLOW_DURATION_MS!
     echo timestamp=%date% %time%
 )
 if /I "%FLOW_NAME%"=="flow1b" if defined EMAIL (
