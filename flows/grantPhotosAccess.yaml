@@ -1,0 +1,17 @@
+appId: com.kodaksmile
+name: Grant photos access (best-effort)
+---
+# Centralized photos permission dialogs (Collage / album ATP paths).
+- runFlow:
+    when:
+      visible: "Allow KODAK SMILE to access photos"
+    commands:
+      - tapOn: "Allow"
+      - waitForAnimationToEnd
+
+- runFlow:
+    when:
+      visible: "Photos Access Required"
+    commands:
+      - tapOn: "Ok"
+      - waitForAnimationToEnd

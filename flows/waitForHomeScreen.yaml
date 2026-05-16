@@ -1,0 +1,9 @@
+appId: com.kodaksmile
+name: Wait for home screen
+---
+# Targeted home wait (replaces duplicate extendedWaitUntil + double assert in ATP files).
+- extendedWaitUntil:
+    visible: "KODAK SMILE"
+    timeout: 25000
+- assertVisible: "KODAK SMILE"
+- assertVisible: ${output.home.titleText}

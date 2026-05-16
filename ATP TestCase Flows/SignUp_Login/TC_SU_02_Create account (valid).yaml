@@ -64,7 +64,6 @@ env:
 # Step 11: action=tapOn; target=Create Account; input=None; expected=Account creation initiated
 - tapOn: "Create Account"
 - waitForAnimationToEnd
-- waitForAnimationToEnd
 - runFlow:
     when:
       visible: "Photos Access Required"

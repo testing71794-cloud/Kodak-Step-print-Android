@@ -21,14 +21,11 @@ appId: com.kodaksmile
     commands:
       - tapOn: ${output.home.disconnectedText}
       - waitForAnimationToEnd
-# -----------------------------------
-# If "Connect" visible → Tap Connect
-# -----------------------------------
+# If "Connect" visible before search retries, tap once
 - runFlow:
     when:
       visible: "Connect"
     commands:
-      - waitForAnimationToEnd
       - assertVisible: "Connect"
       - tapOn: "Connect"
       - waitForAnimationToEnd
@@ -57,16 +54,3 @@ appId: com.kodaksmile
           commands:
             - tapOn: ${output.printer.pairText}
             - waitForAnimationToEnd
-# -----------------------------------
-# If "Connect" visible → Tap Connect
-# -----------------------------------
-- runFlow:
-    when:
-      visible: "Connect"
-    commands:
-      - waitForAnimationToEnd
-      - assertVisible: "Connect"
-      - tapOn: "Connect"
-      - waitForAnimationToEnd
-
-- waitForAnimationToEnd

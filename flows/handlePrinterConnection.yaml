@@ -3,14 +3,14 @@ appId: com.kodaksmile
 # Handle printer connection screens:
 # Searching -> Couldn't find -> Search Again -> Device found list -> Connect -> Pair
 
-# If searching appears, just wait a bit
+# If searching appears, wait until search UI settles (one targeted wait vs four animation polls)
 - runFlow:
     when:
       visible: "Searching for your device..."
     commands:
-      - waitForAnimationToEnd
-      - waitForAnimationToEnd
-      - waitForAnimationToEnd
+      - extendedWaitUntil:
+          notVisible: "Searching for your device..."
+          timeout: 20000
       - waitForAnimationToEnd
 
 # If couldn't find appears, tap Search Again

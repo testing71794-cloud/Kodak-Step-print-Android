@@ -1,8 +1,6 @@
 appId: com.kodaksmile
 name: Connect printer from intro + print (complete)
 ---
-- waitForAnimationToEnd
-
 # ------------------------------
 # 1) Swipe to continue (if shown)
 # ------------------------------

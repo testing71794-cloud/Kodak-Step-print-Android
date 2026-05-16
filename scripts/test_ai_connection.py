@@ -227,6 +227,13 @@ def _single_post(
             "detail": d_body,
             "text": "",
         }
+    except urllib.error.URLError as e:
+        return {
+            "kind": "http_error",
+            "code": None,
+            "detail": f"model={model} network/SSL error: {_safe_snippet(str(e.reason or e))}",
+            "text": "",
+        }
     _debug(
         f"model={model} http={code} body_len={len(raw)}"
     )

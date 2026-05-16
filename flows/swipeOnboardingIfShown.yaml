@@ -1,0 +1,14 @@
+appId: com.kodaksmile
+name: Swipe onboarding intro if shown
+---
+- runFlow:
+    when:
+      visible: "Swipe to continue"
+    commands:
+      - tapOn:
+          point: "50%,50%"
+      - waitForAnimationToEnd
+      - swipe:
+          start: "75%,55%"
+          end: "15%,45%"
+      - waitForAnimationToEnd
