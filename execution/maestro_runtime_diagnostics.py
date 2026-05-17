@@ -130,6 +130,7 @@ def emit_parallel_readiness_report(
     maestro_cmd: str | None = None,
     device_count: int = 1,
     selected: MaestroInstallCandidate | None = None,
+    known_installs: list[MaestroInstallCandidate] | None = None,
 ) -> None:
     """Print full runtime report to stdout (ATP log)."""
     env = _env_snapshot()
@@ -151,7 +152,7 @@ def emit_parallel_readiness_report(
     else:
         print("[ATP] path_conflict maestro_on_path=no (MAESTRO_HOME resolution only)", flush=True)
 
-    installs = discover_maestro_installs(maestro_cmd=maestro_cmd)
+    installs = known_installs if known_installs is not None else discover_maestro_installs(maestro_cmd=maestro_cmd)
     print(f"[ATP] maestro_install_inventory count={len(installs)}", flush=True)
     for inst in installs:
         print(inst.log_line(), flush=True)

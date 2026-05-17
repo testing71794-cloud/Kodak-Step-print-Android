@@ -12,6 +12,7 @@ import os
 import re
 import shutil
 import subprocess
+import time
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -116,8 +117,15 @@ def _lib_mtime(app_home: Path) -> float | None:
         return None
 
 
+def _quick_probe_mode() -> bool:
+    raw = (os.environ.get("ATP_MAESTRO_QUICK_PROBE") or "1").strip().lower()
+    return raw not in ("0", "false", "no", "off")
+
+
 def probe_install(bin_dir: Path, *, label: str) -> MaestroInstallCandidate | None:
     """Probe one Maestro bin directory for launcher + driver-host-port support."""
+    t0 = time.time()
+    print(f"[ATP] maestro_install_probe begin label={label} path={bin_dir}", flush=True)
     bin_dir = bin_dir.resolve()
     launcher: Path | None = None
     for name in ("maestro.bat", "maestro.cmd"):
@@ -126,6 +134,7 @@ def probe_install(bin_dir: Path, *, label: str) -> MaestroInstallCandidate | Non
             launcher = cand
             break
     if launcher is None:
+        print(f"[ATP] maestro_install_probe skip label={label} reason=no_launcher", flush=True)
         return None
 
     if bin_dir.name.lower() in ("bin", "scripts"):
@@ -147,36 +156,43 @@ def probe_install(bin_dir: Path, *, label: str) -> MaestroInstallCandidate | Non
     detail = "not_probed"
     detection_source = "cli_argv"
     internal_api = _jar_has_internal_driver_port_api(app_home)
+    probe_timeout = 30 if _quick_probe_mode() else 45
     try:
-        p1 = subprocess.run(
-            prefix + ["--help"],
-            capture_output=True,
-            text=True,
-            timeout=45,
-            check=False,
-        )
-        help_global = (p1.stdout or "") + (p1.stderr or "")
-        p_test_help = subprocess.run(
-            prefix + ["test", "--help"],
-            capture_output=True,
-            text=True,
-            timeout=45,
-            check=False,
-        )
-        help_test_cmd = (p_test_help.stdout or "") + (p_test_help.stderr or "")
+        if not _quick_probe_mode():
+            p1 = subprocess.run(
+                prefix + ["--help"],
+                capture_output=True,
+                text=True,
+                timeout=probe_timeout,
+                check=False,
+            )
+            help_global = (p1.stdout or "") + (p1.stderr or "")
+            p_test_help = subprocess.run(
+                prefix + ["test", "--help"],
+                capture_output=True,
+                text=True,
+                timeout=probe_timeout,
+                check=False,
+            )
+            help_test_cmd = (p_test_help.stdout or "") + (p_test_help.stderr or "")
 
         argv_variants = [
             (["--driver-host-port", "7099", "--device", "127.0.0.1", "test", "--help"], "driver-host-port_space"),
-            (["--driver-host-port=7099", "--device", "127.0.0.1", "test", "--help"], "driver-host-port_equals"),
-            (["--host-port", "7099", "--device", "127.0.0.1", "test", "--help"], "host-port_space"),
-            (["--host-port=7099", "--device", "127.0.0.1", "test", "--help"], "host-port_equals"),
         ]
+        if not _quick_probe_mode():
+            argv_variants.extend(
+                [
+                    (["--driver-host-port=7099", "--device", "127.0.0.1", "test", "--help"], "driver-host-port_equals"),
+                    (["--host-port", "7099", "--device", "127.0.0.1", "test", "--help"], "host-port_space"),
+                    (["--host-port=7099", "--device", "127.0.0.1", "test", "--help"], "host-port_equals"),
+                ]
+            )
         for argv, variant in argv_variants:
             proc = subprocess.run(
                 prefix + argv,
                 capture_output=True,
                 text=True,
-                timeout=45,
+                timeout=probe_timeout,
                 check=False,
             )
             combined = (proc.stdout or "") + (proc.stderr or "")
@@ -187,8 +203,11 @@ def probe_install(bin_dir: Path, *, label: str) -> MaestroInstallCandidate | Non
                 detail = f"functional_argv:{variant}"
                 detection_source = "cli_argv"
                 break
+            if _quick_probe_mode():
+                detail = "argv_rejected_quick_probe"
+                break
 
-        if not supported:
+        if not supported and detail == "not_probed":
             detail = "argv_rejected_all_variants"
     except (OSError, subprocess.TimeoutExpired) as e:
         supported = False
@@ -203,7 +222,7 @@ def probe_install(bin_dir: Path, *, label: str) -> MaestroInstallCandidate | Non
     if not supported and internal_api:
         detail = f"{detail};internal_driverHostPort_api_unexposed"
 
-    return MaestroInstallCandidate(
+    cand = MaestroInstallCandidate(
         label=label,
         bin_dir=bin_dir,
         app_home=app_home.resolve(),
@@ -214,6 +233,12 @@ def probe_install(bin_dir: Path, *, label: str) -> MaestroInstallCandidate | Non
         lib_mtime=_lib_mtime(app_home),
         internal_driver_port_api=internal_api,
     )
+    print(
+        f"[ATP] maestro_install_probe end label={label} cli={version} driver_port="
+        f"{'yes' if supported else 'no'} elapsed_sec={time.time() - t0:.1f}",
+        flush=True,
+    )
+    return cand
 
 
 def _extra_candidate_paths() -> list[tuple[str, Path]]:
@@ -291,8 +316,17 @@ def _discover_bin_dirs(maestro_cmd: str | None = None) -> list[tuple[str, Path]]
 
 
 def discover_maestro_installs(*, maestro_cmd: str | None = None) -> list[MaestroInstallCandidate]:
+    print("[ATP] maestro_install_discovery begin", flush=True)
+    bin_dirs = _discover_bin_dirs(maestro_cmd)
+    # Fast path: prefer parallel home first when Jenkins pins an old MAESTRO_HOME.
+    parallel = (os.environ.get("ATP_MAESTRO_PARALLEL_HOME") or "").strip().strip('"')
+    if parallel and _quick_probe_mode():
+        ph = Path(parallel).resolve()
+        bin_dirs = [("parallel_home", ph)] + [
+            (lb, p) for lb, p in bin_dirs if str(p.resolve()).lower() != str(ph).lower()
+        ]
     installs: list[MaestroInstallCandidate] = []
-    for label, bin_dir in _discover_bin_dirs(maestro_cmd):
+    for label, bin_dir in bin_dirs:
         cand = probe_install(bin_dir, label=label)
         if cand is not None:
             installs.append(cand)
@@ -302,6 +336,7 @@ def discover_maestro_installs(*, maestro_cmd: str | None = None) -> list[Maestro
             -(c.lib_mtime or 0),
         )
     )
+    print(f"[ATP] maestro_install_discovery end count={len(installs)}", flush=True)
     return installs
 
 
@@ -352,6 +387,7 @@ def resolve_maestro_for_parallel(
     Priority: parallel-capable (newest lib) > newest lib on host (when ATP_MAESTRO_PREFER_LATEST=1).
     """
     inherited = (os.environ.get("MAESTRO_HOME") or "").strip().strip('"')
+    print("[ATP] maestro_capability_resolution begin", flush=True)
     installs = discover_maestro_installs(maestro_cmd=maestro_cmd)
     log_install_audit(installs)
     if not installs:

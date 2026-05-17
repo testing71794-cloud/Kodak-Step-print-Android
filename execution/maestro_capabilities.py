@@ -251,6 +251,7 @@ def _run_isolated_probe(
     *,
     device_count: int,
     devices: list[str] | None = None,
+    repo: Path | None = None,
 ) -> MaestroInstallCandidate:
     if device_count <= 1:
         return inst
@@ -270,7 +271,7 @@ def _run_isolated_probe(
         )
     from .maestro_isolated_parallel_probe import log_probe_result, run_isolated_parallel_probe
 
-    result = run_isolated_parallel_probe(inst.app_home, devices=devices)
+    result = run_isolated_parallel_probe(inst.app_home, devices=devices, repo=repo)
     log_probe_result(result)
     return MaestroInstallCandidate(
         label=inst.label,
@@ -350,11 +351,21 @@ def _capabilities_from_install(
     )
 
 
-def assert_native_parallel_ready(*, device_count: int, devices: list[str] | None = None) -> None:
+def assert_native_parallel_ready(
+    *,
+    device_count: int,
+    devices: list[str] | None = None,
+    repo: Path | None = None,
+) -> None:
     global _legacy_fallback_logged
     if device_count <= 1:
         return
-    caps = detect_maestro_capabilities(device_count=device_count, devices=devices)
+    print(
+        "[ATP] maestro_capability_detection begin "
+        "(install probe + optional isolated runtime validation; progress lines follow)",
+        flush=True,
+    )
+    caps = detect_maestro_capabilities(device_count=device_count, devices=devices, repo=repo)
     if caps.native_parallel_enabled:
         apply_native_parallel_env_defaults(device_count=device_count, caps=caps)
         log_native_parallel_runtime_config(caps)
@@ -397,6 +408,7 @@ def detect_maestro_capabilities(
     maestro_cmd: str | None = None,
     resolve_installs: bool = True,
     devices: list[str] | None = None,
+    repo: Path | None = None,
 ) -> MaestroCapabilities:
     global _capabilities, _selected_install
     devices = _orch_devices(devices)
@@ -442,13 +454,16 @@ def detect_maestro_capabilities(
                 _selected_install,
                 device_count=device_count,
                 devices=devices,
+                repo=repo,
             )
 
         emit_parallel_readiness_report(
             maestro_cmd=maestro_cmd,
             device_count=device_count,
             selected=_selected_install,
+            known_installs=[_selected_install] if _selected_install else None,
         )
+        print("[ATP] maestro_capability_detection end", flush=True)
 
         _capabilities = _capabilities_from_install(_selected_install, device_count=device_count)
         _capabilities.log_summary(device_count=device_count)

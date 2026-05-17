@@ -754,7 +754,7 @@ def run_atp_folder_blocking(
     sched_mode = _scheduler_mode()
     # Resolve MAESTRO_HOME / capability before launcher (overrides stale Jenkins MAESTRO_HOME).
     if len(devices) >= 1:
-        assert_native_parallel_ready(device_count=len(devices), devices=devices)
+        assert_native_parallel_ready(device_count=len(devices), devices=devices, repo=repo)
     try:
         maestro_launch = resolve_maestro_launcher(maestro_cmd)
     except Exception as e:

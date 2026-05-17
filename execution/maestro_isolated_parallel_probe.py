@@ -163,6 +163,7 @@ def run_isolated_parallel_probe(
     *,
     devices: list[str] | None = None,
     timeout_sec: float | None = None,
+    repo: Path | None = None,
 ) -> IsolatedParallelProbeResult:
     """
     Launch two Maestro hierarchy commands concurrently with isolated user.home dirs.
@@ -200,9 +201,31 @@ def run_isolated_parallel_probe(
     tmo = timeout_sec
     if tmo is None:
         try:
-            tmo = float((os.environ.get("ATP_MAESTRO_ISOLATED_PROBE_TIMEOUT_SEC") or "90").strip())
+            tmo = float((os.environ.get("ATP_MAESTRO_ISOLATED_PROBE_TIMEOUT_SEC") or "60").strip())
         except ValueError:
-            tmo = 90.0
+            tmo = 60.0
+
+    from .maestro_probe_cache import load_isolated_probe, save_isolated_probe
+
+    cached = load_isolated_probe(repo=repo, app_home=app_home, devices=devs[:2])
+    if cached is not None:
+        supported, detail = cached
+        result = IsolatedParallelProbeResult(
+            supported=supported,
+            detail=detail,
+            device_a=device_a,
+            device_b=device_b,
+            duration_sec=0.0,
+        )
+        with _probe_lock:
+            _probe_cache[cache_key] = result
+        return result
+
+    print(
+        f"[ATP] isolated_runtime_probe begin devices={device_a},{device_b} "
+        f"app_home={app_home} timeout_sec={tmo:.0f} (concurrent hierarchy; may take ~30-60s)",
+        flush=True,
+    )
 
     work_root = Path(tempfile.mkdtemp(prefix="atp_maestro_isolated_probe_"))
     results: dict[str, tuple[int, str]] = {}
@@ -269,6 +292,13 @@ def run_isolated_parallel_probe(
 
     with _probe_lock:
         _probe_cache[cache_key] = result
+    save_isolated_probe(
+        repo=repo,
+        app_home=app_home,
+        devices=[device_a, device_b],
+        supported=result.supported,
+        detail=result.detail,
+    )
     return result
 
 
