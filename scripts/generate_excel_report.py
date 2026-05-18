@@ -8,7 +8,9 @@ from __future__ import annotations
 import csv
 import os
 import sys
+import time
 from collections import Counter, defaultdict
+from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 
@@ -174,22 +176,118 @@ def _log_path(row: dict) -> str:
     return ""
 
 
+def _canonical_suite_key(value: str) -> str:
+    """Normalize atp_printing / Printing / printing to one bucket key."""
+    s = (value or "").strip().lower()
+    if s.startswith("atp_"):
+        return s[4:]
+    return s
+
+
 def _suite_keys_equivalent(stored: str, suite_key: str, suite_label: str = "") -> bool:
     """Match status id (atp_precut), folder label (Precut), or short name (precut)."""
-    s = (stored or "").strip().lower()
-    sk = (suite_key or "").strip().lower()
-    sl = (suite_label or "").strip().lower()
+    s = _canonical_suite_key(stored)
+    sk = _canonical_suite_key(suite_key)
+    sl = _canonical_suite_key(suite_label)
     if not s:
         return True
     if sk and s == sk:
         return True
     if sl and s == sl:
         return True
-    if sk.startswith("atp_") and s == sk[4:]:
-        return True
-    if sl and sk == f"atp_{sl}":
-        return True
     return False
+
+
+def _row_dedupe_key(rowd: dict) -> tuple[str, str, str]:
+    suite = _canonical_suite_key(str(rowd.get("Suite") or ""))
+    flow = str(rowd.get("Flow Name") or "").strip().lower()
+    did = str(rowd.get("Device ID") or "").strip().lower()
+    return (suite, flow, did)
+
+
+def _row_timestamp_sort_key(rowd: dict) -> float:
+    ts = str(rowd.get("Timestamp") or "").strip()
+    for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S"):
+        try:
+            return datetime.strptime(ts[:19], fmt).timestamp()
+        except ValueError:
+            continue
+    return 0.0
+
+
+def _dedupe_rows(rows: list[dict]) -> list[dict]:
+    """Keep newest row per (suite, flow, device); stable order by suite/flow/device."""
+    best: dict[tuple[str, str, str], dict] = {}
+    for rowd in rows:
+        k = _row_dedupe_key(rowd)
+        prev = best.get(k)
+        if prev is None or _row_timestamp_sort_key(rowd) >= _row_timestamp_sort_key(prev):
+            best[k] = rowd
+    out = list(best.values())
+    out.sort(
+        key=lambda r: (
+            _canonical_suite_key(str(r.get("Suite") or "")),
+            str(r.get("Flow Name") or "").lower(),
+            str(r.get("Device ID") or "").lower(),
+        )
+    )
+    return out
+
+
+@contextmanager
+def _merge_file_lock(final_path: Path, *, timeout_s: float = 120.0):
+    """Cross-process lock so parallel suite Excel merges cannot corrupt the final report."""
+    lock_path = final_path.with_name(final_path.name + ".merge.lock")
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    deadline = time.monotonic() + timeout_s
+    fd: int | None = None
+    while True:
+        try:
+            fd = os.open(str(lock_path), os.O_CREAT | os.O_EXCL | os.O_RDWR)
+            break
+        except FileExistsError:
+            if time.monotonic() >= deadline:
+                raise TimeoutError(f"Timed out waiting for merge lock: {lock_path}")
+            time.sleep(0.2)
+    try:
+        yield
+    finally:
+        if fd is not None:
+            os.close(fd)
+        try:
+            lock_path.unlink(missing_ok=True)
+        except OSError:
+            pass
+
+
+def _load_raw_results_rows(final: Path) -> list[dict]:
+    wb_o = load_workbook(final, read_only=True, data_only=True)
+    try:
+        if "Raw Results" not in wb_o.sheetnames:
+            return []
+        ws = wb_o["Raw Results"]
+        h = [str(ws.cell(1, c).value or "") for c in range(1, ws.max_column + 1)]
+        rows: list[dict] = []
+        for r in range(2, (ws.max_row or 1) + 1):
+            d: dict = {}
+            for ci, name in enumerate(h, start=1):
+                d[name] = ws.cell(r, ci).value
+            rowd: dict = {c: d.get(c, "") for c in COLS}
+            if (not str(rowd.get("AI Analyses", "")).strip()) and str(
+                rowd.get("AI Failure Summary", "")
+            ).strip():
+                rowd["AI Analyses"] = rowd.get("AI Failure Summary", "")
+            _augment_merged_row(rowd)
+            rows.append(rowd)
+        return rows
+    finally:
+        wb_o.close()
+
+
+def _atomic_save_workbook(wb: Workbook, final: Path) -> None:
+    tmp = final.with_name(final.stem + ".tmp" + final.suffix)
+    wb.save(tmp)
+    tmp.replace(final)
 
 
 def load_results(status_dir: Path, suite_name: str) -> list[dict]:
@@ -309,93 +407,98 @@ def _merge_build_summary(
     build_summary.mkdir(parents=True, exist_ok=True)
     final = build_summary / "final_execution_report.xlsx"
     sk = suite_key.strip().lower()
-    by_suites: dict[str, list[dict]] = {sk: new_rows}
-    if final.is_file():
-        try:
-            wb_o = load_workbook(final)
-            if "Raw Results" in wb_o.sheetnames:
-                ws = wb_o["Raw Results"]
-                h = [str(ws.cell(1, c).value or "") for c in range(1, ws.max_column + 1)]
-                for r in range(2, (ws.max_row or 1) + 1):
-                    d: dict = {}
-                    for ci, name in enumerate(h, start=1):
-                        d[name] = ws.cell(r, ci).value
-                    su = str(d.get("Suite") or "").strip()
-                    if _suite_keys_equivalent(su, sk, suite_label):
-                        continue
-                    su_l = su.lower()
-                    if su_l not in by_suites:
-                        by_suites[su_l] = []
-                    rowd: dict = {c: d.get(c, "") for c in COLS}
-                    if (not str(rowd.get("AI Analyses", "")).strip()) and str(
-                        rowd.get("AI Failure Summary", "")
-                    ).strip():
-                        rowd["AI Analyses"] = rowd.get("AI Failure Summary", "")
-                    _augment_merged_row(rowd)
-                    by_suites[su].append(rowd)
-        except Exception as exc:
-            print(f"Note: could not merge prior final_execution_report.xlsx: {exc}")
-    all_rows: list[dict] = []
-    for _k in sorted(by_suites.keys()):
-        for rowd in by_suites[_k]:
-            all_rows.append({c: rowd.get(c, "") for c in COLS})
-    wb = Workbook()
-    # drop default sheet
-    wb.remove(wb.active)
-    ws0 = wb.create_sheet("Summary", 0)
-    t, p, nf, fl = len(all_rows), 0, 0, 0
-    for r in all_rows:
-        s = (str(r.get("Status") or "")).upper()
-        if s == "PASS":
-            p += 1
-        elif s == "FLAKY":
-            fl += 1
-        else:
-            nf += 1
-    ws0["A1"] = "Kodak Smile — merged execution report"
-    ws0["A1"].font = Font(bold=True, size=14)
-    ws0["A2"], ws0["B2"] = "Total rows", str(t)
-    ws0["A3"], ws0["B3"] = "Passed", str(p)
-    ws0["A4"], ws0["B4"] = "Failed (non-PASS, excl. flaky count below)", str(nf)
-    ws0["A5"], ws0["B5"] = "Flaky", str(fl)
-    ws0["A6"], ws0["B6"] = "Generated", datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    ws0["A7"], ws0["B7"] = "Git Branch", detect_git_branch(REPO)
-    _write_flow_report_sheet(wb, all_rows)
-    wdev = wb.create_sheet("Device Summary")
-    wdev.append(["Device Name", "Device ID", "Total", "Passed", "Failed", "Flaky"])
-    by_d: dict[str, list[dict]] = defaultdict(list)
-    for r in all_rows:
-        by_d[str(r.get("Device ID", ""))].append(r)
-    for did, arr in sorted(by_d.items(), key=lambda x: x[0]):
-        wdev.append(
-            [
-                arr[0].get("Device Name", ""),
-                did,
-                len(arr),
-                sum(1 for x in arr if (str(x.get("Status") or "")).upper() == "PASS"),
-                sum(
-                    1
-                    for x in arr
-                    if (str(x.get("Status") or "")).upper() not in ("PASS", "FLAKY")
-                ),
-                sum(1 for x in arr if (str(x.get("Status") or "")).upper() == "FLAKY"),
-            ]
+    bucket = _canonical_suite_key(sk) or _canonical_suite_key(suite_label) or sk
+
+    with _merge_file_lock(final):
+        existing_rows: list[dict] = []
+        if final.is_file():
+            try:
+                existing_rows = _load_raw_results_rows(final)
+            except Exception as exc:
+                print(
+                    f"[ATP][REPORT] existing_report_read_failed path={final} error={exc}",
+                    flush=True,
+                )
+
+        preserved_rows = [
+            rowd
+            for rowd in existing_rows
+            if not _suite_keys_equivalent(str(rowd.get("Suite") or ""), sk, suite_label)
+        ]
+        incoming_rows = [{c: rowd.get(c, "") for c in COLS} for rowd in new_rows]
+        combined = preserved_rows + incoming_rows
+        all_rows = _dedupe_rows(combined)
+
+        existing_count = len(existing_rows)
+        incoming_count = len(incoming_rows)
+        merged_count = len(all_rows)
+        print(f"[ATP][REPORT] existing_rows={existing_count}", flush=True)
+        print(f"[ATP][REPORT] incoming_rows={incoming_count}", flush=True)
+        print(f"[ATP][REPORT] merged_rows={merged_count}", flush=True)
+        print("[ATP][REPORT] merge_strategy=append_deduplicate", flush=True)
+        print("[ATP][REPORT] write_mode=atomic_replace", flush=True)
+        print(
+            f"[ATP][REPORT] suite_bucket={bucket!r} preserved_other_suites={len(preserved_rows)}",
+            flush=True,
         )
-    wdf = wb.create_sheet("Failure Details")
-    wdf.append(COLS)
-    for c in wdf[1]:
-        c.fill = HEADER_FILL
-    for r in all_rows:
-        st = (str(r.get("Status") or "")).upper()
-        if st in ("FAIL", "FLAKY", "PARSE_ERROR", "UNKNOWN"):
-            wdf.append([r.get(c, "") for c in COLS])
-    wr = wb.create_sheet("Raw Results")
-    _fill_raw(wr, all_rows)
-    _autosize(wr, 50)
-    _autosize(wdf, 50)
-    _autosize(wdev, 40)
-    _autosize(ws0, 40)
-    wb.save(final)
+
+        wb = Workbook()
+        # drop default sheet
+        wb.remove(wb.active)
+        ws0 = wb.create_sheet("Summary", 0)
+        t, p, nf, fl = len(all_rows), 0, 0, 0
+        for r in all_rows:
+            s = (str(r.get("Status") or "")).upper()
+            if s == "PASS":
+                p += 1
+            elif s == "FLAKY":
+                fl += 1
+            else:
+                nf += 1
+        ws0["A1"] = "Kodak Smile — merged execution report"
+        ws0["A1"].font = Font(bold=True, size=14)
+        ws0["A2"], ws0["B2"] = "Total rows", str(t)
+        ws0["A3"], ws0["B3"] = "Passed", str(p)
+        ws0["A4"], ws0["B4"] = "Failed (non-PASS, excl. flaky count below)", str(nf)
+        ws0["A5"], ws0["B5"] = "Flaky", str(fl)
+        ws0["A6"], ws0["B6"] = "Generated", datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        ws0["A7"], ws0["B7"] = "Git Branch", detect_git_branch(REPO)
+        _write_flow_report_sheet(wb, all_rows)
+        wdev = wb.create_sheet("Device Summary")
+        wdev.append(["Device Name", "Device ID", "Total", "Passed", "Failed", "Flaky"])
+        by_d: dict[str, list[dict]] = defaultdict(list)
+        for r in all_rows:
+            by_d[str(r.get("Device ID", ""))].append(r)
+        for did, arr in sorted(by_d.items(), key=lambda x: x[0]):
+            wdev.append(
+                [
+                    arr[0].get("Device Name", ""),
+                    did,
+                    len(arr),
+                    sum(1 for x in arr if (str(x.get("Status") or "")).upper() == "PASS"),
+                    sum(
+                        1
+                        for x in arr
+                        if (str(x.get("Status") or "")).upper() not in ("PASS", "FLAKY")
+                    ),
+                    sum(1 for x in arr if (str(x.get("Status") or "")).upper() == "FLAKY"),
+                ]
+            )
+        wdf = wb.create_sheet("Failure Details")
+        wdf.append(COLS)
+        for c in wdf[1]:
+            c.fill = HEADER_FILL
+        for r in all_rows:
+            st = (str(r.get("Status") or "")).upper()
+            if st in ("FAIL", "FLAKY", "PARSE_ERROR", "UNKNOWN"):
+                wdf.append([r.get(c, "") for c in COLS])
+        wr = wb.create_sheet("Raw Results")
+        _fill_raw(wr, all_rows)
+        _autosize(wr, 50)
+        _autosize(wdf, 50)
+        _autosize(wdev, 40)
+        _autosize(ws0, 40)
+        _atomic_save_workbook(wb, final)
 
 
 def build_workbook(
