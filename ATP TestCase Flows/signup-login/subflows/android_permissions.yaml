@@ -1,0 +1,19 @@
+appId: com.kodak.steptouch
+---
+# Dismiss common Android runtime permission dialogs when they appear (may repeat).
+- tapOn:
+    text: "While using the app"
+    optional: true
+    label: Permission – While using the app
+- tapOn:
+    text: "Only this time"
+    optional: true
+    label: Permission – Only this time
+- tapOn:
+    text: "Allow"
+    optional: true
+    label: Permission – Allow
+- tapOn:
+    text: "ALLOW"
+    optional: true
+    label: Permission – ALLOW

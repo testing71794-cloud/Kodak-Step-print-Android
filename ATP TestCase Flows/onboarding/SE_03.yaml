@@ -1,0 +1,46 @@
+# TC_ID: SE_03
+# ATP Name: Quick Tips > App quick tour
+# ATP Steps: Open app → Settings (gear) → Quick tips → App quick tour → slide left and right
+# ATP Expected: User can open the app's quick tour / onboarding slides and navigate through them
+appId: com.kodak.steptouch
+name: "SE_03 - Open App quick tour from Settings and swipe slides"
+---
+- launchApp:
+    clearState: true
+- runFlow: ../signup-login/subflows/reach_gallery_after_onboarding_skip.yaml
+- assertVisible:
+    text: "My gallery"
+    timeout: 90000
+# Gear icon is often image-only; mirror CO_01 Bluetooth point pattern (top-left toolbar).
+- tapOn:
+    point: "8%, 10%"
+    label: Settings (gear) – top-left per ATP
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    visible: "Quick tips"
+    timeout: 30000
+- tapOn: "Quick tips"
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    visible: "App quick tour"
+    timeout: 30000
+- tapOn: "App quick tour"
+- waitForAnimationToEnd
+- runFlow:
+    when:
+      visible: "Start a quick tour"
+    commands:
+      - tapOn: "Start a quick tour"
+      - waitForAnimationToEnd
+- assertVisible:
+    text: "Skip"
+    timeout: 30000
+- swipe:
+    direction: LEFT
+- waitForAnimationToEnd
+- swipe:
+    direction: RIGHT
+- waitForAnimationToEnd
+- assertVisible:
+    text: "Skip"
+    timeout: 30000

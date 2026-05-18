@@ -1,0 +1,26 @@
+appId: com.kodak.steptouch
+---
+# Same path as signup-login/subflows/onboarding_entry_from_cold_start.yaml, plus optional
+# "Start a quick tour" (screenshots) before waiting for Skip. Leave signup-login files unchanged.
+- runFlow: ../../signup-login/subflows/post_launch_through_signup.yaml
+- extendedWaitUntil:
+    visible: "Create an account"
+    timeout: 5000
+- tapOn: "I'll do it later"
+- waitForAnimationToEnd
+- runFlow: ../../signup-login/handle_optional_permissions_loop.yaml
+- extendedWaitUntil:
+    visible: "Agree Terms and Conditions"
+    timeout: 5000
+- runFlow: ../../signup-login/subflows/accept_terms_if_visible.yaml
+- waitForAnimationToEnd
+- runFlow: ../../signup-login/handle_optional_permissions_loop.yaml
+- runFlow:
+    when:
+      visible: "Start a quick tour"
+    commands:
+      - tapOn: "Start a quick tour"
+      - waitForAnimationToEnd
+- extendedWaitUntil:
+    visible: "Skip"
+    timeout: 5000

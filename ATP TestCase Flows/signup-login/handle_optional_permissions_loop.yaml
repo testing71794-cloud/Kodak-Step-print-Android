@@ -1,0 +1,8 @@
+appId: com.kodak.steptouch
+---
+# Run permission handler a few times; optional taps skip when dialogs are absent.
+- repeat:
+    times: 2
+    commands:
+      - runFlow: subflows/android_permissions.yaml
+      - waitForAnimationToEnd
