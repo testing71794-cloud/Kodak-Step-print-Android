@@ -22,7 +22,7 @@ if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
 from execution.atp_folder_paths import discover_atp_yaml_files, resolve_atp_subfolder  # noqa: E402
-from execution.subprocess_launch import windows_cmd_bat_argv  # noqa: E402
+from execution.subprocess_launch import log_subprocess_launch, windows_cmd_bat_argv  # noqa: E402
 
 
 def folder_to_suite_id(folder: str) -> str:
@@ -50,13 +50,25 @@ def _refresh_devices_on_this_agent(repo: Path) -> None:
     ):
         print("[jenkins_atp_stage] ATP_REFRESH_DEVICES_BEFORE_RUN=0 — skip device refresh", flush=True)
         return
-    bat = repo / "scripts" / "list_devices.bat"
+    bat = repo / "scripts" / "windows_agent" / "list_devices.bat"
+    if not bat.is_file():
+        bat = repo / "scripts" / "list_devices.bat"
     if not bat.is_file():
         return
-    print("[jenkins_atp_stage] refreshing detected_devices.txt on this agent (list_devices.bat)", flush=True)
+    print(
+        f"[jenkins_atp_stage] refreshing detected_devices.txt on this agent ({bat.name})",
+        flush=True,
+    )
+    env = os.environ.copy()
+    # Avoid cmd.exe splitting workspace paths if a prior stage set MAESTRO_OPTS with -Duser.home=...
+    env.pop("MAESTRO_OPTS", None)
+    env.pop("ATP_JAVA_USER_HOME", None)
+    cmd = windows_cmd_bat_argv(bat, str(repo.resolve()))
+    log_subprocess_launch(cmd, cwd=repo.resolve(), shell=False, label="list_devices")
     subprocess.run(
-        windows_cmd_bat_argv(bat, str(repo)),
-        cwd=str(repo),
+        cmd,
+        cwd=str(repo.resolve()),
+        env=env,
         check=False,
         shell=False,
     )
