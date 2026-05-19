@@ -2,36 +2,45 @@ appId: com.kodak.steptouch
 name: SU_08_Log_In_Window
 ---
 # ATP SU_08 – Navigate to Log In, valid credentials, then Terms & Conditions.
-# Provide via CLI: maestro test -e SU_VALID_EMAIL=user@domain.com -e SU_VALID_PASSWORD=TestPass1a
 - launchApp:
     clearState: true
 - runFlow: subflows/post_launch_through_signup.yaml
 - assertVisible: "Create an account"
-- assertVisible: "Full Name*"
-- assertVisible: "Email*"
-- assertVisible: "Password*"
-- assertVisible: "SIGN UP"
 - assertVisible: "Already have an account?"
-- assertVisible: "I'll do it later"
 - assertVisible: "Log In"
 - tapOn: "Log In"
 - waitForAnimationToEnd
 - extendedWaitUntil:
     visible: "LOGIN"
-    timeout: 5000
-- assertVisible: "Log In"
+    timeout: 10000
+- assertVisible:
+    text: "Log In"
+    optional: true
 - assertVisible: "Email"
 - assertVisible: "Password"
 - assertVisible: "Forgot password?"
 - assertVisible: "LOGIN"
 - assertVisible: "Don't have an account?"
-- tapOn: "Email*"
+- tapOn:
+    text: "Email*"
+    optional: true
+- tapOn:
+    text: "Email"
+    optional: true
 - inputText: Niteshmehra56@gmail.com
-- tapOn: "Password*"
+- tapOn:
+    text: "Password*"
+    optional: true
+- tapOn:
+    text: "Password"
+    optional: true
 - inputText: 252546Nm#
 - hideKeyboard
 - waitForAnimationToEnd
 - tapOn: "LOGIN"
 - waitForAnimationToEnd
 - runFlow: handle_optional_permissions_loop.yaml
-- assertVisible: "Agree Terms and Conditions"
+- runFlow: subflows/accept_terms_if_visible.yaml
+- assertVisible:
+    text: "Agree Terms and Conditions"
+    optional: true

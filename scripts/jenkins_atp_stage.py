@@ -16,12 +16,12 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
+ORCHESTRATOR_MODULE = "execution.atp_jenkins_orchestrator"
+
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
-from utils.project_identity import normalize_app_package  # noqa: E402
-
-ORCHESTRATOR_MODULE = "execution.atp_jenkins_orchestrator"
+from execution.atp_folder_paths import discover_atp_yaml_files, resolve_atp_subfolder  # noqa: E402
 
 
 def folder_to_suite_id(folder: str) -> str:
@@ -53,11 +53,11 @@ def _refresh_devices_on_this_agent(repo: Path) -> None:
     if not bat.is_file():
         return
     print("[jenkins_atp_stage] refreshing detected_devices.txt on this agent (list_devices.bat)", flush=True)
-    if os.name == "nt":
-        argv = ["cmd.exe", "/d", "/c", "call", str(bat), str(repo)]
-        subprocess.run(argv, cwd=str(repo), check=False, shell=False)
-    else:
-        subprocess.run([str(bat), str(repo)], cwd=str(repo), check=False, shell=False)
+    subprocess.run(
+        ["cmd.exe", "/c", "call", str(bat), str(repo)],
+        cwd=str(repo),
+        check=False,
+    )
 
 
 def _log_orchestrator_fingerprint(repo: Path) -> None:
@@ -73,36 +73,45 @@ def _log_orchestrator_fingerprint(repo: Path) -> None:
             print(f"[jenkins_atp_stage] orchestrator_rev={rev}", flush=True)
 
 
-def _resolve_app_package(app: str) -> str:
-    resolved = normalize_app_package(app)
-    if resolved != (app or "").strip():
-        print(
-            f"[jenkins_atp_stage] APP_PACKAGE {app!r} -> {resolved!r} "
-            f"(Kodak Step Print Android; legacy Smile id ignored)",
-            flush=True,
-        )
-    return resolved
+def _log_folder_discovery(folder_arg: str, resolved: str) -> None:
+    print(f"[jenkins_atp_stage] workspace={REPO.resolve()}", flush=True)
+    print(f"[jenkins_atp_stage] folder_arg={folder_arg!r} resolved_folder={resolved!r}", flush=True)
+    flows = discover_atp_yaml_files(REPO, resolved or folder_arg, exclude_subflows=True)
+    if flows:
+        print(f"[jenkins_atp_stage] preflight: {len(flows)} yaml test file(s) to run:", flush=True)
+        for p in flows:
+            try:
+                rel = p.resolve().relative_to(REPO.resolve())
+            except ValueError:
+                rel = p
+            print(f"[jenkins_atp_stage]   - {rel}", flush=True)
+    else:
+        print("[jenkins_atp_stage] preflight: 0 yaml test files (stage will fail)", flush=True)
 
 
 def cmd_run(folder: str, app: str, clear_state: str, maestro_cmd: str) -> int:
-    sid = folder_to_suite_id(folder)
-    app = _resolve_app_package(app)
+    resolved = resolve_atp_subfolder(REPO, folder)
+    sid = folder_to_suite_id(resolved or folder)
+    _log_folder_discovery(folder, resolved)
     _refresh_devices_on_this_agent(REPO)
     _log_orchestrator_fingerprint(REPO)
+    maestro_argv = [
+        sys.executable,
+        "-m",
+        ORCHESTRATOR_MODULE,
+        str(REPO),
+        app,
+        clear_state,
+        maestro_cmd,
+        resolved or folder,
+    ]
+    if not discover_atp_yaml_files(REPO, resolved or folder, exclude_subflows=True):
+        print("[jenkins_atp_stage] ERROR: no yaml test files — aborting stage", flush=True)
+        touch_flag(f"{sid}_no_results.flag")
+        return 1
+    print(f"[jenkins_atp_stage] maestro_command={' '.join(maestro_argv)!r}", flush=True)
     # Stack A: blocking Python orchestrator (no detached PowerShell Start-Process chain).
-    p = subprocess.run(
-        [
-            sys.executable,
-            "-m",
-            ORCHESTRATOR_MODULE,
-            str(REPO),
-            app,
-            clear_state,
-            maestro_cmd,
-            folder,
-        ],
-        cwd=str(REPO),
-    )
+    p = subprocess.run(maestro_argv, cwd=str(REPO))
     if p.returncode != 0:
         touch_flag(f"{sid}_failed.flag")
     return p.returncode
@@ -156,8 +165,9 @@ def cmd_excel(folder: str) -> int:
 
 def cmd_all(folder: str, app: str, clear_state: str, maestro_cmd: str) -> int:
     """One Jenkins stage per folder: run → validate → excel (shrinks CPS bytecode vs 3 stages)."""
-    sid = folder_to_suite_id(folder)
-    print(f"[jenkins_atp_stage] === ATP folder={folder!r} suite={sid!r} ===")
+    resolved = resolve_atp_subfolder(REPO, folder)
+    sid = folder_to_suite_id(resolved or folder)
+    print(f"[jenkins_atp_stage] === ATP folder={folder!r} resolved={resolved!r} suite={sid!r} ===", flush=True)
     print(
         f"[jenkins_atp_stage] agent_env MAESTRO_HOME={os.environ.get('MAESTRO_HOME', '')} "
         f"ATP_MAESTRO_PARALLEL_HOME={os.environ.get('ATP_MAESTRO_PARALLEL_HOME', '')} "
@@ -166,7 +176,11 @@ def cmd_all(folder: str, app: str, clear_state: str, maestro_cmd: str) -> int:
     )
     rc_run = cmd_run(folder, app, clear_state, maestro_cmd)
     cmd_validate(sid)
-    cmd_excel(folder)
+    cmd_excel(resolved or folder)
+    if rc_run != 0:
+        print(f"[jenkins_atp_stage] stage_status=FAILED suite={sid!r} exit={rc_run}", flush=True)
+    else:
+        print(f"[jenkins_atp_stage] stage_status=OK suite={sid!r}", flush=True)
     return rc_run
 
 

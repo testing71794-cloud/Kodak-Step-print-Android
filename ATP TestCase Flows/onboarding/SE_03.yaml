@@ -15,11 +15,21 @@ name: "SE_03 - Open App quick tour from Settings and swipe slides"
 - tapOn:
     point: "8%, 10%"
     label: Settings (gear) – top-left per ATP
+    optional: true
+- tapOn:
+    id: settingImageView
+    optional: true
 - waitForAnimationToEnd
 - extendedWaitUntil:
-    visible: "Quick tips"
+    visible:
+      text: ".*Quick [Tt]ips.*"
     timeout: 30000
-- tapOn: "Quick tips"
+- tapOn:
+    text: "Quick tips"
+    optional: true
+- tapOn:
+    text: "Quick Tips"
+    optional: true
 - waitForAnimationToEnd
 - extendedWaitUntil:
     visible: "App quick tour"

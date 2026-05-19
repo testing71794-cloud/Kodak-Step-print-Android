@@ -18,3 +18,14 @@ appId: com.kodak.steptouch
           commands:
             - tapOn: "Agree Terms and Conditions"
             - waitForAnimationToEnd
+
+- runFlow:
+    when:
+      visible: "Terms"
+    commands:
+      - runFlow:
+          when:
+            visible: "Agree Terms and Conditions"
+          commands:
+            - tapOn: "Agree Terms and Conditions"
+            - waitForAnimationToEnd

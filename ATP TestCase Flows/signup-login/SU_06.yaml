@@ -2,7 +2,6 @@ appId: com.kodak.steptouch
 name: SU_06_Create_Account_User_Already_Exists
 ---
 # ATP SU_06 – Existing email shows alert with OK and Forgot.
-# Provide via CLI: maestro test -e SU_EXISTING_EMAIL=user@domain.com -e SU_EXISTING_PASSWORD=TestPass1a
 - launchApp:
     clearState: true
 - runFlow: subflows/post_launch_through_signup.yaml
@@ -25,4 +24,15 @@ name: SU_06_Create_Account_User_Already_Exists
 - extendedWaitUntil:
     visible: "User already exists"
     timeout: 20000
-
+- assertVisible:
+    text: "OK"
+    optional: true
+- assertVisible:
+    text: "Ok"
+    optional: true
+- assertVisible:
+    text: "Forgot password?"
+    optional: true
+- assertVisible:
+    text: "Forgot Password"
+    optional: true

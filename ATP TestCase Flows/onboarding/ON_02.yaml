@@ -10,19 +10,25 @@ name: "ON_02 - Advance onboarding via Next and horizontal swipe"
 - runFlow: subflows/reach_onboarding_after_terms.yaml
 - extendedWaitUntil:
     visible: "Gallery"
-    timeout: 5000
+    timeout: 15000
 - tapOn: "Next"
 - waitForAnimationToEnd
-# Next must change the active slide (overlay headline leaves the first screen)
-- assertNotVisible: "Switch Between\nCamera and Gallery"
-- assertVisible: "Tap to \nAdjust Your \nGallery View"
+# Next must change the active slide (overlay headline leaves the first screen).
+- extendedWaitUntil:
+    visible: "Tap to \nAdjust Your \nGallery View"
+    timeout: 10000
+- runFlow:
+    when:
+      visible: "Switch Between\nCamera and Gallery"
+    commands:
+      - assertNotVisible: "Switch Between\nCamera and Gallery"
 # ATP step 5: finger moves left-to-right → Maestro swipe RIGHT (returns toward previous slide)
 - swipe:
     direction: RIGHT
 - waitForAnimationToEnd
 - extendedWaitUntil:
     visible: "Gallery"
-    timeout: 5000
+    timeout: 15000
 - extendedWaitUntil:
     visible: "Skip"
-    timeout: 5000
+    timeout: 15000

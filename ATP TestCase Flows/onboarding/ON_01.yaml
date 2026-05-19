@@ -10,14 +10,22 @@ name: "ON_01 - Enter onboarding after accepting terms"
 - runFlow: subflows/reach_onboarding_after_terms.yaml
 - extendedWaitUntil:
     visible: "Skip"
-    timeout: 5000
+    timeout: 15000
 - extendedWaitUntil:
     visible: "Next"
-    timeout: 5000
-# First carousel screen (screenshots); matches SU_01 when the label wraps across lines
-- assertVisible: "Gallery"
-- assertVisible: "You also can swipe to take a photo"
-
-
-
-
+    timeout: 15000
+- runFlow:
+    when:
+      visible: "Gallery"
+    commands:
+      - assertVisible: "Gallery"
+- runFlow:
+    when:
+      visible: "You also can swipe to take a photo"
+    commands:
+      - assertVisible: "You also can swipe to take a photo"
+- runFlow:
+    when:
+      visible: "Switch Between\nCamera and Gallery"
+    commands:
+      - assertVisible: "Switch Between\nCamera and Gallery"

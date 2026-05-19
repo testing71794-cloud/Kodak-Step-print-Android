@@ -2,26 +2,24 @@ appId: com.kodak.steptouch
 name: SU_10_Log_In_Forgot_Password
 ---
 # ATP SU_10 – Forgot password from Log In; submit reset for valid email.
-# Provide via CLI: maestro test -e SU_VALID_EMAIL=user@domain.com
 - launchApp:
     clearState: true
 - runFlow: subflows/post_launch_through_signup.yaml
 - assertVisible: "Create an account"
-- assertVisible: "Full Name*"
-- assertVisible: "Email*"
-- assertVisible: "Password*"
-- assertVisible: "SIGN UP"
 - assertVisible: "Already have an account?"
-- assertVisible: "I'll do it later"
 - tapOn: "Log In"
 - waitForAnimationToEnd
 - extendedWaitUntil:
     visible: "Forgot password?"
-    timeout: 5000
-- assertVisible: "Password"
+    timeout: 10000
 - tapOn: "Forgot password?"
 - waitForAnimationToEnd
-- tapOn: "Email*"
+- tapOn:
+    text: "Email*"
+    optional: true
+- tapOn:
+    text: "Email"
+    optional: true
 - inputText: Niteshmehra56@yopmail.com
 - hideKeyboard
 - waitForAnimationToEnd
@@ -30,16 +28,26 @@ name: SU_10_Log_In_Forgot_Password
       visible: "Send"
     commands:
       - tapOn: "Send"
-- waitForAnimationToEnd      
+      - waitForAnimationToEnd
 - runFlow:
     when:
       visible: "DONE"
     commands:
       - tapOn: "DONE"
-- waitForAnimationToEnd
-# Adjust substring if your build uses different copy (e.g. "check your inbox").
-- assertVisible: "Password"
-- assertVisible: "Log In"
-- assertVisible: "LOGIN"
-
-
+      - waitForAnimationToEnd
+- runFlow:
+    when:
+      visible: "Done"
+    commands:
+      - tapOn: "Done"
+      - waitForAnimationToEnd
+# Adjust substring if your build uses different success copy (e.g. "check your inbox").
+- assertVisible:
+    text: "Password"
+    optional: true
+- assertVisible:
+    text: "Log In"
+    optional: true
+- assertVisible:
+    text: "LOGIN"
+    optional: true

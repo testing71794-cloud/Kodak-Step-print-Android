@@ -13,6 +13,12 @@ name: CO_01_My_Gallery_Bluetooth_Icon
     point: "92%, 10%"
     label: Bluetooth entry – top-right
 - waitForAnimationToEnd
+- runFlow:
+    when:
+      visible: "Connect"
+    commands:
+      - tapOn: "Connect"
+      - waitForAnimationToEnd
 - extendedWaitUntil:
     visible:
       text: ${BT_DEVICE_NAME}
@@ -21,3 +27,7 @@ name: CO_01_My_Gallery_Bluetooth_Icon
     text: ${BT_DEVICE_NAME}
 - waitForAnimationToEnd
 - runFlow: subflows/pairing_optional.yaml
+- runFlow: ../signup-login/handle_optional_permissions_loop.yaml
+- assertVisible:
+    text: "Connected"
+    optional: true

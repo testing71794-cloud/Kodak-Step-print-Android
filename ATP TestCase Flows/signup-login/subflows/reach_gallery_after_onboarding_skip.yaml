@@ -1,10 +1,13 @@
 appId: com.kodak.steptouch
 ---
 # ATP ON_03 / Connection prequel: skip onboarding, accept runtime permissions, land on gallery.
-# Adjust the final wait text if your build labels the header differently.
 - runFlow: onboarding_entry_from_cold_start.yaml
-- tapOn: "Skip"
-- waitForAnimationToEnd
+- runFlow:
+    when:
+      visible: "Skip"
+    commands:
+      - tapOn: "Skip"
+      - waitForAnimationToEnd
 - runFlow: ../handle_optional_permissions_loop.yaml
 - extendedWaitUntil:
     visible: "My gallery"

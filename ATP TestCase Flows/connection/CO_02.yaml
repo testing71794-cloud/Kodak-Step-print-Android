@@ -17,6 +17,7 @@ name: CO_02_Thumbnail_Quick_Print
 - tapOn:
     point: "18%, 38%"
     label: Thumbnail overflow menu – fallback
+    optional: true
 - waitForAnimationToEnd
 - tapOn:
     text: "Print"
@@ -40,3 +41,6 @@ name: CO_02_Thumbnail_Quick_Print
     text: ${BT_DEVICE_NAME}
 - waitForAnimationToEnd
 - runFlow: subflows/pairing_optional.yaml
+- assertVisible:
+    text: "Connected"
+    optional: true

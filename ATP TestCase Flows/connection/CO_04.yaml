@@ -8,9 +8,10 @@ name: CO_04_Auto_Connect
 - waitForAnimationToEnd
 - runFlow: ../signup-login/subflows/post_launch_through_signup.yaml
 - runFlow: ../signup-login/handle_optional_permissions_loop.yaml
+- runFlow: ../signup-login/subflows/accept_terms_if_visible.yaml
 # Land on main gallery (session may skip auth if still logged in).
 - extendedWaitUntil:
-    visible: "gallery"
+    visible: "My gallery"
     timeout: 90000
 - assertVisible:
     text: "Connected"

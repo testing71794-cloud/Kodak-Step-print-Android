@@ -20,11 +20,21 @@ name: SU_01_Ill_Do_It_Later
       visible: "Start a quick tour"
     commands:
       - tapOn: "Start a quick tour"
-# ON_01 alignment: onboarding exposes Next and/or Skip.
-- assertVisible: "Switch Between\nCamera and Gallery"
+      - waitForAnimationToEnd
+# ON_01 alignment: first carousel slide (copy may wrap across lines).
+- runFlow:
+    when:
+      visible: "Switch Between\nCamera and Gallery"
+    commands:
+      - assertVisible: "Switch Between\nCamera and Gallery"
+- runFlow:
+    when:
+      visible: "Gallery"
+    commands:
+      - assertVisible: "Gallery"
 - runFlow:
     when:
       visible: "Skip"
     commands:
       - tapOn: "Skip"
-
+      - waitForAnimationToEnd

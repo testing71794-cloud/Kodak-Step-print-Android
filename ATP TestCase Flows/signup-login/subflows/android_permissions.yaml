@@ -6,6 +6,9 @@ appId: com.kodak.steptouch
     optional: true
     label: Permission – While using the app
 - tapOn:
+    text: "Allow only while using the app"
+    optional: true
+- tapOn:
     text: "Only this time"
     optional: true
     label: Permission – Only this time
@@ -17,3 +20,34 @@ appId: com.kodak.steptouch
     text: "ALLOW"
     optional: true
     label: Permission – ALLOW
+
+- runFlow:
+    when:
+      visible: "Enable photos access"
+    commands:
+      - tapOn: "Enable photos access"
+      - waitForAnimationToEnd
+      - tapOn:
+          text: "Allow"
+          optional: true
+
+- runFlow:
+    when:
+      visible: "Enable camera access"
+    commands:
+      - tapOn: "Enable camera access"
+      - waitForAnimationToEnd
+      - tapOn:
+          text: "Allow"
+          optional: true
+
+- runFlow:
+    when:
+      visible: "Photos Access Required"
+    commands:
+      - tapOn:
+          text: "Ok"
+          optional: true
+      - tapOn:
+          text: "OK"
+          optional: true

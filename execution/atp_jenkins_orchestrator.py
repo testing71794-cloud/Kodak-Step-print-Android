@@ -50,6 +50,7 @@ from .maestro_runner import (
     resolve_maestro_launcher,
     run_run_one_flow_device_bat,
 )
+from .atp_folder_paths import discover_atp_yaml_files, resolve_atp_subfolder
 from .flow_timing import read_status_fields
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -224,23 +225,37 @@ def merge_atp_suite_labels_json(labels_path: Path, new_labels: dict[str, str], m
 
 def discover_flows(repo: Path, atp_subfolder: str) -> list[Path]:
     atp_root = repo / "ATP TestCase Flows"
+    folder_arg = (atp_subfolder or "").strip()
+    resolved = resolve_atp_subfolder(repo, folder_arg) if folder_arg else ""
+    print(f"[ATP] workspace={repo.resolve()}", flush=True)
+    print(f"[ATP] atp_root={atp_root.resolve()}", flush=True)
+    if folder_arg:
+        print(f"[ATP] folder_arg={folder_arg!r} resolved_folder={resolved!r}", flush=True)
     if not atp_root.is_dir():
-        print("[ATP] SKIP: folder not found - ATP TestCase Flows", flush=True)
+        print("[ATP] ERROR: folder not found - ATP TestCase Flows", flush=True)
         return []
-    sub = (atp_subfolder or "").strip()
-    if sub:
-        folder_root = atp_root / sub
+    if folder_arg:
+        folder_root = atp_root / resolved
         if not folder_root.is_dir():
-            print(f"[ATP] SKIP: subfolder not found: {sub}", flush=True)
+            print(
+                f"[ATP] ERROR: subfolder not found on disk: {resolved!r} "
+                f"(from stage arg {folder_arg!r})",
+                flush=True,
+            )
+            available = [c.name for c in sorted(atp_root.iterdir()) if c.is_dir()]
+            print(f"[ATP] available ATP folders: {available}", flush=True)
             return []
-        roots = [folder_root]
+    flows = discover_atp_yaml_files(repo, folder_arg, exclude_subflows=True)
+    if flows:
+        print(f"[ATP] discovered {len(flows)} yaml test file(s):", flush=True)
+        for p in flows:
+            try:
+                rel = p.resolve().relative_to(repo.resolve())
+            except ValueError:
+                rel = p
+            print(f"[ATP]   - {rel}", flush=True)
     else:
-        roots = [atp_root]
-    flows: list[Path] = []
-    for root in roots:
-        for p in sorted(root.rglob("*"), key=lambda x: str(x).lower()):
-            if p.is_file() and p.suffix.lower() in (".yaml", ".yml"):
-                flows.append(p)
+        print("[ATP] discovered 0 yaml test files (subflows/ excluded)", flush=True)
     return flows
 
 
@@ -278,39 +293,17 @@ class _DeviceFlowOutcome:
 
 
 def _default_parallel_stagger_sec(device_count: int = 1) -> str:
-    """0 = simultaneous startups for native parallel; legacy serialized may use 2s on Windows."""
-    from .maestro_capabilities import legacy_serialized_allowed
-
-    if device_count > 1 and native_parallel_active(device_count):
-        return "0"
-    if device_count > 1 and legacy_serialized_allowed():
-        return "2" if os.name == "nt" else "0"
+    """Default startup stagger step (seconds per device index); execution stays parallel."""
+    if device_count > 1:
+        return "2"
     return "0"
 
 
 def _parallel_launch_stagger_sec(launch_index: int) -> float:
-    """Stagger between device worker starts (0 = simultaneous for native parallel)."""
-    if launch_index <= 0:
-        return 0.0
-    try:
-        from .maestro_capabilities import is_native_parallel_env_active, native_parallel_active
+    """Startup-only stagger between device workers (does not serialize flow execution)."""
+    from .maestro_stabilization import parallel_device_stagger_sec
 
-        dc = int(os.environ.get("ATP_ORCH_DEVICE_COUNT", "1") or "1")
-        if is_native_parallel_env_active() or native_parallel_active(dc):
-            return 0.0
-    except (ImportError, ValueError):
-        pass
-    raw = (os.environ.get("ATP_PARALLEL_DEVICE_STAGGER_SEC") or "").strip()
-    if not raw:
-        try:
-            dc = int(os.environ.get("ATP_ORCH_DEVICE_COUNT", "1"))
-        except ValueError:
-            dc = 1
-        raw = _default_parallel_stagger_sec(dc)
-    try:
-        return max(0.0, float(raw)) * launch_index
-    except ValueError:
-        return 0.0
+    return parallel_device_stagger_sec(launch_index)
 
 
 def _handshake_gate_enabled(device_count: int, mode: str) -> bool:
@@ -414,21 +407,15 @@ def _execute_flow_on_device(
     worker_startup: bool = False,
 ) -> _DeviceFlowOutcome:
     """One (flow, device) run: lease, isolated subprocess, per-device reports (no shared state)."""
-    if worker_startup:
-        stagger = _parallel_launch_stagger_sec(launch_index)
-        try:
-            from .maestro_capabilities import is_native_parallel_env_active, native_parallel_active
+    from .maestro_stabilization import maybe_startup_stagger_once
 
-            if is_native_parallel_env_active() or native_parallel_active(len(devices)):
-                stagger = 0.0
-        except ImportError:
-            pass
-        if stagger > 0:
-            print(
-                f"[ATP] parallel_stagger device={_dev_log(device_id)} flow={flow_base} sleep_sec={stagger:.1f}",
-                flush=True,
-            )
-            time.sleep(stagger)
+    maybe_startup_stagger_once(device_id, launch_index)
+    try:
+        from utils.runflow_resolve import validate_runflow_paths
+
+        validate_runflow_paths(flow, repo_root=repo)
+    except OSError as exc:
+        print(f"[ATP] runflow_resolve_skip flow={flow_base} error={exc}", flush=True)
     if execution_mode != "dynamic" and _handshake_gate_enabled(len(devices), execution_mode):
         _wait_for_prior_device_handshake(
             repo=repo,
@@ -765,6 +752,13 @@ def run_atp_folder_blocking(
 
     flows = discover_flows(repo, atp_subfolder)
     if not flows:
+        if single_folder_mode:
+            print(
+                "[ATP] ERROR: no executable .yaml/.yml test files found for this stage "
+                "(check folder mapping and ATP TestCase Flows layout)",
+                flush=True,
+            )
+            return 1
         if atp_root.is_dir():
             print("[ATP] SKIP: no .yaml/.yml files under ATP TestCase Flows", flush=True)
         return 0
@@ -775,25 +769,11 @@ def run_atp_folder_blocking(
     clear_state = (clear_state or "true").strip()
 
     add_adb_from_env_to_path()
-    adb_exe = shutil.which("adb")
-    if adb_exe:
-        from .subprocess_launch import log_subprocess_launch
-
-        for adb_args in (["start-server"], ["devices"]):
-            argv = [adb_exe, *adb_args]
-            log_subprocess_launch(argv, cwd=repo, shell=False, label="adb")
-            try:
-                subprocess.run(
-                    argv,
-                    capture_output=True,
-                    text=True,
-                    timeout=60,
-                    check=False,
-                    shell=False,
-                    cwd=str(repo),
-                )
-            except (OSError, subprocess.TimeoutExpired):
-                pass
+    try:
+        subprocess.run(["adb", "start-server"], capture_output=True, text=True, timeout=60, check=False)
+        subprocess.run(["adb", "devices"], capture_output=True, text=True, timeout=60, check=False)
+    except (FileNotFoundError, OSError, subprocess.TimeoutExpired):
+        pass
 
     time.sleep(1)
 
@@ -843,7 +823,7 @@ def run_atp_folder_blocking(
         print(f"[ATP] legacy_runtime_mutex={mutex_env}", flush=True)
         print(
             f"[ATP] parallel_device_stagger_sec={stagger_env} "
-            f"(0 = simultaneous; native parallel default)",
+            f"(startup-only; index*N sec before worker begins; flows still parallel)",
             flush=True,
         )
         print(
@@ -933,9 +913,7 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 2
     repo = Path(argv[0]).resolve()
-    from utils.project_identity import normalize_app_package
-
-    app = normalize_app_package(argv[1])
+    app = argv[1]
     clear_s = argv[2]
     maestro_c = argv[3]
     sub = argv[4] if len(argv) > 4 else ""

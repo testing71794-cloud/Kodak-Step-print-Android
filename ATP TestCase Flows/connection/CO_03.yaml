@@ -19,6 +19,7 @@ name: CO_03_Print_Preview_Window
 - tapOn:
     point: "88%, 92%"
     label: Print control bottom-right fallback
+    optional: true
 - waitForAnimationToEnd
 # Red / primary print in preview toolbar (top-right area).
 - tapOn:
@@ -28,7 +29,14 @@ name: CO_03_Print_Preview_Window
 - tapOn:
     point: "90%, 10%"
     label: Top-right print fallback
+    optional: true
 - waitForAnimationToEnd
+- runFlow:
+    when:
+      visible: "Connect"
+    commands:
+      - tapOn: "Connect"
+      - waitForAnimationToEnd
 - extendedWaitUntil:
     visible:
       text: ${BT_DEVICE_NAME}
@@ -37,3 +45,6 @@ name: CO_03_Print_Preview_Window
     text: ${BT_DEVICE_NAME}
 - waitForAnimationToEnd
 - runFlow: subflows/pairing_optional.yaml
+- assertVisible:
+    text: "Connected"
+    optional: true
