@@ -1,38 +1,65 @@
 @echo off
-setlocal
+setlocal EnableExtensions EnableDelayedExpansion
+REM script_rev=2026-05-windows-precheck-quoted-1
 
 set "SCRIPT_DIR=%~dp0"
 call "%SCRIPT_DIR%set_maestro_java.bat" "%~1" || exit /b 1
 
-set "JAVA_HOME=C:\Users\HP\.jdks\jbr-17.0.8"
-set "MAESTRO_HOME=C:\Users\HP\maestro\maestro\bin"
-set "ADB_HOME=C:\Users\HP\AppData\Local\Android\Sdk\platform-tools"
-set "PATH=%JAVA_HOME%\bin;%MAESTRO_HOME%;%ADB_HOME%;%PATH%"
+if defined JAVA_HOME set "PATH=%JAVA_HOME%\bin;%PATH%"
+if defined MAESTRO_HOME set "PATH=%MAESTRO_HOME%;%PATH%"
+if defined ADB_HOME set "PATH=%ADB_HOME%;%PATH%"
+
+set "ADB_EXE="
+if defined ADB_HOME if exist "%ADB_HOME%\adb.exe" set "ADB_EXE=%ADB_HOME%\adb.exe"
+if not defined ADB_EXE (
+  for /f "delims=" %%W in ('where adb 2^>nul') do (
+    set "ADB_EXE=%%W"
+    goto :adb_resolved
+  )
+)
+:adb_resolved
+
+set "MAESTRO_BIN="
+if defined MAESTRO_HOME (
+  if exist "%MAESTRO_HOME%\maestro.bat" set "MAESTRO_BIN=%MAESTRO_HOME%\maestro.bat"
+  if not defined MAESTRO_BIN if exist "%MAESTRO_HOME%\maestro.cmd" set "MAESTRO_BIN=%MAESTRO_HOME%\maestro.cmd"
+)
 
 echo =====================================
 echo PRECHECK JAVA
 echo =====================================
-echo JAVA_HOME=%JAVA_HOME%
-echo MAESTRO_HOME=%MAESTRO_HOME%
-if defined ADB_HOME echo ADB_HOME=%ADB_HOME%
+echo [DEBUG] JAVA_HOME=%JAVA_HOME%
+echo [DEBUG] MAESTRO_HOME=%MAESTRO_HOME%
+if defined ADB_HOME echo [DEBUG] ADB_HOME=%ADB_HOME%
+if defined ADB_EXE echo [DEBUG] ADB_EXE=%ADB_EXE%
+if defined MAESTRO_BIN echo [DEBUG] MAESTRO_BIN=%MAESTRO_BIN%
 where java
-java -version
+"%JAVA_HOME%\bin\java.exe" -version
 if errorlevel 1 exit /b 1
 echo =====================================
 
 echo Checking ADB...
-where adb
-adb start-server >nul 2>&1
-adb devices
+if not defined ADB_EXE (
+  echo ERROR: adb.exe not found
+  exit /b 1
+)
+echo [DEBUG] "%ADB_EXE%" start-server
+"%ADB_EXE%" start-server >nul 2>&1
+echo [DEBUG] "%ADB_EXE%" devices
+"%ADB_EXE%" devices
 if errorlevel 1 exit /b 1
 echo =====================================
 
 echo Checking Maestro...
-where maestro
-where maestro.bat
-maestro --help >nul 2>&1
+if not defined MAESTRO_BIN (
+  echo ERROR: maestro.bat not found under MAESTRO_HOME
+  exit /b 1
+)
+echo [DEBUG] "%MAESTRO_BIN%" --help
+"%MAESTRO_BIN%" --help >nul 2>&1
 if errorlevel 1 exit /b 1
-maestro --version
+echo [DEBUG] "%MAESTRO_BIN%" --version
+"%MAESTRO_BIN%" --version
 if errorlevel 1 exit /b 1
 
 echo Precheck complete

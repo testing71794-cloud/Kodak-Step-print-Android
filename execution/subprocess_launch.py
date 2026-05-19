@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+import shutil
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
@@ -24,5 +26,30 @@ def log_subprocess_launch(
 
 
 def windows_cmd_bat_argv(bat: Path, *args: str) -> list[str]:
-    """Run a .bat with cmd.exe using separate argv tokens (paths may contain spaces)."""
-    return ["cmd.exe", "/d", "/c", str(bat), *args]
+    """
+    argv for ``subprocess.run(..., shell=False)`` to execute a Windows ``.bat``.
+
+    On Windows, CreateProcess can launch ``.bat`` files directly when the .bat path
+    is argv[0] and each argument is a separate list element. **Do not** wrap with
+    ``cmd.exe /c`` and multiple tokens — that splits paths at spaces
+    (``'C:\\...\\Kodak' is not recognized``).
+    """
+    return [str(bat.resolve()), *args]
+
+
+def resolve_adb_executable() -> str | None:
+    """Resolved adb.exe path for argv-list subprocess (never bare ``adb`` on Windows)."""
+    for env in ("ADB_HOME",):
+        root = os.environ.get(env, "").strip().strip('"')
+        if root:
+            exe = Path(root) / ("adb.exe" if os.name == "nt" else "adb")
+            if exe.is_file():
+                return str(exe.resolve())
+    for root_env in ("ANDROID_HOME", "ANDROID_SDK_ROOT"):
+        root = os.environ.get(root_env, "").strip().strip('"')
+        if root:
+            exe = Path(root) / "platform-tools" / ("adb.exe" if os.name == "nt" else "adb")
+            if exe.is_file():
+                return str(exe.resolve())
+    found = shutil.which("adb")
+    return found

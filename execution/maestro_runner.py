@@ -257,15 +257,22 @@ def resolve_maestro_java_exe() -> Path:
 
 def build_maestro_java_cmd_prefix(
     maestro_launcher: Path | None = None,
+    *,
+    user_home: str | None = None,
 ) -> list[str]:
     """
     argv prefix to invoke Maestro CLI without maestro.bat (Gradle-style launcher).
-    Example: [java.exe, -classpath, <app>/lib/*, maestro.cli.AppKt]
+    Example: [java.exe, -Duser.home=..., -classpath, <app>/lib/*, maestro.cli.AppKt]
     """
     app_home = resolve_maestro_app_home(maestro_launcher)
     lib_glob = str((app_home / "lib" / "*").resolve())
     java_exe = resolve_maestro_java_exe()
-    return [str(java_exe), "-classpath", lib_glob, "maestro.cli.AppKt"]
+    home = (user_home or os.environ.get("ATP_JAVA_USER_HOME") or "").strip()
+    prefix: list[str] = [str(java_exe)]
+    if home:
+        prefix.append(f"-Duser.home={home}")
+    prefix.extend(["-classpath", lib_glob, "maestro.cli.AppKt"])
+    return prefix
 
 
 def flow_log_tail(repo: Path, suite_id: str, flow_path: Path, device_id: str) -> str:
@@ -506,11 +513,10 @@ def _apply_parallel_maestro_env(
     env["APPDATA"] = str(roaming)
     meta["localappdata"] = str(local_app)
     # Do not override USERPROFILE (breaks Windows AppDirs / Maestro init). Redirect JVM user.home.
-    opts = (env.get("MAESTRO_OPTS") or "").strip()
-    # Bat passes -Duser.home via ATP_JAVA_USER_HOME (quoted per-arg); avoid MAESTRO_OPTS blob in cmd.exe.
     env["ATP_JAVA_USER_HOME"] = str(runtime_home)
-    user_home_flag = f'-Duser.home="{runtime_home}"'
-    env["MAESTRO_OPTS"] = f"{opts} {user_home_flag}".strip() if opts else user_home_flag
+    # Batch child uses ATP_JAVA_USER_HOME + wrapper .cmd (quoted per-arg). Never pass MAESTRO_OPTS
+    # to cmd.exe — maestro.bat expands it unquoted and splits workspace paths at spaces.
+    env.pop("MAESTRO_OPTS", None)
     env["ATP_MAESTRO_JAVA_DIRECT"] = "1"
     meta["maestro_user_home"] = str(runtime_home)
 
@@ -603,12 +609,11 @@ def run_run_one_flow_device_bat(
     # Ensure child cmd sees the same Maestro/Java discovery as Jenkins (set_maestro_java.bat still runs inside bat).
     timeout_sec = int(os.environ.get("ATP_FLOW_TIMEOUT_SEC", str(4 * 3600)))
 
-    # cmd /d /c <bat> (no "call") — one cmd.exe child per device; bat invokes Maestro without "call".
-    cmd: list[str] = [
-        "cmd.exe",
-        "/d",
-        "/c",
-        str(bat),
+    from .subprocess_launch import windows_cmd_bat_argv
+
+    # cmd /d /c "<bat>" <args> as one quoted tail — required when workspace/flow paths contain spaces.
+    cmd = windows_cmd_bat_argv(
+        bat,
         suite_id,
         str(flow_path.resolve()),
         device_id,
@@ -616,7 +621,7 @@ def run_run_one_flow_device_bat(
         clear_state,
         str(maestro_launcher),
         include_tag,
-    ]
+    )
     log_subprocess_launch(
         cmd,
         cwd=repo.resolve(),

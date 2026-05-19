@@ -61,8 +61,14 @@ def _refresh_devices_on_this_agent(repo: Path) -> None:
     )
     env = os.environ.copy()
     # Avoid cmd.exe splitting workspace paths if a prior stage set MAESTRO_OPTS with -Duser.home=...
-    env.pop("MAESTRO_OPTS", None)
-    env.pop("ATP_JAVA_USER_HOME", None)
+    for _k in (
+        "MAESTRO_OPTS",
+        "ATP_JAVA_USER_HOME",
+        "JAVA_TOOL_OPTIONS",
+        "_JAVA_OPTIONS",
+        "JDK_JAVA_OPTIONS",
+    ):
+        env.pop(_k, None)
     cmd = windows_cmd_bat_argv(bat, str(repo.resolve()))
     log_subprocess_launch(cmd, cwd=repo.resolve(), shell=False, label="list_devices")
     subprocess.run(

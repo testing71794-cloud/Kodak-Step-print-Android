@@ -126,7 +126,9 @@ def add_adb_from_env_to_path() -> None:
 
 
 def get_authorized_serials_from_adb() -> list[str]:
-    adb = shutil.which("adb")
+    from .subprocess_launch import resolve_adb_executable
+
+    adb = resolve_adb_executable()
     if not adb:
         raise RuntimeError("adb not on PATH. Set ADB_HOME or ANDROID_HOME/platform-tools.")
     proc = subprocess.run([adb, "devices"], capture_output=True, text=True, timeout=60, check=False)
@@ -792,11 +794,23 @@ def run_atp_folder_blocking(
     clear_state = (clear_state or "true").strip()
 
     add_adb_from_env_to_path()
-    try:
-        subprocess.run(["adb", "start-server"], capture_output=True, text=True, timeout=60, check=False)
-        subprocess.run(["adb", "devices"], capture_output=True, text=True, timeout=60, check=False)
-    except (FileNotFoundError, OSError, subprocess.TimeoutExpired):
-        pass
+    from .subprocess_launch import log_subprocess_launch, resolve_adb_executable
+
+    adb_exe = resolve_adb_executable()
+    if adb_exe:
+        for adb_args in (["start-server"], ["devices"]):
+            adb_cmd = [adb_exe, *adb_args]
+            log_subprocess_launch(adb_cmd, cwd=repo, shell=False, label="atp_orchestrator_adb")
+            try:
+                subprocess.run(
+                    adb_cmd,
+                    capture_output=True,
+                    text=True,
+                    timeout=60,
+                    check=False,
+                )
+            except (FileNotFoundError, OSError, subprocess.TimeoutExpired):
+                pass
 
     time.sleep(1)
 

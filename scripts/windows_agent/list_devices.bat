@@ -1,6 +1,6 @@
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
-REM script_rev=2026-05-windows-agent-list-devices-1
+REM script_rev=2026-05-windows-agent-list-devices-2
 REM Writes detected_devices.txt under the Jenkins workspace (paths may contain spaces).
 goto :script_body
 
@@ -38,7 +38,7 @@ if not exist "%REPO_ROOT%\reports\_agent" mkdir "%REPO_ROOT%\reports\_agent"
 echo =====================================
 echo LIST DEVICES ^(windows_agent^)
 echo =====================================
-echo script_rev        : 2026-05-windows-agent-list-devices-1
+echo script_rev        : 2026-05-windows-agent-list-devices-2
 echo arg1 workspace    : %~1
 echo WORKSPACE env     : %WORKSPACE%
 echo REPO_ROOT         : %REPO_ROOT%

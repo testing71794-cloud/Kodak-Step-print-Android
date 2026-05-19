@@ -1,6 +1,6 @@
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
-REM script_rev=2026-05-jenkins-spaces-quoted-maestro-6
+REM script_rev=2026-05-jenkins-spaces-quoted-maestro-7
 goto :script_body
 
 REM Approximate sleep without timeout.exe (Jenkins + non-TTY stdin makes timeout print
@@ -19,7 +19,7 @@ exit /b 0
 
 REM Log resolved paths before Maestro (Jenkins workspace may contain spaces).
 :log_maestro_invoke_context
-echo [DEBUG] script_rev=2026-05-jenkins-spaces-quoted-maestro-6>> "%LOG_FILE%"
+echo [DEBUG] script_rev=2026-05-jenkins-spaces-quoted-maestro-7>> "%LOG_FILE%"
 echo [DEBUG] CD=!CD!>> "%LOG_FILE%"
 echo [DEBUG] REPO_ROOT=!REPO_ROOT!>> "%LOG_FILE%"
 echo [DEBUG] FLOW_PATH=!FLOW_PATH!>> "%LOG_FILE%"
@@ -94,6 +94,7 @@ REM Isolated Maestro via java maestro.cli.AppKt (wrapper .cmd has quoted paths b
 set "MWRAP=%TEMP%\atp_maestro_%RANDOM%_%RANDOM%.cmd"
 call :write_maestro_wrapper "%MWRAP%"
 echo [DEBUG] maestro_wrapper=!MWRAP!>> "%LOG_FILE%"
+echo [DEBUG] launching maestro java wrapper>> "%LOG_FILE%"
 type "%MWRAP%" >> "%LOG_FILE%"
 call "%MWRAP%" >> "%LOG_FILE%" 2>&1
 set "RUN_EXIT=!ERRORLEVEL!"
@@ -169,6 +170,8 @@ set "CLASSPATH="
 set "JAVA_TOOL_OPTIONS="
 set "_JAVA_OPTIONS="
 set "JDK_JAVA_OPTIONS="
+REM Inherited MAESTRO_OPTS breaks cmd when it contains -Duser.home=<workspace with spaces>.
+set "MAESTRO_OPTS="
 
 set "REPO_ROOT=%~dp0.."
 for %%I in ("%REPO_ROOT%") do set "REPO_ROOT=%%~fI"
@@ -228,7 +231,7 @@ echo Maestro cmd      : %MAESTRO_BIN%
 echo =====================================
 echo BATCH ARGUMENTS / WORKSPACE
 echo =====================================
-echo script_rev        : 2026-05-jenkins-spaces-quoted-maestro-6
+echo script_rev        : 2026-05-jenkins-spaces-quoted-maestro-7
 echo arg1 SUITE        : %~1
 echo arg2 FLOW_PATH    : %~2
 echo arg3 DEVICE_ID    : %~3

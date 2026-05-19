@@ -15,7 +15,7 @@ if not "%MAESTRO_JAVA_HOME%"=="" (
 set "JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot"
 :java_ok
 if not exist "%JAVA_HOME%\bin\java.exe" (
-  echo ERROR: Java not found at %JAVA_HOME%
+  echo ERROR: Java not found at "%JAVA_HOME%"
   endlocal & exit /b 1
 )
 
