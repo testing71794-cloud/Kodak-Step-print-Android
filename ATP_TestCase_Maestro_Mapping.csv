@@ -69,17 +69,17 @@ ED_17,Editing,Scan AR video on printed photo,ATP TestCase Flows/Editing/TC_ED_17
 ED_E01,Editing,Cancel edit without saving,ATP TestCase Flows/Editing/TC_ED_E01_Cancel edit without saving.yaml,5
 ED_E02,Editing,Multiple edits combined,ATP TestCase Flows/Editing/TC_ED_E02_Multiple edits combined.yaml,7
 ED_E03,Editing,Edit very large image,ATP TestCase Flows/Editing/TC_ED_E03_Edit very large image.yaml,4
-CA_01,Camera,Enter camera mode,ATP TestCase Flows/Camera/TC_CA_01_Enter camera mode.yaml,6
-CA_02,Camera,Capture and print photo,ATP TestCase Flows/Camera/TC_CA_02_Capture and print photo.yaml,7
-CA_03,Camera,Capture selfie photo,ATP TestCase Flows/Camera/TC_CA_03_Capture selfie photo.yaml,5
-CA_04,Camera,Capture photo with flash,ATP TestCase Flows/Camera/TC_CA_04_Capture photo with flash.yaml,10
-CA_05,Camera,Capture photo with filter,ATP TestCase Flows/Camera/TC_CA_05_Capture photo with filter.yaml,6
-CA_06,Camera,Close camera view,ATP TestCase Flows/Camera/TC_CA_06_Close camera view.yaml,3
-CA_07,Camera,AR scan from camera,ATP TestCase Flows/Camera/TC_CA_07_AR scan from camera.yaml,5
-CA_E01,Camera,Camera with permission denied,ATP TestCase Flows/Camera/TC_CA_E01_Camera with permission denied.yaml,3
-CA_E02,Camera,Rapid photo capture,ATP TestCase Flows/Camera/TC_CA_E02_Rapid photo capture.yaml,5
-CA_E03,Camera,Camera with low storage,ATP TestCase Flows/Camera/TC_CA_E03_Camera with low storage.yaml,3
-CA_E04,Camera,Rapid camera switching,ATP TestCase Flows/Camera/TC_CA_E04_Rapid camera switching.yaml,5
+CA_01,Camera,Enter camera mode,ATP TestCase Flows/camera/CA_01.yaml,6
+CA_02,Camera,Open camera go back to gallery,ATP TestCase Flows/camera/CA_02.yaml,3
+CA_03,Camera,Capture and print photo,ATP TestCase Flows/camera/CA_03.yaml,7
+CA_04,Camera,Capture selfie photo,ATP TestCase Flows/camera/CA_04.yaml,5
+CA_05,Camera,Capture photo with flash,ATP TestCase Flows/camera/CA_05.yaml,10
+CA_06,Camera,Capture photo with filter,ATP TestCase Flows/camera/CA_06.yaml,6
+CA_07,Camera,AR scan from camera,ATP TestCase Flows/camera/CA_07.yaml,5
+CA_E01,Camera,Camera with permission denied,ATP TestCase Flows/camera/CA_E01.yaml,3
+CA_E02,Camera,Rapid photo capture,ATP TestCase Flows/camera/CA_E02.yaml,5
+CA_E03,Camera,Camera with low storage,ATP TestCase Flows/camera/CA_E03.yaml,3
+CA_E04,Camera,Rapid camera switching,ATP TestCase Flows/camera/CA_E04.yaml,5
 SE_01,Settings,Access Settings page,ATP TestCase Flows/Settings/TC_SE_01_Access Settings page.yaml,3
 SE_02,Settings,View connection status,ATP TestCase Flows/Settings/TC_SE_02_View connection status.yaml,5
 SE_03,Settings,Access Connect screen from settings,ATP TestCase Flows/Settings/TC_SE_03_Access Connect screen from settings.yaml,4

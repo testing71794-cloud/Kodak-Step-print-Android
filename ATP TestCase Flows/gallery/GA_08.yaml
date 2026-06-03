@@ -1,0 +1,44 @@
+appId: com.kodak.steptouch
+name: GA_08 - Thumbnail more menu edit image
+---
+- launchApp:
+    clearState: false
+- runFlow:
+    when:
+      visible: "No Thanks"
+    commands:
+      - tapOn: "No Thanks"
+- waitForAnimationToEnd
+- assertVisible: "MY GALLERY"
+- tapOn:
+    id: "imageViewPhoto"
+    index: 1
+    optional: true
+- tapOn:
+    point: "50%, 45%"
+    label: Select thumbnail
+- runFlow: subflows/thumbnail_more_menu.yaml
+- tapOn:
+    text: ".*(?i)edit image.*"
+    optional: true
+- tapOn:
+    text: "Edit"
+    optional: true
+- tapOn:
+    id: "filterEditingOptionsImageView"
+    index: 4
+- waitForAnimationToEnd
+- assertVisible:
+    id: "saveRecentEditImageView"
+
+
+- tapOn:
+    id: "saveRecentEditImageView"
+- tapOn: "Done"
+
+- extendedWaitUntil:
+    visible:
+      text: "Stickers"
+
+    timeout: 2000
+    optional: true

@@ -1,0 +1,22 @@
+appId: com.kodak.steptouch
+name: SU_04 - Create account - password too short
+---
+# ATP SU_04 – Password too short.
+- launchApp:
+    clearState: true
+- runFlow: subflows/post_launch_through_signup.yaml
+- assertVisible: "Create an account"
+- tapOn: "Full Name*"
+- inputText: Maestro ATP User
+- tapOn: "Email*"
+- inputText: maestro.short.pwd@yopmail.com
+- tapOn: "Password*"
+- inputText: "Ab1"
+- hideKeyboard
+- waitForAnimationToEnd
+- tapOn: "SIGN UP"
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    visible:
+      text: ".*(?i)(8 character|too short|password must).*"
+    timeout: 15000

@@ -1,0 +1,18 @@
+appId: com.kodak.steptouch
+---
+- extendedWaitUntil:
+    visible:
+      id: "btn_next_photobooth"
+    timeout: 2000
+- tapOn:
+    id: "btn_next_photobooth"
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    visible:
+      text: ".*(Edit Collage|Done).*"
+    timeout: 2000
+- extendedWaitUntil:
+    visible:
+      id: "button_save"
+    timeout: 2000
+    optional: true

@@ -1,0 +1,14 @@
+appId: com.kodak.steptouch
+---
+- tapOn:
+    id: "ivItemGridImage"
+- tapOn:
+    id: "ivItemGridImage"
+    index: 1
+- tapOn:
+    id: "ivItemGridImage"
+    index: 2
+- tapOn:
+    id: "ivItemGridImage"
+    index: 3
+- waitForAnimationToEnd

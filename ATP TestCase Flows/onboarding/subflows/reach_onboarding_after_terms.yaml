@@ -1,22 +1,9 @@
 appId: com.kodak.steptouch
 ---
-# Cold start through terms to onboarding carousel (Skip / Next visible).
-- runFlow: ../../signup-login/subflows/post_launch_through_signup.yaml
-- extendedWaitUntil:
-    visible: "Create an account"
-    timeout: 30000
+# ATP steps 1–3: open app → I'll do it later → agree to terms → onboarding carousel.
+- runFlow: post_launch_for_onboarding.yaml
 - tapOn: "I'll do it later"
-- waitForAnimationToEnd
-- runFlow: ../../signup-login/handle_optional_permissions_loop.yaml
-- runFlow: ../../signup-login/subflows/accept_terms_if_visible.yaml
-- waitForAnimationToEnd
-- runFlow: ../../signup-login/handle_optional_permissions_loop.yaml
-- runFlow:
-    when:
-      visible: "Start a quick tour"
-    commands:
-      - tapOn: "Start a quick tour"
-      - waitForAnimationToEnd
-- extendedWaitUntil:
-    visible: "Skip"
-    timeout: 30000
+- tapOn:
+    text: "Agree Terms and Conditions"
+    optional: true
+- runFlow: advance_after_terms_for_onboarding.yaml

@@ -1,22 +1,32 @@
 appId: com.kodak.steptouch
 ---
 
-# Open Camera from Home (try by id first, fallback to point tap if element not found)
+# Open Camera from Gallery (My Gallery screen).
+# Method 1: tap bottom-right camera FAB. Method 2: swipe left-to-right across gallery.
 - runFlow:
     when:
       visible:
-        id: cameraImageView
+        text: ".*(?i)my gallery.*"
+    commands:
+      - assertVisible:
+          text: ".*(?i)my gallery.*"
+- runFlow:
+    when:
+      visible:
+        id: camerIV
     commands:
       - tapOn:
-          id: cameraImageView
+          id: camerIV
       - waitForAnimationToEnd
+# Swipe left-to-right on gallery content (finger L→R = Maestro swipe RIGHT).
 - runFlow:
     when:
       notVisible:
-        id: cameraImageView
+        id: shutterButton
     commands:
-      - tapOn:
-          point: "50%,92%"
+      - swipe:
+          start: "12%, 55%"
+          end: "82%, 55%"
       - waitForAnimationToEnd
 
 # Handle camera permission popup if it appears on first open

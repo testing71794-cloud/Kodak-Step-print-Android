@@ -6,7 +6,8 @@ appId: com.kodak.steptouch
       visible: "Agree Terms and Conditions"
     commands:
       - tapOn: "Agree Terms and Conditions"
-      - waitForAnimationToEnd
+      - waitForAnimationToEnd:
+          timeout: 2000
 
 - runFlow:
     when:
@@ -17,7 +18,8 @@ appId: com.kodak.steptouch
             visible: "Agree Terms and Conditions"
           commands:
             - tapOn: "Agree Terms and Conditions"
-            - waitForAnimationToEnd
+            - waitForAnimationToEnd:
+                timeout: 2000
 
 - runFlow:
     when:
@@ -28,4 +30,5 @@ appId: com.kodak.steptouch
             visible: "Agree Terms and Conditions"
           commands:
             - tapOn: "Agree Terms and Conditions"
-            - waitForAnimationToEnd
+            - waitForAnimationToEnd:
+                timeout: 2000

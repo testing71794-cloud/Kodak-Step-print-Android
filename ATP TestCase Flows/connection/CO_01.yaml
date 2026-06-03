@@ -10,24 +10,13 @@ name: CO_01_My_Gallery_Bluetooth_Icon
 - assertVisible: "My gallery"
 # Icon is often image-only; tune X%/Y% after inspecting your gallery toolbar.
 - tapOn:
-    point: "92%, 10%"
-    label: Bluetooth entry – top-right
-- waitForAnimationToEnd
-- runFlow:
-    when:
-      visible: "Connect"
-    commands:
-      - tapOn: "Connect"
-      - waitForAnimationToEnd
-- extendedWaitUntil:
-    visible:
-      text: ${BT_DEVICE_NAME}
-    timeout: 60000
+    id: "imageViewConnection"
+- waitForAnimationToEnd:
+    timeout: 2000
 - tapOn:
-    text: ${BT_DEVICE_NAME}
-- waitForAnimationToEnd
+    point: 39%,20%
+- waitForAnimationToEnd:
+    timeout: 2000
 - runFlow: subflows/pairing_optional.yaml
-- runFlow: ../signup-login/handle_optional_permissions_loop.yaml
 - assertVisible:
-    text: "Connected"
-    optional: true
+    id: "linearLayoutConnection"

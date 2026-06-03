@@ -1,0 +1,9 @@
+appId: com.kodak.steptouch
+name: ED_E02 - Multiple edits combined
+---
+# ATP ED_E02 – Multiple edits combined
+- launchApp:
+    clearState: true
+- runFlow: ../signup-login/subflows/reach_gallery_after_onboarding_skip.yaml
+- assertVisible: "My gallery"
+- runFlow: ../../flows/editing/ED_E02_multiple_edits.yaml

@@ -1,0 +1,24 @@
+appId: com.kodak.steptouch
+---
+# Continues from photo preview after Collage tap (MG_22).
+- extendedWaitUntil:
+    visible: "CREATE COLLAGE"
+    timeout: 2000
+- runFlow: pick_collage_layout_one_slot.yaml
+- extendedWaitUntil:
+    visible:
+      id: "btn_next_photobooth"
+    timeout: 2000
+- tapOn:
+    text: "Next"
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    visible:
+      text: ".*(Edit Collage|Done).*"
+    timeout: 2000
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "button_save"
+    timeout: 2000
+    optional: true

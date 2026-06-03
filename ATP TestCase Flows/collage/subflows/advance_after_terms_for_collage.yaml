@@ -1,0 +1,8 @@
+appId: com.kodak.steptouch
+---
+- tapOn:
+    text: "Start a quick tour"
+    optional: true
+- tapOn:
+    id: "screen2"
+    optional: true

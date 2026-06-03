@@ -26,7 +26,8 @@ appId: com.kodak.steptouch
       visible: "Enable photos access"
     commands:
       - tapOn: "Enable photos access"
-      - waitForAnimationToEnd
+      - waitForAnimationToEnd:
+          timeout: 2000
       - tapOn:
           text: "Allow"
           optional: true
@@ -36,7 +37,8 @@ appId: com.kodak.steptouch
       visible: "Enable camera access"
     commands:
       - tapOn: "Enable camera access"
-      - waitForAnimationToEnd
+      - waitForAnimationToEnd:
+          timeout: 2000
       - tapOn:
           text: "Allow"
           optional: true

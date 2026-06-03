@@ -1,0 +1,28 @@
+appId: com.kodak.steptouch
+name: SU_07B - Login with non-existent email
+---
+# ATP SU_07B – Login with non-existent email.
+- launchApp:
+    clearState: true
+- runFlow: subflows/post_launch_through_signup.yaml
+- tapOn: "Log In"
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    visible: "LOGIN"
+    timeout: 10000
+- tapOn:
+    text: "Email"
+    optional: true
+- inputText: no.such.user.99999@example.invalid
+- tapOn:
+    text: "Password"
+    optional: true
+- inputText: WrongPass999!
+- hideKeyboard
+- waitForAnimationToEnd
+- tapOn: "LOGIN"
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    visible:
+      text: ".*(?i)(wrong credential|invalid email|invalid password).*"
+    timeout: 20000

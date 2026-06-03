@@ -1,0 +1,21 @@
+appId: com.kodak.steptouch
+name: SU_03C - Create account - invalid email (spaces)
+---
+# ATP SU_03C – Invalid email (spaces).
+- launchApp:
+    clearState: true
+- runFlow: subflows/post_launch_through_signup.yaml
+- assertVisible: "Create an account"
+- tapOn: "Full Name*"
+- inputText: Maestro ATP User
+- tapOn: "Email*"
+- inputText: "bad email @test.com"
+- tapOn: "Password*"
+- inputText: TestPass1a
+- hideKeyboard
+- waitForAnimationToEnd
+- tapOn: "SIGN UP"
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    visible: "Please provide your valid email"
+    timeout: 15000

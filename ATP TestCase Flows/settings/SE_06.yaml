@@ -1,0 +1,40 @@
+# TC_ID: SE_06
+# ATP Name: Share settings > Facebook
+# ATP Steps: 1. Open app → 2. settings (gear) → 3. Share settings → 4. Facebook toggle → 5. continue and log in
+# ATP Expected: User should be able to link their Facebook account through share settings
+appId: com.kodak.steptouch
+name: SE_06 - Share settings Facebook
+---
+- runFlow: subflows/open_app_to_gallery.yaml
+- runFlow: subflows/open_settings_from_gallery.yaml
+# Step 3: tap "Share settings".
+- tapOn:
+    text: "Share settings"
+    optional: true
+- tapOn:
+    text: "Share Settings"
+    optional: true
+# Step 4: tap Facebook toggle.
+- tapOn:
+    text: ".*(?i)facebook.*"
+    optional: true
+# Step 5: continue and log in to Facebook.
+- tapOn:
+    id: "toggleBtnFacebook"
+- waitForAnimationToEnd
+- runFlow:
+    when:
+      visible: "Continue"
+    commands:
+      - tapOn: "Continue"
+- runFlow:
+    when:
+      visible: "Edit access"
+    commands:
+      - tapOn:
+          text: "Continue as.*"
+- waitForAnimationToEnd          
+- assertVisible: "Facebook"
+- assertVisible: "SHARE SETTINGS"
+- assertVisible:
+    text: ".*"

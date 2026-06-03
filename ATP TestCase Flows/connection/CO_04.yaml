@@ -1,19 +1,13 @@
+# TC_ID: CO_04
+# ATP Name: Auto-connect
+# ATP Steps: 1. Printer previously connected → 2. printer on → 3. open app
+# ATP Expected: Printer auto-connects; gallery printer icon is colored (not grey/white + red BT badge)
 appId: com.kodak.steptouch
 name: CO_04_Auto_Connect
 ---
-# ATP CO_04 – Printer already bonded & powered on; opening app should auto-connect.
-# Uses clearState: false so prior pairing/app data can remain (adjust if your harness resets BT).
+# Precondition: printer paired on device. clearState false keeps bond for auto-connect.
 - launchApp:
     clearState: false
+- assertVisible: "MY GALLERY"
 - waitForAnimationToEnd
-- runFlow: ../signup-login/subflows/post_launch_through_signup.yaml
-- runFlow: ../signup-login/handle_optional_permissions_loop.yaml
-- runFlow: ../signup-login/subflows/accept_terms_if_visible.yaml
-# Land on main gallery (session may skip auth if still logged in).
-- extendedWaitUntil:
-    visible: "My gallery"
-    timeout: 90000
-- assertVisible:
-    text: "Connected"
-    optional: true
-    label: Soft assertion – UI copy varies by build
+- runFlow: subflows/assert_printer_icon_connected.yaml

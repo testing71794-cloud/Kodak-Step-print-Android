@@ -1,46 +1,34 @@
+# TC_ID: CO_02
+# ATP Name: Thumbnail connection
+# ATP Steps: 1. Open app → 2. more (top-left on thumbnail) → 3. printer icon → 4. Connect on popup → 5. pick device → 6. confirm pairing
+# ATP Expected: User should be able to pair through the quick print button
+# Env: BT_DEVICE_NAME
 appId: com.kodak.steptouch
 name: CO_02_Thumbnail_Quick_Print
 ---
-# ATP CO_02 – Thumbnail overflow → printer → Connect → pick device → pair.
-# Env: BT_DEVICE_NAME
 - launchApp:
     clearState: true
-- runFlow: ../signup-login/subflows/reach_gallery_after_onboarding_skip.yaml
+- runFlow: subflows/reach_gallery_for_connection.yaml
 - assertVisible: "My gallery"
-# “More” on thumbnail – often ⋮ / overflow; adjust id/point after inspecting hierarchy.
+# Step 2: more button top-left on photo thumbnail.
 - tapOn:
-    id: ".*more.*"
+    point: "3%,19%"
+    label: Thumbnail more – top-left
+- tapOn:
+    point: "6%,21%"
     optional: true
+# Step 3: printer icon.
 - tapOn:
-    text: "More"
-    optional: true
+    id: "imagePrintPreview"
+# Step 4: printer not connected popup → Connect.
+- assertVisible: "Printer Not Connected"
+- tapOn: "Connect"
+# Step 5: pick available device.
 - tapOn:
-    point: "18%, 38%"
-    label: Thumbnail overflow menu – fallback
-    optional: true
-- waitForAnimationToEnd
-- tapOn:
-    text: "Print"
-    optional: true
-- tapOn:
-    id: ".*print.*"
-    optional: true
-- waitForAnimationToEnd
-- tapOn:
-    text: "Connect"
-    optional: true
-- tapOn:
-    text: "connect"
-    optional: true
-- waitForAnimationToEnd
-- extendedWaitUntil:
-    visible:
-      text: ${BT_DEVICE_NAME}
-    timeout: 60000
-- tapOn:
-    text: ${BT_DEVICE_NAME}
-- waitForAnimationToEnd
+    point: "21%,13%"
+    label: Device list entry
+# Step 6: confirm pairing.
 - runFlow: subflows/pairing_optional.yaml
 - assertVisible:
-    text: "Connected"
+    id: "linearLayoutConnection"
     optional: true

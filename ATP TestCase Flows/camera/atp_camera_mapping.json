@@ -1,0 +1,102 @@
+[
+  {
+    "atpTestCaseId": "CA_01",
+    "yamlFileName": "CA_01.yaml",
+    "testName": "CA_01 - Enter camera mode",
+    "flowType": "Camera",
+    "excelStepCount": 6,
+    "atpSteps": "1. Open app → 2. I'll do it later → 3. Accept terms → 4. Skip onboarding → 5. Tap camera icon (bottom-right) → 6. Verify camera screen",
+    "atpExpected": "User should be able to open the app's camera from the gallery"
+  },
+  {
+    "atpTestCaseId": "CA_02",
+    "yamlFileName": "CA_02.yaml",
+    "testName": "CA_02 - Open camera go back to gallery",
+    "flowType": "Camera",
+    "excelStepCount": 3,
+    "atpSteps": "1. Open app → 2. Tap camera icon located at the bottom-right of the screen → 3. Tap return icon located at the top-left of the screen",
+    "atpExpected": "User should be able to open the app camera and go back to gallery"
+  },
+  {
+    "atpTestCaseId": "CA_03",
+    "yamlFileName": "CA_03.yaml",
+    "testName": "CA_03 - Capture and print photo",
+    "flowType": "Camera",
+    "excelStepCount": 7,
+    "atpSteps": "Capture and print from camera (shifted from legacy CSV CA_02; confirm steps in Kodak Step Print ATP 2026.xlsx)",
+    "atpExpected": "User should be able to capture a photo from the camera and proceed to print"
+  },
+  {
+    "atpTestCaseId": "CA_04",
+    "yamlFileName": "CA_04.yaml",
+    "testName": "CA_04 - Capture selfie photo",
+    "flowType": "Camera",
+    "excelStepCount": 5,
+    "atpSteps": "Open camera → switch to selfie → capture → verify preview",
+    "atpExpected": "User should be able to capture a selfie photo using the front camera"
+  },
+  {
+    "atpTestCaseId": "CA_05",
+    "yamlFileName": "CA_05.yaml",
+    "testName": "CA_05 - Capture photo with flash",
+    "flowType": "Camera",
+    "excelStepCount": 10,
+    "atpSteps": "Open camera → enable flash → capture → verify preview → close preview → verify camera",
+    "atpExpected": "User should be able to capture a photo with the flash enabled"
+  },
+  {
+    "atpTestCaseId": "CA_06",
+    "yamlFileName": "CA_06.yaml",
+    "testName": "CA_06 - Capture photo with filter",
+    "flowType": "Camera",
+    "excelStepCount": 6,
+    "atpSteps": "Open camera → swipe live filter → capture → verify preview",
+    "atpExpected": "User should be able to capture a photo after applying a live filter"
+  },
+  {
+    "atpTestCaseId": "CA_07",
+    "yamlFileName": "CA_07.yaml",
+    "testName": "CA_07 - AR scan from camera",
+    "flowType": "Camera",
+    "excelStepCount": 5,
+    "atpSteps": "1. Open camera → 2. Tap Scan → 3. Dismiss AR Scan tip → 4. Verify AR scan screen → 5. Return to camera",
+    "atpExpected": "User should be able to open AR scan from the camera screen"
+  },
+  {
+    "atpTestCaseId": "CA_E01",
+    "yamlFileName": "CA_E01.yaml",
+    "testName": "CA_E01 - Camera with permission denied",
+    "flowType": "Camera",
+    "excelStepCount": 3,
+    "atpSteps": "1. Attempt to open camera from gallery → 2. Deny camera permission → 3. Verify camera did not open",
+    "atpExpected": "When camera permission is denied, the user cannot use the camera"
+  },
+  {
+    "atpTestCaseId": "CA_E02",
+    "yamlFileName": "CA_E02.yaml",
+    "testName": "CA_E02 - Rapid photo capture",
+    "flowType": "Camera",
+    "excelStepCount": 5,
+    "atpSteps": "1. Open camera → 2–4. Capture three photos in succession → 5. Verify camera remains on capture screen",
+    "atpExpected": "User should be able to capture multiple photos rapidly without leaving the camera"
+  },
+  {
+    "atpTestCaseId": "CA_E03",
+    "yamlFileName": "CA_E03.yaml",
+    "testName": "CA_E03 - Camera with low storage",
+    "flowType": "Camera",
+    "excelStepCount": 3,
+    "atpSteps": "1. Open camera → 2. Capture photo → 3. Verify low-storage error message",
+    "atpExpected": "When device storage is full, capturing a photo shows an appropriate error",
+    "notes": "Requires device near full storage; may be skipped in CI"
+  },
+  {
+    "atpTestCaseId": "CA_E04",
+    "yamlFileName": "CA_E04.yaml",
+    "testName": "CA_E04 - Rapid camera switching",
+    "flowType": "Camera",
+    "excelStepCount": 5,
+    "atpSteps": "1. Open camera → 2–4. Switch front/back camera three times → 5. Verify flip control and capture button remain available",
+    "atpExpected": "User should be able to switch between front and rear cameras repeatedly without failure"
+  }
+]

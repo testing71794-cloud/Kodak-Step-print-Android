@@ -1,0 +1,9 @@
+appId: com.kodak.steptouch
+---
+- extendedWaitUntil:
+    visible: "CREATE COLLAGE"
+    timeout: 2000
+- tapOn:
+    point: "16%, 52%"
+    label: Single-photo collage layout
+- waitForAnimationToEnd

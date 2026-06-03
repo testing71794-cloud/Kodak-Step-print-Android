@@ -4,19 +4,22 @@ appId: com.kodak.steptouch
 - runFlow: post_launch_through_signup.yaml
 - extendedWaitUntil:
     visible: "Create an account"
-    timeout: 30000
+    timeout: 2000
 - tapOn: "I'll do it later"
-- waitForAnimationToEnd
+- waitForAnimationToEnd:
+    timeout: 2000
 - runFlow: ../handle_optional_permissions_loop.yaml
 - runFlow: accept_terms_if_visible.yaml
-- waitForAnimationToEnd
+- waitForAnimationToEnd:
+    timeout: 2000
 - runFlow: ../handle_optional_permissions_loop.yaml
 - runFlow:
     when:
       visible: "Start a quick tour"
     commands:
       - tapOn: "Start a quick tour"
-      - waitForAnimationToEnd
+      - waitForAnimationToEnd:
+          timeout: 2000
 - extendedWaitUntil:
     visible: "Skip"
-    timeout: 30000
+    timeout: 2000

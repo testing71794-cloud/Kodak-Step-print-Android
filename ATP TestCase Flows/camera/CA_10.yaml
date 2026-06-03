@@ -1,0 +1,31 @@
+# TC_ID: CA_10
+# ATP Name: Open capture
+# ATP Steps: 1. Open app → 2. capture image → 3. tap on capture thumbnail located at the bottom-left of the screen
+# ATP Expected: user should be able to open the captured image
+appId: com.kodak.steptouch
+name: CA_10 - Open captured image
+---
+# Step 1: open app and reach gallery.
+- launchApp:
+    clearState: true
+- runFlow: subflows/reach_gallery_for_camera.yaml
+# Step 2: capture image.
+- runFlow: subflows/open_camera_bottom_right.yaml
+- tapOn:
+    id: "capture_img"
+# Step 3: tap on capture thumbnail located at the bottom-left of the screen.
+- tapOn:
+    id: "img_camera_menu"
+- tapOn:
+    id: "camera_image"
+- tapOn:
+    point: 75%,90%
+- assertVisible: "Print"
+- assertVisible:
+    id: "back_button"
+- assertVisible:
+    id: "relative_back_btn_layout"
+- assertVisible: "1"
+- assertVisible: "+"
+- assertVisible: "Number of Copies"
+
