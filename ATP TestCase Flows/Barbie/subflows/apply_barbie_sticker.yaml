@@ -1,0 +1,22 @@
+appId: com.kodak.steptouch
+---
+# Steps 5–8: Stickers → Barbie category → select sticker → apply check mark.
+- tapOn: "Stickers"
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn: "Barbie"
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn:
+    point: "20%,75%"
+    label: Select any Barbie sticker
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn:
+    id: "saveRecentEditImageView"
+    optional: true
+- tapOn:
+    text: "Done"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 2000

@@ -1,0 +1,7 @@
+appId: com.kodak.steptouch
+---
+# Step 1: Open app and reach gallery (cold start).
+- runFlow: ../../signup-login/subflows/reach_gallery_after_onboarding_skip.yaml
+- extendedWaitUntil:
+    visible: ".*(?i)my gallery.*"
+    timeout: 2000

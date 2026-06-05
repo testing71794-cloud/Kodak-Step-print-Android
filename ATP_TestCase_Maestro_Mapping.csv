@@ -69,13 +69,13 @@ ED_17,Editing,Scan AR video on printed photo,ATP TestCase Flows/Editing/TC_ED_17
 ED_E01,Editing,Cancel edit without saving,ATP TestCase Flows/Editing/TC_ED_E01_Cancel edit without saving.yaml,5
 ED_E02,Editing,Multiple edits combined,ATP TestCase Flows/Editing/TC_ED_E02_Multiple edits combined.yaml,7
 ED_E03,Editing,Edit very large image,ATP TestCase Flows/Editing/TC_ED_E03_Edit very large image.yaml,4
-CA_01,Camera,Enter camera mode,ATP TestCase Flows/camera/CA_01.yaml,6
-CA_02,Camera,Open camera go back to gallery,ATP TestCase Flows/camera/CA_02.yaml,3
-CA_03,Camera,Capture and print photo,ATP TestCase Flows/camera/CA_03.yaml,7
-CA_04,Camera,Capture selfie photo,ATP TestCase Flows/camera/CA_04.yaml,5
-CA_05,Camera,Capture photo with flash,ATP TestCase Flows/camera/CA_05.yaml,10
-CA_06,Camera,Capture photo with filter,ATP TestCase Flows/camera/CA_06.yaml,6
-CA_07,Camera,AR scan from camera,ATP TestCase Flows/camera/CA_07.yaml,5
+CA_01,Camera,Enter camera mode,ATP TestCase Flows/camera/CA_01 - Enter camera mode.yaml,6
+CA_02,Camera,Open camera go back to gallery,ATP TestCase Flows/camera/CA_02 - Open camera go back to gallery.yaml,3
+CA_03,Camera,Capture and print photo,ATP TestCase Flows/camera/CA_03 - Capture with no flash.yaml,7
+CA_04,Camera,Capture selfie photo,ATP TestCase Flows/camera/CA_04 - Capture with flash enabled.yaml,5
+CA_05,Camera,Capture photo with flash,ATP TestCase Flows/camera/CA_05 - Capture with flash set to auto.yaml,10
+CA_06,Camera,Capture photo with filter,ATP TestCase Flows/camera/CA_06 - Change to front facing camera.yaml,6
+CA_07,Camera,AR scan from camera,ATP TestCase Flows/camera/CA_07 - Capture using front camera with no flash.yaml,5
 CA_E01,Camera,Camera with permission denied,ATP TestCase Flows/camera/CA_E01.yaml,3
 CA_E02,Camera,Rapid photo capture,ATP TestCase Flows/camera/CA_E02.yaml,5
 CA_E03,Camera,Camera with low storage,ATP TestCase Flows/camera/CA_E03.yaml,3

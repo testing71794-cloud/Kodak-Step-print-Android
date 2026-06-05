@@ -1,0 +1,14 @@
+# TC_ID: BA_02 - Intro screen
+# ATP Description: First time connection screen
+# ATP Steps: 1. Repeat BA_01
+# ATP Expected: After connection, user sees Barbie x Kodak Step Slim printer banner
+# Note: Barbie theme is enabled once a Barbie Step printer is connected.
+# Env: BT_BARBIE_DEVICE_NAME
+appId: com.kodak.steptouch
+name: BA_02 - Intro screen
+---
+- launchApp:
+    clearState: true
+- runFlow: subflows/reach_gallery_for_barbie.yaml
+- runFlow: subflows/connect_barbie_printer.yaml
+- runFlow: subflows/assert_barbie_intro_banner.yaml

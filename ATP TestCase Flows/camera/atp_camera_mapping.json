@@ -1,7 +1,7 @@
 [
   {
     "atpTestCaseId": "CA_01",
-    "yamlFileName": "CA_01.yaml",
+    "yamlFileName": "CA_01 - Enter camera mode.yaml",
     "testName": "CA_01 - Enter camera mode",
     "flowType": "Camera",
     "excelStepCount": 6,
@@ -10,7 +10,7 @@
   },
   {
     "atpTestCaseId": "CA_02",
-    "yamlFileName": "CA_02.yaml",
+    "yamlFileName": "CA_02 - Open camera go back to gallery.yaml",
     "testName": "CA_02 - Open camera go back to gallery",
     "flowType": "Camera",
     "excelStepCount": 3,
@@ -19,7 +19,7 @@
   },
   {
     "atpTestCaseId": "CA_03",
-    "yamlFileName": "CA_03.yaml",
+    "yamlFileName": "CA_03 - Capture with no flash.yaml",
     "testName": "CA_03 - Capture and print photo",
     "flowType": "Camera",
     "excelStepCount": 7,
@@ -28,7 +28,7 @@
   },
   {
     "atpTestCaseId": "CA_04",
-    "yamlFileName": "CA_04.yaml",
+    "yamlFileName": "CA_04 - Capture with flash enabled.yaml",
     "testName": "CA_04 - Capture selfie photo",
     "flowType": "Camera",
     "excelStepCount": 5,
@@ -37,7 +37,7 @@
   },
   {
     "atpTestCaseId": "CA_05",
-    "yamlFileName": "CA_05.yaml",
+    "yamlFileName": "CA_05 - Capture with flash set to auto.yaml",
     "testName": "CA_05 - Capture photo with flash",
     "flowType": "Camera",
     "excelStepCount": 10,
@@ -46,7 +46,7 @@
   },
   {
     "atpTestCaseId": "CA_06",
-    "yamlFileName": "CA_06.yaml",
+    "yamlFileName": "CA_06 - Change to front facing camera.yaml",
     "testName": "CA_06 - Capture photo with filter",
     "flowType": "Camera",
     "excelStepCount": 6,
@@ -55,7 +55,7 @@
   },
   {
     "atpTestCaseId": "CA_07",
-    "yamlFileName": "CA_07.yaml",
+    "yamlFileName": "CA_07 - Capture using front camera with no flash.yaml",
     "testName": "CA_07 - AR scan from camera",
     "flowType": "Camera",
     "excelStepCount": 5,

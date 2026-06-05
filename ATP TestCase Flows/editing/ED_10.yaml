@@ -1,9 +1,0 @@
-appId: com.kodak.steptouch
-name: ED_10 - Adjust shadows
----
-# ATP ED_10 – Adjust shadows
-- launchApp:
-    clearState: true
-- runFlow: ../signup-login/subflows/reach_gallery_after_onboarding_skip.yaml
-- assertVisible: "My gallery"
-- runFlow: ../../flows/editing/ED_10_shadows.yaml

@@ -1,0 +1,21 @@
+# TC_ID: SU_E01 - Create account - empty name
+appId: com.kodak.steptouch
+name: SU_E01 - Create account - empty name
+---
+# ATP SU_E01 – Empty name validation.
+- launchApp:
+    clearState: true
+- runFlow: subflows/post_launch_through_signup.yaml
+- assertVisible: "Create an account"
+- tapOn: "Email*"
+- inputText: maestro.empty.name@yopmail.com
+- tapOn: "Password*"
+- inputText: TestPass1a
+- hideKeyboard
+- waitForAnimationToEnd
+- tapOn: "SIGN UP"
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    visible:
+      text: ".*(?i)(name|full name).*"
+    timeout: 15000
