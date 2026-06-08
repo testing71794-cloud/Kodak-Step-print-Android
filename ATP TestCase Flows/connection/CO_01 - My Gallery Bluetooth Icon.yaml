@@ -9,15 +9,22 @@ name: CO_01 - My Gallery Bluetooth Icon
     clearState: true
 - runFlow: ../signup-login/subflows/reach_gallery_after_onboarding_skip.yaml
 - assertVisible: "My gallery"
+- tapOn:
+    id: "ivItemGridImage"
+
 # Icon is often image-only; tune X%/Y% after inspecting your gallery toolbar.
 - tapOn:
     id: "imageViewConnection"
 - waitForAnimationToEnd:
-    timeout: 2000
+    timeout: 5000
 - tapOn:
     point: 39%,20%
 - waitForAnimationToEnd:
     timeout: 2000
+
 - runFlow: subflows/pairing_optional.yaml
+- tapOn:
+    text: "OK"
+    optional: true
 - assertVisible:
     id: "linearLayoutConnection"

@@ -7,12 +7,13 @@ name: CO_03 - Print Preview Window
 ---
 - launchApp:
     clearState: false
-- assertVisible: "My gallery"
+
 - runFlow:
     when:
       visible: "No Thanks"
     commands:
       - tapOn: "No Thanks"
+- assertVisible: "My gallery"  
 # Step 2: tap image to open.
 - tapOn:
     point: "50%, 45%"
@@ -27,19 +28,14 @@ name: CO_03 - Print Preview Window
     label: Red print top-right
     optional: true
 # Step 5: pick available device.
+- waitForAnimationToEnd
+- tapOn:
+    point: 39%,20%
 - waitForAnimationToEnd:
-  timeout: 2000
-- tapOn:
-    point: 21%,13%
-# Step 6: confirm pairing.
+    timeout: 2000
+
 - runFlow: subflows/pairing_optional.yaml
-- assertVisible:
-    id: "linearLayoutConnection"
-    optional: true
-- tapOn:
-      point: 27%,19%
 - assertVisible: "Pre-Cut \nStickers"
 
 - assertVisible: "Collage"
-
 

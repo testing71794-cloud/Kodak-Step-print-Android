@@ -7,27 +7,30 @@ name: CO_02 - Thumbnail Quick Print
 ---
 - launchApp:
     clearState: true
-- runFlow: subflows/reach_gallery_for_connection.yaml
+- runFlow: ../signup-login/subflows/reach_gallery_after_onboarding_skip.yaml
 - assertVisible: "My gallery"
 # Step 2: more button top-left on photo thumbnail.
 - tapOn:
-    point: "3%,19%"
-    label: Thumbnail more – top-left
+    id: "linearLayout_threeDot"
+    index: 2
 - tapOn:
-    point: "6%,21%"
-    optional: true
+    id: "linearLayout_threeDot"
+    index: 2
 # Step 3: printer icon.
 - tapOn:
     id: "imagePrintPreview"
 # Step 4: printer not connected popup → Connect.
 - assertVisible: "Printer Not Connected"
 - tapOn: "Connect"
-# Step 5: pick available device.
 - tapOn:
-    point: "21%,13%"
-    label: Device list entry
-# Step 6: confirm pairing.
+    point: 39%,20%
+- waitForAnimationToEnd:
+    timeout: 2000
+
 - runFlow: subflows/pairing_optional.yaml
+- tapOn:
+    text: "OK"
+    optional: true
 - assertVisible:
     id: "linearLayoutConnection"
-    optional: true
+
