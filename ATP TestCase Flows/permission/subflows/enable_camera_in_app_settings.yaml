@@ -1,0 +1,6 @@
+appId: com.kodak.steptouch
+---
+# Grant camera after visiting App info (setPermissions works when Settings UI is Compose/hidden).
+- setPermissions:
+    permissions:
+      camera: allow

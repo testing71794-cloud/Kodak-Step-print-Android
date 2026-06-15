@@ -1,0 +1,6 @@
+appId: com.kodak.steptouch
+---
+# 2/5 — Location: "Allow Kodak Step Prints to access this device's location?"
+- extendedWaitUntil:
+    visible: ".*(?i)access this device.s location.*"
+    timeout: 45000

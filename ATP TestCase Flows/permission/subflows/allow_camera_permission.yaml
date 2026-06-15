@@ -1,0 +1,18 @@
+appId: com.kodak.steptouch
+---
+# 1/5 — skip if already granted; only act when camera dialog is on screen.
+- runFlow:
+    when:
+      notVisible: ".*(?i)my gallery.*"
+    commands:
+      - extendedWaitUntil:
+          visible: ".*(?i)(take pictures and record video|access this device.s location|nearby devices|send you notifications|access (more )?photos and videos|photos and videos on this device).*"
+          timeout: 45000
+- runFlow:
+    when:
+      visible: ".*(?i)take pictures and record video.*"
+    commands:
+      - runFlow: tap_permission_allow_while_using_the_app.yaml
+      - extendedWaitUntil:
+          notVisible: ".*(?i)take pictures and record video.*"
+          timeout: 30000
