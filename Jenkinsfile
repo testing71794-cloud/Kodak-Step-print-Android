@@ -46,15 +46,13 @@ def withOpenRouterCredentials = { Object credsId, Closure action ->
 
 /** True when any ATP TestCase Flows module checkbox is enabled (Jenkins parameters). */
 def anyAtpModuleEnabled = {
-    return params.RUN_ATP_CONNECTION || params.RUN_ATP_ONBOARDING || params.RUN_ATP_SIGNUP_LOGIN ||
-        params.RUN_ATP_PRINTING || params.RUN_ATP_CAMERA || params.RUN_ATP_COLLAGE ||
+    return params.RUN_ATP_PRINTING || params.RUN_ATP_CAMERA || params.RUN_ATP_COLLAGE ||
         params.RUN_ATP_GALLERY || params.RUN_ATP_PRECUT || params.RUN_ATP_EDITING || params.RUN_ATP_SETTINGS
 }
 
 /** Suite ids for finalize flag checks (must match jenkins_atp_stage.py folder_to_suite_id). */
 def atpSuiteIdsList = {
     return [
-        'atp_connection', 'atp_onboarding', 'atp_signup_login',
         'atp_printing', 'atp_camera', 'atp_collage', 'atp_gallery', 'atp_precut', 'atp_editing', 'atp_settings',
     ]
 }
@@ -89,9 +87,6 @@ pipeline {
         string(name: 'MAESTRO_HOME', defaultValue: 'C:\\Users\\HP\\maestro\\maestro\\bin', description: 'Folder containing maestro.bat.')
         string(name: 'ANDROID_HOME', defaultValue: 'C:\\Users\\HP\\AppData\\Local\\Android\\Sdk', description: 'Android SDK root.')
         string(name: 'JAVA_HOME_OVERRIDE', defaultValue: 'C:\\Users\\HP\\.jdks\\jbr-17.0.8', description: 'JDK for Maestro (MAESTRO_JAVA_HOME/JAVA_HOME). Default is jbr-17.0.8.')
-        booleanParam(name: 'RUN_ATP_CONNECTION', defaultValue: true, description: 'ATP TestCase Flows/connection')
-        booleanParam(name: 'RUN_ATP_ONBOARDING', defaultValue: true, description: 'ATP TestCase Flows/onboarding')
-        booleanParam(name: 'RUN_ATP_SIGNUP_LOGIN', defaultValue: true, description: 'ATP TestCase Flows/signup-login')
         booleanParam(name: 'RUN_ATP_PRINTING', defaultValue: false, description: 'ATP TestCase Flows/printing')
         booleanParam(name: 'RUN_ATP_CAMERA', defaultValue: false, description: 'ATP TestCase Flows/camera')
         booleanParam(name: 'RUN_ATP_COLLAGE', defaultValue: false, description: 'ATP TestCase Flows/collage')
@@ -101,6 +96,8 @@ pipeline {
         booleanParam(name: 'RUN_ATP_SETTINGS', defaultValue: false, description: 'ATP TestCase Flows/settings')
         booleanParam(name: 'RUN_AI_ANALYSIS', defaultValue: true, description: 'Test OpenRouter + run intelligent_platform failure analysis')
         booleanParam(name: 'SEND_FINAL_EMAIL', defaultValue: false, description: 'Send final summary email')
+        booleanParam(name: 'CLEAR_STATE', defaultValue: true, description: 'Clear app state in suite runners')
+        booleanParam(name: 'RETRY_FAILED', defaultValue: false, description: 'Reserved for future retry logic')
         string(
             name: 'OPENROUTER_CREDENTIALS_ID',
             defaultValue: 'OPENROUTER_API_KEY',
@@ -125,6 +122,7 @@ pipeline {
 
     triggers {
         cron('H 9 * * *')
+        githubPush()
     }
 
     stages {
@@ -177,48 +175,6 @@ pipeline {
             }
         }
 
-        stage('Connection') {
-            when { expression { return params.RUN_ATP_CONNECTION } }
-            agent { label params.DEVICES_AGENT }
-            steps {
-                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                    script {
-                        withEnv(maestroEnvList()) {
-                                bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all connection "${params.APP_PACKAGE}" "false" "${params.MAESTRO_CMD}" """
-                            }
-                    }
-                }
-            }
-        }
-
-        stage('Onboarding') {
-            when { expression { return params.RUN_ATP_ONBOARDING } }
-            agent { label params.DEVICES_AGENT }
-            steps {
-                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                    script {
-                        withEnv(maestroEnvList()) {
-                                bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all onboarding "${params.APP_PACKAGE}" "false" "${params.MAESTRO_CMD}" """
-                            }
-                    }
-                }
-            }
-        }
-
-        stage('SignUp_Login') {
-            when { expression { return params.RUN_ATP_SIGNUP_LOGIN } }
-            agent { label params.DEVICES_AGENT }
-            steps {
-                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                    script {
-                        withEnv(maestroEnvList()) {
-                                bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all signup-login "${params.APP_PACKAGE}" "false" "${params.MAESTRO_CMD}" """
-                            }
-                    }
-                }
-            }
-        }
-
         stage('Printing') {
             when { expression { return params.RUN_ATP_PRINTING } }
             agent { label params.DEVICES_AGENT }
@@ -226,7 +182,7 @@ pipeline {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     script {
                         withEnv(maestroEnvList()) {
-                                bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all printing "${params.APP_PACKAGE}" "false" "${params.MAESTRO_CMD}" """
+                                bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all printing "${params.APP_PACKAGE}" "${params.CLEAR_STATE.toString()}" "${params.MAESTRO_CMD}" """
                             }
                     }
                 }
@@ -240,7 +196,7 @@ pipeline {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     script {
                         withEnv(maestroEnvList()) {
-                                bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all camera "${params.APP_PACKAGE}" "false" "${params.MAESTRO_CMD}" """
+                                bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all camera "${params.APP_PACKAGE}" "${params.CLEAR_STATE.toString()}" "${params.MAESTRO_CMD}" """
                             }
                     }
                 }
@@ -254,7 +210,7 @@ pipeline {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     script {
                         withEnv(maestroEnvList()) {
-                                bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all collage "${params.APP_PACKAGE}" "false" "${params.MAESTRO_CMD}" """
+                                bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all collage "${params.APP_PACKAGE}" "${params.CLEAR_STATE.toString()}" "${params.MAESTRO_CMD}" """
                             }
                     }
                 }
@@ -268,7 +224,7 @@ pipeline {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     script {
                         withEnv(maestroEnvList()) {
-                                bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all gallery "${params.APP_PACKAGE}" "false" "${params.MAESTRO_CMD}" """
+                                bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all gallery "${params.APP_PACKAGE}" "${params.CLEAR_STATE.toString()}" "${params.MAESTRO_CMD}" """
                             }
                     }
                 }
@@ -282,7 +238,7 @@ pipeline {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     script {
                         withEnv(maestroEnvList()) {
-                                bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all precut "${params.APP_PACKAGE}" "false" "${params.MAESTRO_CMD}" """
+                                bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all precut "${params.APP_PACKAGE}" "${params.CLEAR_STATE.toString()}" "${params.MAESTRO_CMD}" """
                             }
                     }
                 }
@@ -296,7 +252,7 @@ pipeline {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     script {
                         withEnv(maestroEnvList()) {
-                                bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all editing "${params.APP_PACKAGE}" "false" "${params.MAESTRO_CMD}" """
+                                bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all editing "${params.APP_PACKAGE}" "${params.CLEAR_STATE.toString()}" "${params.MAESTRO_CMD}" """
                             }
                     }
                 }
@@ -310,7 +266,7 @@ pipeline {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     script {
                         withEnv(maestroEnvList()) {
-                                bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all settings "${params.APP_PACKAGE}" "false" "${params.MAESTRO_CMD}" """
+                                bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all settings "${params.APP_PACKAGE}" "${params.CLEAR_STATE.toString()}" "${params.MAESTRO_CMD}" """
                             }
                     }
                 }
