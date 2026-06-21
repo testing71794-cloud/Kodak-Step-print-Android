@@ -167,6 +167,7 @@ pipeline {
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                     script {
+                        echo "[pipeline] ATP stages: Printing, Camera, Collage, Gallery, PreCut, Editing, Settings | CLEAR_STATE=${params.CLEAR_STATE}"
                         withEnv(maestroEnvList()) {
                             bat """call scripts\\jenkins_ci_devices.bat "${env.WORKSPACE}" """
                         }
