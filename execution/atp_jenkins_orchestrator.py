@@ -89,6 +89,73 @@ def _read_orchestrator_rev() -> str:
 ORCHESTRATOR_REV = _read_orchestrator_rev()
 
 
+def configure_stdout_stderr_utf8() -> None:
+    """Best-effort UTF-8 stdout/stderr on Windows Jenkins agents (avoids cp1252 encode crashes)."""
+    if os.name != "nt":
+        return
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            reconfigure = getattr(stream, "reconfigure", None)
+            if callable(reconfigure):
+                reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+    # PYTHONIOENCODING=utf-8 is set in some Jenkins stages; honor when streams lack reconfigure.
+    if os.environ.get("PYTHONIOENCODING", "").strip().lower().replace("-", "") != "utf8":
+        try:
+            import io
+
+            for name in ("stdout", "stderr"):
+                stream = getattr(sys, name, None)
+                if stream is None or not hasattr(stream, "buffer"):
+                    continue
+                enc = (getattr(stream, "encoding", None) or "").lower().replace("-", "")
+                if enc == "utf8":
+                    continue
+                wrapped = io.TextIOWrapper(
+                    stream.buffer,
+                    encoding="utf-8",
+                    errors="replace",
+                    line_buffering=True,
+                )
+                setattr(sys, name, wrapped)
+        except Exception:
+            pass
+
+
+def _sanitize_console_text(text: str) -> str:
+    """Replace characters the active console encoding cannot represent."""
+    payload = "" if text is None else str(text)
+    stream = sys.stdout
+    encoding = getattr(stream, "encoding", None) or "utf-8"
+    try:
+        sanitized = payload.encode(encoding, errors="replace").decode(encoding, errors="replace")
+    except (LookupError, UnicodeError):
+        sanitized = payload.encode("utf-8", errors="replace").decode("utf-8", errors="replace")
+    return sanitized.replace("\ufffd", "?")
+
+
+def safe_print(text: str, *, file=None, flush: bool = True) -> None:
+    """Print without raising when Jenkins/console encoding rejects log content."""
+    target = file if file is not None else sys.stdout
+    payload = "" if text is None else str(text)
+    try:
+        print(payload, file=target, flush=flush)
+        return
+    except UnicodeEncodeError:
+        pass
+    except Exception:
+        return
+    try:
+        print(_sanitize_console_text(payload), file=target, flush=flush)
+    except Exception:
+        try:
+            ascii_payload = payload.encode("ascii", errors="replace").decode("ascii")
+            print(ascii_payload, file=target, flush=flush)
+        except Exception:
+            return
+
+
 def _validate_execution_modules() -> bool:
     """Fail fast when execution stack modules are missing from the Jenkins workspace checkout."""
     execution_dir = Path(__file__).resolve().parent
@@ -791,12 +858,14 @@ def _report_device_outcome(
         )
         return False
     if ex != 0:
-        print(f"  [FAIL] exit={ex} device={_dev_log(dev)} flow={flow_base}{dur_hint}", flush=True)
-        _print_log_tail(repo, suite_id, flow, dev)
-        print(
+        safe_print(f"  [FAIL] exit={ex} device={_dev_log(dev)} flow={flow_base}{dur_hint}")
+        try:
+            _print_log_tail(repo, suite_id, flow, dev)
+        except Exception as exc:
+            safe_print(f"  [log] (tail unavailable: {exc})")
+        safe_print(
             "  [hint] If Maestro said 'Flow file does not exist', fix runFlow paths from ATP subfolders "
-            "(use ../../flows/ or ../../elements/ to reach repo root).",
-            flush=True,
+            "(use ../../flows/ or ../../elements/ to reach repo root)."
         )
         tail = _read_log_tail_text(repo, suite_id, flow, dev, 80)
         if "7001" in tail and "Connection refused" in tail:
@@ -813,17 +882,22 @@ def _report_device_outcome(
 
 
 def _print_log_tail(repo: Path, suite_id: str, flow: Path, device_id: str) -> None:
-    lp = _log_path(repo, suite_id, flow, device_id)
-    print(f"  [log] {lp} (last 45 lines):", flush=True)
-    if not lp.is_file():
-        print("    (no file)", flush=True)
-        return
+    """Print last lines of a Maestro log; never raises (Unicode-safe on Windows)."""
     try:
-        lines = lp.read_text(encoding="utf-8", errors="replace").splitlines()
+        lp = _log_path(repo, suite_id, flow, device_id)
+        safe_print(f"  [log] {lp} (last 45 lines):")
+        if not lp.is_file():
+            safe_print("    (no file)")
+            return
+        try:
+            lines = lp.read_text(encoding="utf-8", errors="replace").splitlines()
+        except OSError as exc:
+            safe_print(f"    (read error: {exc})")
+            return
         for ln in lines[-45:]:
-            print(f"    {ln}", flush=True)
-    except OSError as e:
-        print(f"    (read error: {e})", flush=True)
+            safe_print(f"    {_sanitize_console_text(ln)}")
+    except Exception as exc:
+        safe_print(f"  [log] (tail print failed: {exc})")
 
 
 def run_atp_folder_blocking(
@@ -833,6 +907,7 @@ def run_atp_folder_blocking(
     clear_state: str,
     maestro_cmd: str,
 ) -> int:
+    configure_stdout_stderr_utf8()
     repo = repo.resolve()
     single_folder_mode = bool((atp_subfolder or "").strip())
     atp_root = repo / "ATP TestCase Flows"
@@ -1027,6 +1102,7 @@ def run_atp_folder_blocking(
 
 
 def main(argv: list[str] | None = None) -> int:
+    configure_stdout_stderr_utf8()
     argv = argv if argv is not None else sys.argv[1:]
     if len(argv) < 4:
         print(

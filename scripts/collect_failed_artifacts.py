@@ -73,45 +73,112 @@ def _resolve_log_path(repo: Path, row: dict) -> Path | None:
     return None
 
 
+VIDEO_EXTENSIONS = (".mp4", ".webm", ".mkv", ".mov")
+
+
+def _resolve_path_or_dir_under_repo(repo: Path, raw: str) -> Path | None:
+    """Resolve a file or directory from status (may be an absolute Windows path) under repo."""
+    if not raw:
+        return None
+    p = Path(raw.strip())
+    if p.exists():
+        return p.resolve()
+    if not p.is_absolute():
+        candidate = (repo / p).resolve()
+        if candidate.exists():
+            return candidate
+    parts = p.parts
+    for anchor in ("reports", "status", "build-summary", "collected-artifacts"):
+        if anchor in parts:
+            idx = parts.index(anchor)
+            candidate = repo.joinpath(*parts[idx:]).resolve()
+            if candidate.exists():
+                return candidate
+    return None
+
+
+def _resolve_path_under_repo(repo: Path, raw: str) -> Path | None:
+    """Resolve a file path from status (may be absolute Windows) to a file under repo."""
+    hit = _resolve_path_or_dir_under_repo(repo, raw)
+    return hit if hit is not None and hit.is_file() else None
+
+
+def _newest_video_in_dir(directory: Path) -> Path | None:
+    if not directory.is_dir():
+        return None
+    found: list[Path] = []
+    for ext in VIDEO_EXTENSIONS:
+        found.extend(directory.rglob(f"*{ext}"))
+    if not found:
+        return None
+    return max(found, key=lambda p: p.stat().st_mtime)
+
+
 def _resolve_video_path(repo: Path, row: dict) -> Path | None:
-    raw = (row.get("video_file") or "").strip()
-    if raw:
-        p = Path(raw)
-        if not p.is_absolute():
-            p = (repo / p).resolve()
-        if p.is_file():
-            return p
+    for key in ("video_file", "video_path", "recording_file"):
+        raw = (row.get(key) or "").strip()
+        if raw:
+            resolved = _resolve_path_under_repo(repo, raw)
+            if resolved is not None:
+                return resolved
 
     suite = (row.get("suite") or "").strip()
     flow = (row.get("flow") or "").strip()
     dev = (row.get("device_id") or row.get("device") or "").strip()
-    if not suite or not flow:
+
+    test_out_raw = (row.get("test_output_dir") or "").strip()
+    if test_out_raw:
+        test_out = _resolve_path_or_dir_under_repo(repo, test_out_raw)
+        if test_out is not None:
+            if test_out.is_file():
+                return test_out
+            preferred = test_out / "recording.mp4"
+            if preferred.is_file():
+                return preferred
+            hit = _newest_video_in_dir(test_out)
+            if hit is not None:
+                return hit
+
+    if not flow:
         return None
 
     safe_flow = flow.replace(" ", "_")
     safe_dev = dev.replace(" ", "_")
-    recordings_root = repo / "reports" / suite / "recordings"
-    if not recordings_root.is_dir():
-        return None
+    if suite:
+        recordings_roots = [repo / "reports" / suite / "recordings"]
+    else:
+        recordings_roots = [
+            p for p in (repo / "reports").glob("*/recordings") if p.is_dir()
+        ]
+    for recordings_root in recordings_roots:
+        if not recordings_root.is_dir():
+            continue
 
-    slug = f"{flow}__{safe_dev}"
-    candidates = [
-        recordings_root / slug,
-        recordings_root / f"{safe_flow}__{safe_dev}",
-        recordings_root / safe_flow,
-    ]
-    for base in candidates:
-        if base.is_dir():
-            mp4s = sorted(base.rglob("*.mp4"), key=lambda p: p.stat().st_mtime, reverse=True)
-            if mp4s:
-                return mp4s[0]
-        if base.with_suffix(".mp4").is_file():
-            return base.with_suffix(".mp4")
+        slug = f"{flow}__{safe_dev}"
+        candidates = [
+            recordings_root / slug,
+            recordings_root / f"{safe_flow}__{safe_dev}",
+            recordings_root / safe_flow,
+        ]
+        for base in candidates:
+            if base.is_dir():
+                for name in ("recording.mp4", "recording.webm", f"{safe_flow}.mp4"):
+                    p = base / name
+                    if p.is_file():
+                        return p
+                hit = _newest_video_in_dir(base)
+                if hit is not None:
+                    return hit
+            elif base.with_suffix(".mp4").is_file():
+                return base.with_suffix(".mp4")
 
-    flow_key = flow.casefold()
-    for mp4 in sorted(recordings_root.rglob("*.mp4"), key=lambda p: p.stat().st_mtime, reverse=True):
-        if flow_key in mp4.as_posix().casefold():
-            return mp4
+        flow_key = flow.casefold()
+        all_videos: list[Path] = []
+        for ext in VIDEO_EXTENSIONS:
+            all_videos.extend(recordings_root.rglob(f"*{ext}"))
+        matched = [p for p in all_videos if flow_key in p.as_posix().casefold()]
+        if matched:
+            return max(matched, key=lambda p: p.stat().st_mtime)
     return None
 
 
@@ -192,7 +259,7 @@ def collect_failed_artifacts(repo: Path) -> dict:
             shutil.copy2(log_src, dest)
             log_art = dest.name
         if vid_src is not None:
-            dest = out_dir / f"{stem}.mp4"
+            dest = out_dir / f"{stem}{vid_src.suffix.lower() or '.mp4'}"
             shutil.copy2(vid_src, dest)
             vid_art = dest.name
 
@@ -228,6 +295,7 @@ def collect_failed_artifacts(repo: Path) -> dict:
                     zf.write(p, arcname=p.name)
         print(
             f"[collect_failed_artifacts] failed={len(collected)} "
+            f"videos={sum(1 for r in collected if r.video_artifact)} "
             f"dir={out_dir} zip={zip_path}",
             flush=True,
         )

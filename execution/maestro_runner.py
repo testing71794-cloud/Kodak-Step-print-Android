@@ -544,6 +544,7 @@ def _apply_parallel_maestro_env(
     recordings_dir.mkdir(parents=True, exist_ok=True)
     env["ATP_MAESTRO_TEST_OUTPUT"] = str(recordings_dir)
     meta["test_output"] = str(recordings_dir)
+    env.setdefault("ATP_AUTO_RECORD_VIDEO", "1")
     return meta
 
 

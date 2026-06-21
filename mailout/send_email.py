@@ -188,19 +188,21 @@ def _failed_tests_summary_html(rows: list[dict]) -> str:
         )
     trs = [
         "<tr>"
-        "<th>Test Name</th><th>Status</th><th>Failure Reason</th>"
+        "<th>Test Name</th><th>Status</th><th>Failure Reason</th><th>Video</th>"
         "</tr>"
     ]
     for row in rows:
         name = str(row.get("test_name") or row.get("flow") or "—")
         status = str(row.get("status") or "FAIL")
         reason = str(row.get("failure_reason") or row.get("reason") or "—")
+        video = str(row.get("video_artifact") or "").strip() or "—"
         cls = _status_html_class(status)
         trs.append(
             "<tr>"
             f'<td class="c-flow">{html.escape(name)}</td>'
             f'<td class="{cls}"><strong>{html.escape(status)}</strong></td>'
             f'<td>{html.escape(reason)}</td>'
+            f'<td>{html.escape(video)}</td>'
             "</tr>"
         )
     return (
@@ -212,7 +214,7 @@ def _failed_tests_summary_html(rows: list[dict]) -> str:
 
 
 def _failed_tests_summary_plain(rows: list[dict]) -> str:
-    lines = ["Failed Test Summary", "Test Name | Status | Failure Reason", "-" * 72]
+    lines = ["Failed Test Summary", "Test Name | Status | Failure Reason | Video", "-" * 88]
     if not rows:
         lines.append("No failed tests detected.")
         return "\n".join(lines)
@@ -220,7 +222,8 @@ def _failed_tests_summary_plain(rows: list[dict]) -> str:
         name = str(row.get("test_name") or row.get("flow") or "—")
         status = str(row.get("status") or "FAIL")
         reason = str(row.get("failure_reason") or row.get("reason") or "—")
-        lines.append(f"{name} | {status} | {reason}")
+        video = str(row.get("video_artifact") or "").strip() or "—"
+        lines.append(f"{name} | {status} | {reason} | {video}")
     return "\n".join(lines)
 
 
@@ -956,9 +959,13 @@ def send_execution_report_email(
         failed_summary_rows, failed_summary_enabled = load_failed_tests_summary(rroot)
         if failed_summary_enabled:
             failed_zip = resolve_failed_tests_artifacts_zip(rroot)
-            if failed_zip is not None and failed_summary_rows:
+            if failed_zip is not None:
                 logs_zip = failed_zip
                 attachment_labels.append(f"{failed_zip.name} (failed test logs and videos)")
+            elif failed_summary_rows:
+                logs_zip = resolve_or_build_execution_logs_zip(excel_path, rroot)
+                if logs_zip is not None:
+                    attachment_labels.append(f"{logs_zip.name} (execution logs)")
         else:
             logs_zip = resolve_or_build_execution_logs_zip(excel_path, rroot)
             if logs_zip is not None:
