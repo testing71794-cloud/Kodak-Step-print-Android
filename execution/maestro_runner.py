@@ -538,6 +538,12 @@ def _apply_parallel_maestro_env(
     debug_dir.mkdir(parents=True, exist_ok=True)
     env["ATP_MAESTRO_DEBUG_OUTPUT"] = str(debug_dir)
     meta["debug_output"] = str(debug_dir)
+
+    recordings_root = (repo / "reports" / suite_id / "recordings").resolve()
+    recordings_dir = recordings_root / f"{flow_path.stem}__{slug}"
+    recordings_dir.mkdir(parents=True, exist_ok=True)
+    env["ATP_MAESTRO_TEST_OUTPUT"] = str(recordings_dir)
+    meta["test_output"] = str(recordings_dir)
     return meta
 
 

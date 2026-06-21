@@ -393,6 +393,18 @@ pipeline {
             }
         }
 
+        stage('Collect failed test artifacts') {
+            agent { label params.GCP_ORCHESTRATOR_AGENT }
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    sh """
+                        chmod +x scripts/gcp/*.sh 2>/dev/null || true
+                        bash scripts/gcp/jenkins_ci_collect_failed_artifacts.sh "${env.WORKSPACE}"
+                    """
+                }
+            }
+        }
+
         // mailout/send_email.py — user/pass from Jenkins credential "gmail-smtp-kodak" (Gmail + App Password). No secrets in this file.
         stage('Send Final Email') {
             when { expression { return params.SEND_FINAL_EMAIL } }
@@ -431,7 +443,7 @@ pipeline {
             agent { label params.GCP_ORCHESTRATOR_AGENT }
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                    archiveArtifacts artifacts: 'build-summary/final_execution_report.xlsx, build-summary/execution_logs.zip, .maestro/screenshots/**, detected_devices.txt', allowEmptyArchive: true
+                    archiveArtifacts artifacts: 'build-summary/final_execution_report.xlsx, build-summary/failed_tests_artifacts.zip, build-summary/failed_tests_summary.json, build-summary/execution_logs.zip, .maestro/screenshots/**, detected_devices.txt', allowEmptyArchive: true
                 }
             }
         }

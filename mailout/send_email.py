@@ -1,9 +1,12 @@
 """
 Send final_execution_report.xlsx after parallel orchestration completes (HTML + attachments).
 
-Default (matches common Jenkins / Gmail flow): two attachments
+Default attachments:
   1) final_execution_report.xlsx
-  2) execution_logs.zip (existing, or auto-built from reports/**/*.log)
+  2) failed_tests_artifacts.zip when build-summary/failed_tests_summary.json exists
+     (failure-only logs/videos). If there are no failures, no zip is attached and the
+     email states "No failed tests detected."
+  3) execution_logs.zip — only when failed_tests_summary.json is absent (legacy path)
 
 Optional AI files (intelligent_platform): set ORCH_EMAIL_ATTACH_AI=1, then
   + ai_intelligence_report.xlsx, intelligence_result.json when present.
@@ -13,6 +16,7 @@ Env ORCH_AI_INTELLIGENCE_XLSX / AI_INTELLIGENCE_REPORT_XLSX can override the AI 
 from __future__ import annotations
 
 import html
+import json
 import logging
 import os
 import socket
@@ -149,6 +153,75 @@ def resolve_or_build_execution_logs_zip(excel_path: Path, root: Path | None) -> 
     if root is None:
         return None
     return build_execution_logs_zip(root)
+
+
+def load_failed_tests_summary(root: Path) -> tuple[list[dict], bool]:
+    """
+    Read build-summary/failed_tests_summary.json written by collect_failed_artifacts.py.
+    Returns (failure rows, True) when the summary file exists; otherwise ([], False).
+    """
+    path = root.resolve() / "build-summary" / "failed_tests_summary.json"
+    if not path.is_file():
+        return [], False
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        logger.warning("Could not read failed_tests_summary.json: %s", exc)
+        return [], True
+    rows = data.get("failures") if isinstance(data, dict) else None
+    if not isinstance(rows, list):
+        return [], True
+    return [r for r in rows if isinstance(r, dict)], True
+
+
+def resolve_failed_tests_artifacts_zip(root: Path) -> Path | None:
+    p = root.resolve() / "build-summary" / "failed_tests_artifacts.zip"
+    return p if p.is_file() else None
+
+
+def _failed_tests_summary_html(rows: list[dict]) -> str:
+    if not rows:
+        return (
+            '<p class="sub" style="margin:12px 0 16px; font-weight:600; color:#1b5e20;">'
+            "No failed tests detected."
+            "</p>"
+        )
+    trs = [
+        "<tr>"
+        "<th>Test Name</th><th>Status</th><th>Failure Reason</th>"
+        "</tr>"
+    ]
+    for row in rows:
+        name = str(row.get("test_name") or row.get("flow") or "—")
+        status = str(row.get("status") or "FAIL")
+        reason = str(row.get("failure_reason") or row.get("reason") or "—")
+        cls = _status_html_class(status)
+        trs.append(
+            "<tr>"
+            f'<td class="c-flow">{html.escape(name)}</td>'
+            f'<td class="{cls}"><strong>{html.escape(status)}</strong></td>'
+            f'<td>{html.escape(reason)}</td>'
+            "</tr>"
+        )
+    return (
+        '<p class="sub" style="margin:12px 0 6px; font-weight:600; color:#1f4e79;">'
+        "Failed Test Summary</p>"
+        '<table class="ex" role="presentation" style="margin-bottom:18px;">'
+        f'{"".join(trs)}</table>'
+    )
+
+
+def _failed_tests_summary_plain(rows: list[dict]) -> str:
+    lines = ["Failed Test Summary", "Test Name | Status | Failure Reason", "-" * 72]
+    if not rows:
+        lines.append("No failed tests detected.")
+        return "\n".join(lines)
+    for row in rows:
+        name = str(row.get("test_name") or row.get("flow") or "—")
+        status = str(row.get("status") or "FAIL")
+        reason = str(row.get("failure_reason") or row.get("reason") or "—")
+        lines.append(f"{name} | {status} | {reason}")
+    return "\n".join(lines)
 
 
 def resolve_ai_intelligence_artifacts(root: Path) -> list[Path]:
@@ -627,6 +700,8 @@ def build_email_html(
     error_note: str | None,
     attachment_labels: list[str] | None = None,
     summary_pairs: list[tuple[str, str]] | None = None,
+    failed_summary_rows: list[dict] | None = None,
+    failed_summary_enabled: bool = False,
 ) -> str:
     if error_note and not rows:
         table_body = (
@@ -680,6 +755,7 @@ def build_email_html(
 <body>
   <h1>{html.escape(EXECUTION_SUMMARY_TITLE)}</h1>
   {_summary_stats_html(summary_pairs if summary_pairs else [("Generated on", generated_on)])}
+  {_failed_tests_summary_html(failed_summary_rows or []) if failed_summary_enabled else ""}
   {table_body}
   {_attachments_block_html(attachment_labels or [])}
   <p class="sub" style="margin-top:20px;">This message was sent by Jenkins automation. See the attachment list above.</p>
@@ -701,6 +777,8 @@ def build_email_plain(
     error_note: str | None,
     attachment_labels: list[str] | None = None,
     summary_pairs: list[tuple[str, str]] | None = None,
+    failed_summary_rows: list[dict] | None = None,
+    failed_summary_enabled: bool = False,
 ) -> str:
     lines = [
         EXECUTION_SUMMARY_TITLE,
@@ -709,6 +787,9 @@ def build_email_plain(
     for label, value in summary_pairs or [("Generated on", generated_on)]:
         lines.append(f"{label}: {value}")
     lines.append("")
+    if failed_summary_enabled:
+        lines.append(_failed_tests_summary_plain(failed_summary_rows or []))
+        lines.append("")
     if error_note:
         lines.append(error_note)
         lines.append("")
@@ -740,7 +821,11 @@ def build_email_plain(
     lines.append("")
     if _orch_email_attach_ai():
         lines.append(
-            "The execution workbook, optional AI analysis files, and the log zip (when present) are attached."
+            "The execution workbook, optional AI analysis files, and failure/log attachments (when present) are attached."
+        )
+    elif failed_summary_enabled:
+        lines.append(
+            "The execution workbook and failed_tests_artifacts.zip (when failures exist) are attached."
         )
     else:
         lines.append(
@@ -863,11 +948,25 @@ def send_execution_report_email(
             attachment_labels.append(f"{ap.name} (AI analyses - full result)")
         else:
             attachment_labels.append(ap.name)
-    logs_zip: Path | None = resolve_or_build_execution_logs_zip(
-        excel_path, rroot if rroot is not None else None
-    )
-    if logs_zip is not None:
-        attachment_labels.append(f"{logs_zip.name} (execution logs)")
+
+    failed_summary_rows: list[dict] = []
+    failed_summary_enabled = False
+    logs_zip: Path | None = None
+    if rroot is not None:
+        failed_summary_rows, failed_summary_enabled = load_failed_tests_summary(rroot)
+        if failed_summary_enabled:
+            failed_zip = resolve_failed_tests_artifacts_zip(rroot)
+            if failed_zip is not None and failed_summary_rows:
+                logs_zip = failed_zip
+                attachment_labels.append(f"{failed_zip.name} (failed test logs and videos)")
+        else:
+            logs_zip = resolve_or_build_execution_logs_zip(excel_path, rroot)
+            if logs_zip is not None:
+                attachment_labels.append(f"{logs_zip.name} (execution logs)")
+    else:
+        logs_zip = resolve_or_build_execution_logs_zip(excel_path, None)
+        if logs_zip is not None:
+            attachment_labels.append(f"{logs_zip.name} (execution logs)")
 
     if body is not None:
         text_body = body
@@ -878,10 +977,22 @@ def send_execution_report_email(
         sheet_kv = read_summary_sheet_key_values(excel_path)
         summary_pairs = build_summary_display_pairs(sheet_kv, table_rows, gen_ts)
         text_body = build_email_plain(
-            table_rows, gen_ts, table_err, attachment_labels, summary_pairs
+            table_rows,
+            gen_ts,
+            table_err,
+            attachment_labels,
+            summary_pairs,
+            failed_summary_rows,
+            failed_summary_enabled,
         )
         html_body = build_email_html(
-            table_rows, gen_ts, table_err, attachment_labels, summary_pairs
+            table_rows,
+            gen_ts,
+            table_err,
+            attachment_labels,
+            summary_pairs,
+            failed_summary_rows,
+            failed_summary_enabled,
         )
 
     if not smtp_server or not smtp_user or not smtp_pass or not receiver:
