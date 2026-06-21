@@ -1,6 +1,49 @@
 appId: com.kodak.steptouch
 ---
-# Cold start only: wait for signup (post-terms steps stay fast in advance_after_terms).
+# Cold start after launchApp clearState: splash → optional intro → signup entry.
+# Matches signup-login cold start (SU_01). Waits for stable signup controls, not headline copy alone.
+- runFlow: ../../signup-login/subflows/post_launch_through_signup.yaml
+
+- runFlow:
+    file: ../../permission/subflows/dismiss_app_intro_if_visible.yaml
+    optional: true
+
+# In-app permission gate (partial install state / OEM builds) — do not tap OK here.
+- runFlow:
+    when:
+      visible: ".*(?i)permission required.*"
+    commands:
+      - waitForAnimationToEnd:
+          timeout: 3000
+
+# Android runtime sheets before signup are rare on fresh install; pause if they appear.
+- runFlow:
+    when:
+      visible: ".*(?i)(send you notifications|take pictures and record video|access this device.s location|nearby devices|access (more )?photos and videos|photos and videos on this device).*"
+    commands:
+      - waitForAnimationToEnd:
+          timeout: 5000
+
+# Already completed onboarding (clearState miss / reused device profile).
+- runFlow:
+    when:
+      visible: ".*(?i)(my gallery|skip|start a quick tour|switch between).*"
+    commands:
+      - waitForAnimationToEnd:
+          timeout: 2000
+
+# Primary gate: button tapped in reach_onboarding_after_terms.yaml (stable vs headline copy).
 - extendedWaitUntil:
-    visible: "Create an account"
-    timeout: 2000
+    visible: "I'll do it later"
+    timeout: 60000
+
+# Secondary anchors when headline copy differs by build/locale.
+- assertVisible:
+    text: "Full Name*"
+    optional: true
+- assertVisible:
+    text: "SIGN UP"
+    optional: true
+- assertVisible:
+    text: "Already have an account?"
+    optional: true

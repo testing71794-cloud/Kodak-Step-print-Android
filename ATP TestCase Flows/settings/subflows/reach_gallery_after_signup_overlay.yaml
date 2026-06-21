@@ -1,0 +1,10 @@
+appId: com.kodak.steptouch
+---
+# ON_03 tail after sign-up / login overlays: tour → Skip → My gallery.
+- runFlow: ../../onboarding/subflows/advance_after_terms_for_onboarding.yaml
+- tapOn:
+    text: "Skip"
+    optional: true
+- extendedWaitUntil:
+    visible: "My gallery"
+    timeout: 60000

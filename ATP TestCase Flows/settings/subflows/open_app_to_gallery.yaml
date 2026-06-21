@@ -1,6 +1,6 @@
 appId: com.kodak.steptouch
 ---
-# ATP Step 1: Open app and reach gallery home (fast path, no permissions).
+# ATP Step 1: Open app and reach gallery home (ON_03 path).
 - launchApp:
     clearState: true
-- runFlow: reach_gallery_for_settings.yaml
+- runFlow: ../../onboarding/subflows/reach_gallery_after_onboarding_skip.yaml

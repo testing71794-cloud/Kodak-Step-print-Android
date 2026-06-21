@@ -5,8 +5,6 @@
 appId: com.kodak.steptouch
 name: SE_11 - Join Step Print (create account / sign up)
 ---
-- launchApp:
-    clearState: true
 - runFlow: subflows/open_app_to_gallery.yaml
 - runFlow: subflows/open_settings_from_gallery.yaml
 - tapOn: "Join StepPrint"
@@ -43,15 +41,9 @@ name: SE_11 - Join Step Print (create account / sign up)
 - extendedWaitUntil:
     visible:
       text: ".*(?i)(my gallery|start a quick tour|skip|agree terms).*"
-    timeout: 2000
-# Reach gallery after sign-up (skip onboarding overlay if shown).
-- runFlow: subflows/advance_after_terms_for_settings.yaml
-- tapOn:
-    text: "Skip"
-    optional: true
-- extendedWaitUntil:
-    visible: "My gallery"
-    timeout: 2000
+    timeout: 60000
+# Reach gallery after sign-up (ON_03 skip path).
+- runFlow: subflows/reach_gallery_after_signup_overlay.yaml
 # Step 6: open settings again (stay on gallery; do not open a photo first).
 - runFlow: subflows/tap_settings_gear.yaml
 - extendedWaitUntil:

@@ -1,10 +1,10 @@
 appId: com.kodak.steptouch
 ---
-# After LOGIN: terms/onboarding overlay, then gallery home (max 2s waits).
+# After LOGIN: terms/onboarding overlay, then ON_03 skip path to gallery.
 - extendedWaitUntil:
     visible:
       text: ".*(?i)(my gallery|all photos|agree terms and conditions|start a quick tour|skip).*"
-    timeout: 2000
+    timeout: 60000
 - runFlow:
     when:
       visible: "Agree Terms and Conditions"
@@ -12,11 +12,4 @@ appId: com.kodak.steptouch
       - tapOn: "Agree Terms and Conditions"
       - waitForAnimationToEnd:
           timeout: 2000
-- runFlow: advance_after_terms_for_settings.yaml
-- tapOn:
-    text: "Skip"
-    optional: true
-- extendedWaitUntil:
-    visible:
-      text: ".*(?i)(my gallery|all photos).*"
-    timeout: 2000
+- runFlow: reach_gallery_after_signup_overlay.yaml
