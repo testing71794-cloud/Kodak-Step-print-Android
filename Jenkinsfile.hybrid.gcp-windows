@@ -443,7 +443,7 @@ pipeline {
             agent { label params.GCP_ORCHESTRATOR_AGENT }
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                    archiveArtifacts artifacts: 'build-summary/final_execution_report.xlsx, build-summary/failed_tests_artifacts.zip, build-summary/failed_tests_summary.json, build-summary/execution_logs.zip, .maestro/screenshots/**, detected_devices.txt', allowEmptyArchive: true
+                    archiveArtifacts artifacts: 'build-summary/final_execution_report.xlsx, build-summary/failed_tests_artifacts.zip, build-summary/failed_tests_summary.json, build-summary/failed-artifacts/**, build-summary/execution_logs.zip, detected_devices.txt', allowEmptyArchive: true
                 }
             }
         }

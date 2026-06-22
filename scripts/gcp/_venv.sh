@@ -112,7 +112,34 @@ resolve_gcp_python() {
     rm -rf "$VENV_DIR"
   fi
 
-  # virtualenv module (if installed)
+  # python3-venv package missing on Debian/Ubuntu — try apt install when sudo is available.
+  if grep -qiE 'ensurepip|venv.*no module|No module named' "$VENV_LOG" 2>/dev/null; then
+    echo "[gcp-venv] WARN: python -m venv failed; attempting python${PY_MINOR}-venv install"
+    if command -v sudo >/dev/null 2>&1; then
+      if sudo -n true >/dev/null 2>&1; then
+        sudo apt-get update -qq >/dev/null 2>&1 || true
+        if sudo apt-get install -y "python${PY_MINOR}-venv" python3-venv python3-pip >/dev/null 2>&1; then
+          echo "[gcp-venv] installed python${PY_MINOR}-venv via apt"
+          if "$PY_BOOT" -m venv "$VENV_DIR" >"$VENV_LOG" 2>&1 && [[ -x "$VENV_DIR/bin/python" ]]; then
+            local PY_APT="$VENV_DIR/bin/python"
+            if _gcp_venv_has_pip "$PY_APT" || _gcp_repair_venv_pip "$PY_APT"; then
+              _gcp_venv_pip_install "$PY_APT" "$ROOT"
+              return 0
+            fi
+            rm -rf "$VENV_DIR"
+          fi
+        else
+          echo "[gcp-venv] WARN: apt install python${PY_MINOR}-venv failed (continuing with fallback)"
+        fi
+      else
+        echo "[gcp-venv] WARN: sudo not available without password; cannot install python${PY_MINOR}-venv"
+      fi
+    else
+      echo "[gcp-venv] WARN: sudo not found; cannot install python${PY_MINOR}-venv"
+    fi
+  fi
+
+  # virtualenv module (optional legacy fallback)
   if "$PY_BOOT" -m virtualenv "$VENV_DIR" >"$VENV_LOG" 2>&1 && [[ -x "$VENV_DIR/bin/python" ]]; then
     echo "[gcp-venv] created venv via python -m virtualenv"
     local PY_VE="$VENV_DIR/bin/python"
@@ -130,7 +157,10 @@ resolve_gcp_python() {
   echo "  # or: sudo apt install -y python3-venv" >&2
 
   if [[ "${JENKINS_ORCHESTRATOR_ALLOW_USER_PIP:-1}" == "0" ]]; then
-    return 1
+    echo "[gcp-venv] WARN: venv creation failed and user-pip fallback disabled; using boot python for email" >&2
+    export GCP_PYTHON_MODE="${GCP_PYTHON_MODE:-system}"
+    export PY="$PY_BOOT"
+    return 0
   fi
 
   echo "[gcp-venv] WARN: falling back to pip --user (install python${PY_MINOR}-venv when possible)" >&2
