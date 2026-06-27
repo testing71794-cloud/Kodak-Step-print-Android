@@ -62,3 +62,17 @@ def find_by_text(elements: list[UIElement], pattern: str, *, regex: bool = False
         elif pattern.lower() in hay.lower():
             out.append(el)
     return out
+
+
+def find_by_resource_id(elements: list[UIElement], resource_id: str) -> list[UIElement]:
+    needle = resource_id.strip().lower()
+    if not needle:
+        return []
+    out: list[UIElement] = []
+    for el in elements:
+        rid = el.resource_id.lower()
+        if not rid:
+            continue
+        if rid == needle or rid.endswith(f"/{needle}") or needle in rid:
+            out.append(el)
+    return out

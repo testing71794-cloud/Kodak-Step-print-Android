@@ -13,6 +13,8 @@ from typing import Any
 REPO = Path(__file__).resolve().parents[1]
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
+if str(REPO / "scripts") not in sys.path:
+    sys.path.insert(0, str(REPO / "scripts"))
 
 
 def _read_openrouter_key() -> str:
@@ -94,11 +96,57 @@ def _build_failure_dict(log_text: str) -> dict[str, Any]:
     }
 
 
+def _camera_analysis_for_row(
+    flow_name: str,
+    suite: str,
+    device_id: str,
+    status: str,
+) -> dict[str, Any] | None:
+    try:
+        from camera_vision_analysis import analyze_camera_for_excel_row, is_camera_automation_flow
+
+        if not is_camera_automation_flow(flow_name, suite):
+            return None
+        return analyze_camera_for_excel_row(
+            flow_name=flow_name,
+            suite=suite,
+            device_id=device_id,
+            status=status,
+        )
+    except Exception:
+        return None
+
+
+def _merge_camera_into_result(base: dict[str, Any], cam: dict[str, Any] | None) -> dict[str, Any]:
+    if not cam:
+        return base
+    out = dict(base)
+    cam_summary = str(cam.get("ai_failure_summary") or cam.get("camera_summary") or "")
+    if cam_summary:
+        prev = str(out.get("ai_failure_summary") or "").strip()
+        if prev and prev not in ("—", "-"):
+            out["ai_failure_summary"] = f"{cam_summary} | Maestro: {prev}"[:2000]
+        else:
+            out["ai_failure_summary"] = cam_summary[:2000]
+    if cam.get("root_cause_category") and out.get("root_cause_category") in ("Unknown", "—", ""):
+        out["root_cause_category"] = cam["root_cause_category"]
+    if cam.get("suggested_fix") and str(out.get("suggested_fix") or "—") in ("—", ""):
+        out["suggested_fix"] = cam["suggested_fix"]
+    if cam.get("screenshot_path"):
+        out["screenshot_path"] = cam["screenshot_path"]
+    if out.get("analysis_source") in ("Rule-based fallback", "N/A", "Heuristic (FLAKY)"):
+        out["analysis_source"] = cam.get("analysis_source", out.get("analysis_source"))
+    return out
+
+
 def analyze_failure_for_row(
     log_path: str | None,
     *,
     status: str = "",
     use_openrouter: bool = True,
+    flow_name: str = "",
+    suite: str = "",
+    device_id: str = "",
 ) -> dict[str, Any]:
     """
     Return keys: failure_step, error_message, ai_failure_summary, root_cause_category,
@@ -108,7 +156,23 @@ def analyze_failure_for_row(
     p = Path(log_path or "")
     log_text = _read_log_tail(p) if p else ""
     st = (status or "").upper()
+    cam = _camera_analysis_for_row(flow_name, suite, device_id, st)
+
     if st in ("PASS", "SKIPPED"):
+        if cam:
+            return {
+                "failure_step": "",
+                "error_message": "",
+                "ai_failure_summary": cam["ai_failure_summary"],
+                "root_cause_category": cam["root_cause_category"],
+                "suggested_fix": cam["suggested_fix"],
+                "ai_confidence": cam["ai_confidence"],
+                "analysis_source": cam["analysis_source"],
+                "ai_status": meta.get("ai_status", "NOT_CHECKED"),
+                "model_used": cam["model_used"],
+                "key_present": meta.get("key_present", "no"),
+                "screenshot_path": cam.get("screenshot_path", ""),
+            }
         return {
             "failure_step": "",
             "error_message": "",
@@ -122,7 +186,7 @@ def analyze_failure_for_row(
             "key_present": meta.get("key_present", "no"),
         }
     if st == "FLAKY":
-        return {
+        base = {
             "failure_step": "—",
             "error_message": "—",
             "ai_failure_summary": "Flaky run — see log for first failure and retry context.",
@@ -134,13 +198,18 @@ def analyze_failure_for_row(
             "model_used": "—",
             "key_present": meta.get("key_present", "no"),
         }
+        return _merge_camera_into_result(base, cam)
 
     fd = _build_failure_dict(log_text)
+    if cam:
+        fd["flow"] = flow_name
+        fd["suite"] = suite
+        fd["device"] = device_id
+        fd["camera_view_summary"] = cam.get("camera_summary", "")
     err = (fd.get("error_message") or "")[:2000]
     step = (fd.get("step_failed") or err[:240] or "Unknown step")[:2000]
 
     has_key = bool(_read_openrouter_key())
-    # OpenRouter is default: use when key is set and pre-flight did not set UNAVAILABLE.
     want_ai = use_openrouter and has_key and not _read_ai_status_unavailable()
 
     if want_ai:
@@ -158,7 +227,7 @@ def analyze_failure_for_row(
                         or r.get("source_label")
                         or "OpenRouter"
                     )[:60]
-                    return {
+                    base = {
                         "failure_step": step,
                         "error_message": err
                         or str(r.get("root_cause", ""))[:2000],
@@ -180,13 +249,24 @@ def analyze_failure_for_row(
                         or "—",
                         "key_present": "yes",
                     }
+                    return _merge_camera_into_result(base, cam)
         except Exception as e:
             err = f"{err} [AI error: {e}]"[:2000] if err else f"AI error: {e}"
 
-    # Rule-only
     r2 = _rule_fallback(err, step, log_text, meta=meta)
     r2["error_message"] = (err or r2.get("error_message", "See log."))[:2000]
-    return r2
+    if cam and not want_ai:
+        return {
+            **r2,
+            "ai_failure_summary": cam["ai_failure_summary"],
+            "root_cause_category": cam.get("root_cause_category", r2.get("root_cause_category")),
+            "suggested_fix": cam.get("suggested_fix", r2.get("suggested_fix")),
+            "ai_confidence": cam.get("ai_confidence", r2.get("ai_confidence")),
+            "analysis_source": cam.get("analysis_source", r2.get("analysis_source")),
+            "model_used": cam.get("model_used", r2.get("model_used")),
+            "screenshot_path": cam.get("screenshot_path", ""),
+        }
+    return _merge_camera_into_result(r2, cam)
 
 
 def _rule_fallback(

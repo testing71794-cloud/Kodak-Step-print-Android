@@ -37,6 +37,9 @@ if not exist "%WS%" goto :done
 if defined WS if exist "%WS%" call :print_size "Workspace - before %MODE%" "%WS%"
 
 if /I "%MODE%"=="PRE" (
+  call :wipe_dir "%WS%\.maestro-runtime"
+  call :wipe_dir "%WS%\.maestro_tmp"
+  call :wipe_dir "%WS%\.maestro-workspace"
   call :wipe_dir "%WS%\reports"
   call :wipe_dir "%WS%\logs"
   call :wipe_dir "%WS%\status"

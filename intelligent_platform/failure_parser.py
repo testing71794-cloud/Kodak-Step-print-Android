@@ -133,6 +133,8 @@ def _norm_err(s: str) -> str:
 
 def _infer_screen(err: str, test_name: str) -> str:
     e, t = (err or "").lower(), (test_name or "").lower()
+    if t.startswith("ca_") or "camera" in t or "capture" in t:
+        return "camera"
     if "print" in e or "print" in t:
         return "printing"
     if "login" in e or "login" in t:

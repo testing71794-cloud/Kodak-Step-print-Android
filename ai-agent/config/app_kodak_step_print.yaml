@@ -14,7 +14,7 @@ workflows:
   printing:
     entry_screens: ["Print", "Copies", "Preview"]
   camera:
-    entry_screens: ["Camera", "Capture", "Flash"]
+    entry_screens: ["Camera", "Capture", "Flash", "capture_img", "imgFlipCamera", "img_camera_menu"]
   editing:
     entry_screens: ["Edit", "Crop", "Adjust", "Filter", "Sticker", "Text"]
   settings:

@@ -8,7 +8,6 @@ if "%~1"=="" (
 cd /d "%~1"
 set "WS_ROOT=%~1"
 if defined JENKINS_WORKLOAD_PROFILE echo [workload] profile=%JENKINS_WORKLOAD_PROFILE%
-echo === SAFE DISK CLEANUP PRE ===
 echo [DEBUG] cd /d "%WS_ROOT%"
 pushd "%~dp0"
 if not exist "jenkins_resolve_python.bat" (
@@ -16,14 +15,6 @@ if not exist "jenkins_resolve_python.bat" (
   popd
   exit /b 1
 )
-if not exist "safe_disk_cleanup.bat" (
-  echo ERROR: safe_disk_cleanup.bat not found in "%CD%"
-  popd
-  exit /b 1
-)
-echo [DEBUG] call "%~dp0safe_disk_cleanup.bat" PRE "%WS_ROOT%"
-call "%~dp0safe_disk_cleanup.bat" PRE "%WS_ROOT%"
-
 echo [DEBUG] call "%~dp0jenkins_resolve_python.bat"
 call "%~dp0jenkins_resolve_python.bat"
 set "RESOLVE_EC=!ERRORLEVEL!"

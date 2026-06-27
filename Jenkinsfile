@@ -154,6 +154,15 @@ pipeline {
             }
         }
 
+        stage('Pre-run Disk Cleanup') {
+            agent { label params.DEVICES_AGENT }
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    bat """call scripts\\jenkins_ci_cleanup_pre.bat "${env.WORKSPACE}" """
+                }
+            }
+        }
+
         stage('Environment Precheck') {
             agent { label params.DEVICES_AGENT }
             steps {

@@ -42,6 +42,12 @@ vision:
   screenshot_dir: "ai-agent/logs/screenshots"
   ui_dump_dir: "ai-agent/logs/ui_dumps"
 
+camera_analysis:
+  enabled: true
+  config: "ai-agent/config/camera_analysis.yaml"
+  analyze_on_pass: true
+  analyze_on_fail: true
+
 reporting:
   excel_path: "ai-agent/reports/AI_Agent_Report.xlsx"
   dashboard_html: "ai-agent/reports/AI_Agent_Dashboard.html"

@@ -1,0 +1,42 @@
+# Camera module AI analysis — view + capture verification (read-only; no flow changes)
+camera:
+  suite_id: atp_camera
+  flow_prefix: CA_
+
+  view:
+    required_resource_ids:
+      - capture_img
+      - imgFlipCamera
+      - img_camera_menu
+      - back_button
+    optional_resource_ids:
+      - imgFlash
+      - flash_icon
+    text_signals:
+      - camera
+      - flash
+      - capture
+    min_required_hits: 2
+
+  capture:
+    flow_keywords:
+      - capture
+      - CA_03
+      - CA_04
+      - CA_05
+      - CA_07
+      - CA_08
+      - CA_09
+      - CA_10
+      - CA_E02
+    success_resource_ids:
+      - camera_image
+      - img_camera_menu
+    preview_change_min_brightness_delta: 8.0
+    gallery_text_signals:
+      - my gallery
+      - gallery
+
+  llm:
+    enabled: true
+    min_rule_confidence: 0.65
