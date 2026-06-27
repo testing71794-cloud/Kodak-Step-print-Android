@@ -97,8 +97,8 @@ pipeline {
         string(name: 'MAESTRO_HOME', defaultValue: 'C:\\Users\\HP\\maestro\\maestro\\bin', description: 'Folder containing maestro.bat.')
         string(name: 'ANDROID_HOME', defaultValue: 'C:\\Users\\HP\\AppData\\Local\\Android\\Sdk', description: 'Android SDK root.')
         string(name: 'JAVA_HOME_OVERRIDE', defaultValue: 'C:\\Users\\HP\\.jdks\\jbr-17.0.8', description: 'JDK for Maestro (MAESTRO_JAVA_HOME/JAVA_HOME). Default is jbr-17.0.8.')
-        booleanParam(name: 'RUN_ATP_ONBOARDING', defaultValue: true, description: 'ATP TestCase Flows/onboarding')
-        booleanParam(name: 'RUN_ATP_SIGNUP_LOGIN', defaultValue: true, description: 'ATP TestCase Flows/signup-login')
+        booleanParam(name: 'RUN_ATP_ONBOARDING', defaultValue: false, description: 'ATP TestCase Flows/onboarding')
+        booleanParam(name: 'RUN_ATP_SIGNUP_LOGIN', defaultValue: false, description: 'ATP TestCase Flows/signup-login')
         booleanParam(name: 'RUN_ATP_CAMERA', defaultValue: false, description: 'ATP TestCase Flows/camera')
         booleanParam(name: 'RUN_ATP_COLLAGE', defaultValue: false, description: 'ATP TestCase Flows/collage')
         booleanParam(name: 'RUN_ATP_GALLERY', defaultValue: false, description: 'ATP TestCase Flows/gallery')
@@ -107,9 +107,9 @@ pipeline {
         booleanParam(name: 'RUN_ATP_SETTINGS', defaultValue: false, description: 'ATP TestCase Flows/settings')
         booleanParam(name: 'RUN_AI_AGENT', defaultValue: false, description: 'Optional AI Step Print Agent module (ai-agent/) — independent from Maestro ATP stages')
         choice(name: 'AI_AGENT_MODE', choices: ['assist', 'observe', 'autonomous'], description: 'AI Step Print Agent execution mode (when RUN_AI_AGENT=true)')
-        booleanParam(name: 'RUN_AI_ANALYSIS', defaultValue: true, description: 'Post-run OpenRouter failure analysis (intelligent_platform)')
+        booleanParam(name: 'RUN_AI_ANALYSIS', defaultValue: false, description: 'Post-run OpenRouter failure analysis (intelligent_platform)')
         booleanParam(name: 'SEND_FINAL_EMAIL', defaultValue: false, description: 'Send final summary email')
-        booleanParam(name: 'CLEAR_STATE', defaultValue: true, description: 'Clear app state in suite runners (adb pm clear + Maestro runner)')
+        booleanParam(name: 'CLEAR_STATE', defaultValue: false, description: 'Clear app state in suite runners (adb pm clear + Maestro runner)')
         booleanParam(name: 'RETRY_FAILED', defaultValue: false, description: 'Reserved for future retry logic')
         string(
             name: 'OPENROUTER_CREDENTIALS_ID',
