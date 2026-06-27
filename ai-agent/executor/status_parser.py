@@ -32,6 +32,9 @@ REPORT_COLUMNS = [
     "Severity",
     "Priority",
     "Overall Health Score",
+    "Session ID",
+    "Launch Count",
+    "Restart Count",
 ]
 
 

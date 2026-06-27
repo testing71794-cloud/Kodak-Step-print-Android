@@ -12,7 +12,7 @@ _AGENT_ROOT = Path(__file__).resolve().parent
 if str(_AGENT_ROOT) not in sys.path:
     sys.path.insert(0, str(_AGENT_ROOT))
 
-from executor.hybrid_runner import run_hybrid_agent  # noqa: E402
+from executor.stateful_runner import run_stateful_agent  # noqa: E402
 from utils.config_loader import load_config  # noqa: E402
 from utils.device_manager import list_devices  # noqa: E402
 from utils.logging_utils import append_jsonl, setup_logging  # noqa: E402
@@ -53,7 +53,7 @@ def run_agent(
 
     overall_rc = 0
     for dev in devices:
-        outcome = run_hybrid_agent(cfg, dev, cfg.mode)
+        outcome = run_stateful_agent(cfg, dev, cfg.mode)
         for msg in [
             f"device={dev} modules={len(outcome.module_summaries)} "
             f"health_rows={len(outcome.rows)} rc={outcome.exit_code}"

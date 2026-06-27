@@ -12,6 +12,19 @@ set OPENROUTER_API_KEY=your_key
 scripts\run_ai_agent.bat assist
 ```
 
+## Stateful session (QA engineer model)
+
+The agent runs **one testing session** — not isolated cold starts per module.
+
+1. **Single launch** — `adb pm clear` only on session cold start (first module).
+2. **Warm continuation** — all subsequent modules use `clear_state=false` and `AI_AGENT_WARM_START=1`.
+3. **Smart navigation** — navigates toward the next module screen instead of returning home.
+4. **Adaptive waits** — polls UI until idle (no fixed 10–20s sleeps); learns timing per screen.
+5. **Checkpoints** — login, printer, gallery checkpoints saved; recovery resumes from nearest checkpoint.
+6. **Relaunch policy** — app restart only on crash/ANR/unrecoverable navigation.
+7. **Artifact learning** — incrementally ingests status/logs/reports from prior Jenkins runs.
+8. **Knowledge cache** — project scan only when repo hash changes.
+
 ## How it works (hybrid execution)
 
 1. **Knowledge load** — cached by content hash; full rescan only when repo changes (`AI_AGENT_FORCE_RESCAN=1` to force).

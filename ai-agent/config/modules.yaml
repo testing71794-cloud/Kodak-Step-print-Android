@@ -1,9 +1,12 @@
-# Modules executed by AI Step Print Agent (full application coverage)
+# Stateful session — one app journey per QA session
 execution:
+  session_mode: true
   continue_on_failure: true
-  clear_state_first_module: true
+  clear_state_only_on_session_start: true
   max_recovery_attempts: 2
   retry_module_after_recovery: true
+  adaptive_wait_timeout_sec: 12
+  adaptive_poll_interval_sec: 0.35
 
 modules:
   - name: Onboarding

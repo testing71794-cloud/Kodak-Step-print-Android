@@ -41,7 +41,7 @@ class RecoveryEngine:
                     duration_ms=int((time.time() - start) * 1000),
                     message="Recovery action applied",
                 )
-            time.sleep(1.5)
+            time.sleep(0.4)
         return RecoveryResult(
             success=False,
             attempts=attempts,
@@ -63,7 +63,7 @@ class RecoveryEngine:
             time.sleep(0.5)
             return self._tap_label("Scan", ui_dump) or self._tap_label("Search", ui_dump)
         if action == "wait_and_retry":
-            time.sleep(2.0)
+            time.sleep(0.8)
             return True
         if action == "navigate_back":
             return self.adb.press_back()

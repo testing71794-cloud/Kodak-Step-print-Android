@@ -52,6 +52,7 @@ def run_module_fast(
     device_id: str,
     clear_state: bool,
     skip_device_refresh: bool = True,
+    warm_session: bool = False,
 ) -> ModuleRunResult:
     t0 = time.time()
     sid = folder_to_suite_id(folder)
@@ -69,6 +70,8 @@ def run_module_fast(
 
     env = os.environ.copy()
     env["AI_AGENT_MODULE"] = module_name
+    env["AI_AGENT_STATEFUL_SESSION"] = "1"
+    env["AI_AGENT_WARM_START"] = "1" if warm_session else "0"
     if skip_device_refresh:
         env["ATP_REFRESH_DEVICES_BEFORE_RUN"] = "0"
     env["ATP_VALIDATE_MAESTRO_YAML"] = "0"
@@ -85,7 +88,8 @@ def run_module_fast(
         maestro_cmd,
     ]
     print(
-        f"[ai-agent.fast] START module={module_name!r} folder={folder!r} clear={clear_str}",
+        f"[ai-agent.fast] START module={module_name!r} folder={folder!r} "
+        f"clear={clear_str} warm={warm_session}",
         flush=True,
     )
     proc = subprocess.run(argv, cwd=str(repo), env=env, check=False)

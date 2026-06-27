@@ -24,3 +24,4 @@ class RunOutcome:
     knowledge_load_sec: float = 0.0
     total_sec: float = 0.0
     exit_code: int = 0
+    session_metrics: Any = None
