@@ -44,15 +44,17 @@ def withOpenRouterCredentials = { Object credsId, Closure action ->
     }
 }
 
-/** True when ATP tests ran (unified suite always executes after device detection). */
+/** True when any ATP TestCase Flows module checkbox is enabled (Jenkins parameters). */
 def anyAtpModuleEnabled = {
-    return true
+    return params.RUN_ATP_ONBOARDING || params.RUN_ATP_SIGNUP_LOGIN ||
+        params.RUN_ATP_CAMERA || params.RUN_ATP_COLLAGE ||
+        params.RUN_ATP_GALLERY || params.RUN_ATP_PRECUT || params.RUN_ATP_EDITING || params.RUN_ATP_SETTINGS
 }
 
 /** Suite ids for finalize flag checks (must match jenkins_atp_stage.py folder_to_suite_id). */
 def atpSuiteIdsList = {
     return [
-        'atp_connection', 'atp_onboarding', 'atp_signup_login', 'atp_printing',
+        'atp_onboarding', 'atp_signup_login',
         'atp_camera', 'atp_collage', 'atp_gallery', 'atp_precut', 'atp_editing', 'atp_settings',
     ]
 }
@@ -87,12 +89,19 @@ pipeline {
         string(name: 'MAESTRO_HOME', defaultValue: 'C:\\Users\\HP\\maestro\\maestro\\bin', description: 'Folder containing maestro.bat.')
         string(name: 'ANDROID_HOME', defaultValue: 'C:\\Users\\HP\\AppData\\Local\\Android\\Sdk', description: 'Android SDK root.')
         string(name: 'JAVA_HOME_OVERRIDE', defaultValue: 'C:\\Users\\HP\\.jdks\\jbr-17.0.8', description: 'JDK for Maestro (MAESTRO_JAVA_HOME/JAVA_HOME). Default is jbr-17.0.8.')
-        booleanParam(name: 'RUN_ATP_AI_RECOVERY', defaultValue: true, description: 'AI Decision Engine: recover on module failure then continue (suite/config + ai/config)')
+        booleanParam(name: 'RUN_ATP_ONBOARDING', defaultValue: true, description: 'ATP TestCase Flows/onboarding')
+        booleanParam(name: 'RUN_ATP_SIGNUP_LOGIN', defaultValue: true, description: 'ATP TestCase Flows/signup-login')
+        booleanParam(name: 'RUN_ATP_CAMERA', defaultValue: false, description: 'ATP TestCase Flows/camera')
+        booleanParam(name: 'RUN_ATP_COLLAGE', defaultValue: false, description: 'ATP TestCase Flows/collage')
+        booleanParam(name: 'RUN_ATP_GALLERY', defaultValue: false, description: 'ATP TestCase Flows/gallery')
+        booleanParam(name: 'RUN_ATP_PRECUT', defaultValue: false, description: 'ATP TestCase Flows/precut')
+        booleanParam(name: 'RUN_ATP_EDITING', defaultValue: false, description: 'ATP TestCase Flows/editing')
+        booleanParam(name: 'RUN_ATP_SETTINGS', defaultValue: false, description: 'ATP TestCase Flows/settings')
         booleanParam(name: 'RUN_AI_AGENT', defaultValue: false, description: 'Optional AI Step Print Agent module (ai-agent/) — independent from Maestro ATP stages')
         choice(name: 'AI_AGENT_MODE', choices: ['assist', 'observe', 'autonomous'], description: 'AI Step Print Agent execution mode (when RUN_AI_AGENT=true)')
         booleanParam(name: 'RUN_AI_ANALYSIS', defaultValue: true, description: 'Post-run OpenRouter failure analysis (intelligent_platform)')
         booleanParam(name: 'SEND_FINAL_EMAIL', defaultValue: false, description: 'Send final summary email')
-        booleanParam(name: 'CLEAR_STATE', defaultValue: true, description: 'Clear app state in suite runners')
+        booleanParam(name: 'CLEAR_STATE', defaultValue: true, description: 'Clear app state in suite runners (adb pm clear + Maestro runner)')
         booleanParam(name: 'RETRY_FAILED', defaultValue: false, description: 'Reserved for future retry logic')
         string(
             name: 'OPENROUTER_CREDENTIALS_ID',
@@ -163,7 +172,7 @@ pipeline {
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                     script {
-                        echo "[pipeline] Unified ATP suite (all modules, shared setup, AI recovery) | modules=suite/config/suite_modules.yaml"
+                        echo "[pipeline] ATP stages: Onboarding, SignUp_Login, Camera, Collage, Gallery, PreCut, Editing, Settings | CLEAR_STATE=${params.CLEAR_STATE}"
                         withEnv(maestroEnvList()) {
                             bat """call scripts\\jenkins_ci_devices.bat "${env.WORKSPACE}" """
                         }
@@ -172,18 +181,112 @@ pipeline {
             }
         }
 
-        stage('Run ATP Suite — All Modules + AI Recovery') {
+        stage('Onboarding') {
+            when { expression { return params.RUN_ATP_ONBOARDING } }
             agent { label params.DEVICES_AGENT }
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     script {
-                        withOpenRouterCredentials(params.OPENROUTER_CREDENTIALS_ID) {
-                            withEnv(maestroEnvList() + [
-                                "ATP_AI_RECOVERY=${params.RUN_ATP_AI_RECOVERY.toString()}",
-                                'PYTHONIOENCODING=utf-8',
-                            ]) {
-                                bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_suite_stage.py "${env.WORKSPACE}" "${params.APP_PACKAGE}" "${params.MAESTRO_CMD}" """
-                            }
+                        withEnv(maestroEnvList()) {
+                            bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all onboarding "${params.APP_PACKAGE}" "${params.CLEAR_STATE.toString()}" "${params.MAESTRO_CMD}" """
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('SignUp_Login') {
+            when { expression { return params.RUN_ATP_SIGNUP_LOGIN } }
+            agent { label params.DEVICES_AGENT }
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    script {
+                        withEnv(maestroEnvList()) {
+                            bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all signup-login "${params.APP_PACKAGE}" "${params.CLEAR_STATE.toString()}" "${params.MAESTRO_CMD}" """
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Camera') {
+            when { expression { return params.RUN_ATP_CAMERA } }
+            agent { label params.DEVICES_AGENT }
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    script {
+                        withEnv(maestroEnvList()) {
+                            bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all camera "${params.APP_PACKAGE}" "${params.CLEAR_STATE.toString()}" "${params.MAESTRO_CMD}" """
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Collage') {
+            when { expression { return params.RUN_ATP_COLLAGE } }
+            agent { label params.DEVICES_AGENT }
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    script {
+                        withEnv(maestroEnvList()) {
+                            bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all collage "${params.APP_PACKAGE}" "${params.CLEAR_STATE.toString()}" "${params.MAESTRO_CMD}" """
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Gallery') {
+            when { expression { return params.RUN_ATP_GALLERY } }
+            agent { label params.DEVICES_AGENT }
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    script {
+                        withEnv(maestroEnvList()) {
+                            bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all gallery "${params.APP_PACKAGE}" "${params.CLEAR_STATE.toString()}" "${params.MAESTRO_CMD}" """
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('PreCut') {
+            when { expression { return params.RUN_ATP_PRECUT } }
+            agent { label params.DEVICES_AGENT }
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    script {
+                        withEnv(maestroEnvList()) {
+                            bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all precut "${params.APP_PACKAGE}" "${params.CLEAR_STATE.toString()}" "${params.MAESTRO_CMD}" """
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Editing') {
+            when { expression { return params.RUN_ATP_EDITING } }
+            agent { label params.DEVICES_AGENT }
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    script {
+                        withEnv(maestroEnvList()) {
+                            bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all editing "${params.APP_PACKAGE}" "${params.CLEAR_STATE.toString()}" "${params.MAESTRO_CMD}" """
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Settings') {
+            when { expression { return params.RUN_ATP_SETTINGS } }
+            agent { label params.DEVICES_AGENT }
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    script {
+                        withEnv(maestroEnvList()) {
+                            bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all settings "${params.APP_PACKAGE}" "${params.CLEAR_STATE.toString()}" "${params.MAESTRO_CMD}" """
                         }
                     }
                 }
