@@ -1,33 +1,5 @@
 appId: com.kodak.steptouch
 name: ED_14 - Erase Doodle
 ---
-# Ensure doodle exists
-
-# Re-open doodle tool to erase
-- tapOn: "Doodle"
-- waitForAnimationToEnd:
-    timeout: 2000
-
-- runFlow:
-    when:
-      visible: "Erase"
-    commands:
-      - tapOn: "Erase"
-      - waitForAnimationToEnd:
-          timeout: 2000
-
-# Erase stroke (best-effort)
-- swipe:
-    start: "45%,55%"
-    end: "60%,55%"
-- waitForAnimationToEnd:
-    timeout: 2000
-
-# Save/apply
-- runFlow:
-    when:
-      visible: "Done"
-    commands:
-      - tapOn: "Done"
-      - waitForAnimationToEnd:
-          timeout: 2000
+- runFlow: "../../ATP TestCase Flows/editing/subflows/apply_doodle.yaml"
+- runFlow: "../../ATP TestCase Flows/editing/subflows/erase_doodle.yaml"

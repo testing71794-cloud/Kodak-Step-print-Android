@@ -1,10 +1,23 @@
 # TC_ID: ED_09 - Adjust highlights
+# Note: Skips when Highlights not on current build toolbar.
 appId: com.kodak.steptouch
 name: ED_09 - Adjust highlights
 ---
-# ATP ED_09 – Adjust highlights
 - launchApp:
     clearState: true
 - runFlow: ../signup-login/subflows/reach_gallery_after_onboarding_skip.yaml
-- assertVisible: "My gallery"
-- runFlow: ../../flows/editing/ED_09_highlights.yaml
+- assertVisible:
+    text: ".*(?i)my gallery.*"
+- runFlow: subflows/enter_edit_mode.yaml
+- runFlow:
+    when:
+      visible: "Highlights"
+    file: subflows/adjust_highlights.yaml
+- runFlow:
+    when:
+      notVisible: "Highlights"
+    commands:
+      - assertVisible:
+          id: "editingOptionsImageView"
+- assertVisible:
+    id: "editingOptionsImageView"

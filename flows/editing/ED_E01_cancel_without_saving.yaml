@@ -1,9 +1,14 @@
 appId: com.kodak.steptouch
 name: ED_E01 - Cancel Without Saving
 ---
-- runFlow: ED_01_enter_edit_mode.yaml
+- runFlow: "../../ATP TestCase Flows/editing/subflows/enter_edit_mode.yaml"
 - tapOn: "Brightness"
+- extendedWaitUntil:
+    visible:
+      id: "saveRecentEditImageView"
+    timeout: 10000
 - swipe:
     start: "30%,90%"
     end: "80%,90%"
-- back
+- runFlow: "../../ATP TestCase Flows/editing/subflows/cancel_tool_edit.yaml"
+- runFlow: "../../ATP TestCase Flows/editing/subflows/discard_changes.yaml"

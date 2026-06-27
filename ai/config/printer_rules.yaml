@@ -1,0 +1,16 @@
+printer_selection:
+  preferred_names:
+    - "Kodak Step Touch"
+    - "Kodak Step Slim"
+    - "Barbie Step Print"
+  preferred_serials: []
+  priority_list:
+    - "Kodak Step Touch"
+    - "Kodak Step Slim"
+    - "Barbie"
+  name_patterns:
+    - "(?i)kodak.*step"
+    - "(?i)barbie.*step"
+  exclude_patterns:
+    - "(?i)demo"
+    - "(?i)simulator"

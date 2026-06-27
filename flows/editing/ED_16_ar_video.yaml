@@ -1,9 +1,4 @@
 appId: com.kodak.steptouch
 name: ED_16 - AR Video
 ---
-- tapOn: "Album"
-- tapOn:
-    point: "15%,30%"
-- tapOn: "AR"
-- tapOn: "Video"
-- tapOn: "Done"
+- runFlow: "../../ATP TestCase Flows/editing/subflows/apply_ar_video.yaml"

@@ -1,0 +1,32 @@
+appId: com.kodak.steptouch
+---
+# ED_22: Apply radial blur, then remove via NO BLUR control.
+- runFlow:
+    when:
+      visible: "Blur"
+    commands:
+      - runFlow: apply_blur_yes.yaml
+      - runFlow: open_blur_tool.yaml
+      - tapOn:
+          text: ".*(?i)no blur.*"
+      - waitForAnimationToEnd:
+          timeout: 2000
+      - runFlow:
+          when:
+            visible:
+              id: "saveRecentEditImageView"
+          commands:
+            - tapOn:
+                id: "saveRecentEditImageView"
+            - waitForAnimationToEnd:
+                timeout: 1500
+- runFlow:
+    when:
+      notVisible: "Blur"
+    commands:
+      - assertVisible:
+          id: "editPhotoTextView"
+          optional: true
+      - assertVisible:
+          id: "filterEditingOptionsImageView"
+          optional: true

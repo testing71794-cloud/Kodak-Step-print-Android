@@ -1,0 +1,41 @@
+# TC_ID: ED_20b - Apply radial blur and verify
+# Run after ED_20a in run_ed_visual_verify.bat (same session on Blur panel).
+appId: com.kodak.steptouch
+name: ED_20b - Blur apply and verify
+---
+- extendedWaitUntil:
+    visible:
+      text: ".*(?i)no blur.*"
+    timeout: 8000
+    optional: true
+- runFlow:
+    when:
+      visible:
+        text: ".*(?i)no blur.*"
+    commands:
+      - tapOn:
+          point: "72%,78%"
+          optional: true
+      - waitForAnimationToEnd:
+          timeout: 2000
+      - takeScreenshot: ED_20_after_blur
+      - runFlow:
+          when:
+            visible:
+              id: "saveRecentEditImageView"
+          commands:
+            - tapOn:
+                id: "saveRecentEditImageView"
+            - waitForAnimationToEnd:
+                timeout: 1500
+- runFlow:
+    when:
+      notVisible:
+        text: ".*(?i)no blur.*"
+    commands:
+      - takeScreenshot: ED_20_after_blur
+      - assertVisible:
+          id: "editPhotoTextView"
+- assertVisible:
+    id: "editingOptionsImageView"
+    optional: true

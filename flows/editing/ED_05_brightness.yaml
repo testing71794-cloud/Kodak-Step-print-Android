@@ -1,12 +1,4 @@
 appId: com.kodak.steptouch
 name: ED_05 - Brightness
 ---
-
-- tapOn: "Brightness"
-- swipe:
-    start: "30%,90%"
-    end: "80%,90%"
-- swipe:
-    start: "80%,90%"
-    end: "30%,90%"
-- tapOn: "Done"
+- runFlow: "../../ATP TestCase Flows/editing/subflows/adjust_brightness.yaml"

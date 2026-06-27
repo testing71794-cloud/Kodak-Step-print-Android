@@ -1,0 +1,18 @@
+# TC_ID: ED_25 - No save popup after discard
+# ATP Expected: After discard, exiting edit does not show save popup again
+appId: com.kodak.steptouch
+name: ED_25 - No save popup after discard
+---
+- launchApp:
+    clearState: true
+- runFlow: ../signup-login/subflows/reach_gallery_after_onboarding_skip.yaml
+- assertVisible:
+    text: ".*(?i)my gallery.*"
+- runFlow: subflows/enter_edit_mode.yaml
+- runFlow: subflows/adjust_warmth.yaml
+- runFlow: subflows/discard_changes.yaml
+- assertVisible:
+    text: ".*(?i)my gallery.*"
+- assertNotVisible:
+    text: ".*(?i)save.*"
+    optional: true

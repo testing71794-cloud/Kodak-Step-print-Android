@@ -1,0 +1,7 @@
+# TC_ID: ED_03b - Fit/crop pan exit (after Appium pinch)
+# Run after Appium pinch in run_ed03_verify.bat.
+appId: com.kodak.steptouch
+name: ED_03b - Fit crop pan exit
+---
+- runFlow: subflows/fit_crop_pan_and_exit.yaml
+- runFlow: subflows/verify_fit_crop_applied_screen.yaml

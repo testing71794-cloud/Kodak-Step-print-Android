@@ -2,9 +2,12 @@
 appId: com.kodak.steptouch
 name: ED_16 - Add AR video to photo
 ---
-# ATP ED_16 – Add AR video to photo
 - launchApp:
     clearState: true
 - runFlow: ../signup-login/subflows/reach_gallery_after_onboarding_skip.yaml
-- assertVisible: "My gallery"
-- runFlow: ../../flows/editing/ED_16_ar_video.yaml
+- assertVisible:
+    text: ".*(?i)my gallery.*"
+- runFlow: subflows/enter_edit_mode.yaml
+- runFlow: subflows/apply_ar_video.yaml
+- assertVisible:
+    id: "filterEditingOptionsImageView"

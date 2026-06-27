@@ -1,0 +1,18 @@
+appId: com.kodak.steptouch
+---
+# Temperature UI (per device; ATP ED_07 = warmth):
+# 1) Tap Temperature — slider panel: undo reset, temperatureSeekbar (blue=cool ← → red=warm)
+# 2) After swipe right — X + checkmark (saveRecentEditImageView) on slider panel
+# 3) Yellow Done pill may appear — do NOT tap Done (exits edit); use checkmark or tap Filter
+- assertVisible: "Temperature"
+- tapOn: "Temperature"
+- extendedWaitUntil:
+    visible:
+      id: "temperatureSeekbar"
+    timeout: 8000
+- waitForAnimationToEnd:
+    timeout: 1500
+- swipe:
+    start: "25%,88%"
+    end: "85%,88%"
+- runFlow: confirm_slider_tool_returns_toolbar.yaml

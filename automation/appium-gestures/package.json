@@ -1,0 +1,12 @@
+{
+  "name": "appium-gestures",
+  "private": true,
+  "type": "module",
+  "description": "W3C two-finger pinch for Kodak Step Print (Appium 2.x, no Maven required)",
+  "scripts": {
+    "pinch": "node scripts/pinch_w3c.mjs"
+  },
+  "dependencies": {
+    "webdriverio": "^9.4.5"
+  }
+}

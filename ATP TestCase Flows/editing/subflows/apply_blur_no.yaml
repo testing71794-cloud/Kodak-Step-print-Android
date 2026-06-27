@@ -1,0 +1,27 @@
+appId: com.kodak.steptouch
+---
+# Blur NO path: open Blur tool and select NO BLUR (no radial effect).
+- runFlow: open_blur_tool.yaml
+- tapOn:
+    text: ".*(?i)no blur.*"
+- waitForAnimationToEnd:
+    timeout: 2000
+- runFlow:
+    when:
+      visible:
+        id: "saveRecentEditImageView"
+    commands:
+      - tapOn:
+          id: "saveRecentEditImageView"
+      - waitForAnimationToEnd:
+          timeout: 1500
+- extendedWaitUntil:
+    visible:
+      id: "editPhotoTextView"
+    timeout: 10000
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "editingOptionsImageView"
+    timeout: 10000
+    optional: true

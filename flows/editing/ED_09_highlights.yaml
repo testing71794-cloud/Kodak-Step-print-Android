@@ -1,8 +1,4 @@
 appId: com.kodak.steptouch
 name: ED_09 - Highlights
 ---
-- tapOn: "Highlights"
-- swipe:
-    start: "30%,90%"
-    end: "80%,90%"
-- tapOn: "Done"
+- runFlow: "../../ATP TestCase Flows/editing/subflows/adjust_highlights.yaml"

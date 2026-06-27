@@ -1,10 +1,23 @@
 # TC_ID: ED_03 - Edit photo fit/crop
+# ATP Steps: 1–5 Enter edit → 6. Fit/Crop canvas → 7. Pinch + pan → 8. Confirm & exit
+# Maestro-only: swipe pinch in pinch_fit_crop_on_canvas.yaml (not real multitouch)
+# REAL two-finger pinch: automation\appium-gestures\scripts\run_ed03_verify.bat [DEVICE]
+#   (runs ED_03a → Appium pinch → ED_03b, then optional AI verify)
+# Screen recording: matches manual demo capture (MicrosoftTeams-video 24 reference).
 appId: com.kodak.steptouch
-name: ED_03 - Edit photo fit/crop
+name: ED_03 - Edit photo fit-crop
 ---
-# ATP ED_03 – Edit photo fit/crop
+- startRecording:
+    path: ED_03_fit_crop
+    optional: true
 - launchApp:
     clearState: true
 - runFlow: ../signup-login/subflows/reach_gallery_after_onboarding_skip.yaml
-- assertVisible: "My gallery"
-- runFlow: ../../flows/editing/ED_03_fit_crop.yaml
+- assertVisible:
+    text: ".*(?i)my gallery.*"
+- runFlow: subflows/enter_edit_mode.yaml
+# Steps 6–8: Pan within crop frame and exit edit (apply_fit_crop.yaml)
+- runFlow: subflows/apply_fit_crop.yaml
+# Step 9: Post-apply screen verification
+- runFlow: subflows/verify_fit_crop_applied_screen.yaml
+- stopRecording

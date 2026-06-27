@@ -1,0 +1,11 @@
+appId: com.kodak.steptouch
+---
+# Exit edit and save — GA_11 sequence: Done → close → SAVE → gallery.
+- tapOn: "Done"
+- tapOn:
+    id: "image_cross"
+- tapOn: "SAVE"
+- extendedWaitUntil:
+    visible:
+      text: ".*(?i)my gallery.*"
+    timeout: 15000

@@ -1,8 +1,4 @@
 appId: com.kodak.steptouch
 name: ED_06 - Contrast
 ---
-- tapOn: "Contrast"
-- swipe:
-    start: "30%,90%"
-    end: "80%,90%"
-- tapOn: "Done"
+- runFlow: "../../ATP TestCase Flows/editing/subflows/adjust_contrast.yaml"

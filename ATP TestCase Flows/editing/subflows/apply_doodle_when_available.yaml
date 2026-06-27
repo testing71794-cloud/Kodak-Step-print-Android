@@ -1,0 +1,17 @@
+appId: com.kodak.steptouch
+---
+# Scroll to Paint (or legacy Doodle label) before applying stroke.
+- scrollUntilVisible:
+    element: "Paint"
+    direction: RIGHT
+    timeout: 8000
+    optional: true
+- runFlow:
+    when:
+      visible: "Paint"
+    file: apply_doodle.yaml
+- runFlow:
+    when:
+      notVisible: "Paint"
+      visible: "Doodle"
+    file: apply_doodle_legacy.yaml

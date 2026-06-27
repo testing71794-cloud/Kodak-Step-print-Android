@@ -1,10 +1,15 @@
 # TC_ID: ED_05 - Adjust brightness
+# ATP Steps: 1–5 Enter edit → 6. Open Brightness → 7. Adjust slider → 8. Confirm
+# ATP Expected: Brightness change is applied before checkmark
 appId: com.kodak.steptouch
 name: ED_05 - Adjust brightness
 ---
-# ATP ED_05 – Adjust brightness
 - launchApp:
     clearState: true
 - runFlow: ../signup-login/subflows/reach_gallery_after_onboarding_skip.yaml
-- assertVisible: "My gallery"
-- runFlow: ../../flows/editing/ED_05_brightness.yaml
+- assertVisible:
+    text: ".*(?i)my gallery.*"
+- runFlow: subflows/enter_edit_mode.yaml
+- runFlow: subflows/adjust_brightness.yaml
+- assertVisible:
+    id: "editingOptionsImageView"

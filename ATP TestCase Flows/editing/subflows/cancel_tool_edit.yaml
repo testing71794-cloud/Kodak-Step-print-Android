@@ -1,0 +1,18 @@
+appId: com.kodak.steptouch
+---
+# Cancel in-tool edit (X/back) before Done — should not persist change.
+- back
+- runFlow:
+    when:
+      visible:
+        text: ".*(?i)discard.*"
+    commands:
+      - tapOn:
+          text: ".*(?i)discard.*"
+      - tapOn:
+          text: ".*(?i)yes.*"
+          optional: true
+- extendedWaitUntil:
+    visible:
+      id: "filterEditingOptionsImageView"
+    timeout: 8000

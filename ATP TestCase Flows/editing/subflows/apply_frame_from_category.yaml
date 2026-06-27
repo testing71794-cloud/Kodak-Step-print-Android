@@ -1,0 +1,62 @@
+appId: com.kodak.steptouch
+---
+# Pick category → frame carousel → confirm. Caller must already be on Frames (category or carousel).
+- tapOn:
+    text: "Graduation"
+    optional: true
+- tapOn:
+    id: "flFrameCategory"
+    index: 2
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible:
+      id: "imageViewFilter"
+    timeout: 10000
+    optional: true
+- tapOn:
+    id: "imageViewFilter"
+    index: 3
+    optional: true
+- tapOn:
+    id: "ivFrameCategory"
+    index: 3
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 5000
+- runFlow:
+    when:
+      visible:
+        id: "saveRecentEditImageView"
+    commands:
+      - tapOn:
+          id: "saveRecentEditImageView"
+      - waitForAnimationToEnd:
+          timeout: 1500
+- runFlow:
+    when:
+      visible:
+        text: ".*(?i)select frame category.*"
+    commands:
+      - tapOn:
+          text: "Done"
+      - waitForAnimationToEnd:
+          timeout: 1500
+- extendedWaitUntil:
+    visible:
+      id: "editPhotoTextView"
+    timeout: 10000
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "editingOptionsImageView"
+    timeout: 10000
+    optional: true
+- runFlow:
+    when:
+      notVisible:
+        id: "editingOptionsImageView"
+    commands:
+      - assertVisible:
+          id: "filterEditingOptionsImageView"

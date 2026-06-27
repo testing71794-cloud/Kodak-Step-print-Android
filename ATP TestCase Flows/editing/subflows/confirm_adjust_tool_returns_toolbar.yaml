@@ -1,0 +1,20 @@
+appId: com.kodak.steptouch
+---
+# Confirm Adjust submenu tools (rotate/flip/mirror): checkmark only — do not tap Done (exits edit).
+- runFlow:
+    when:
+      visible:
+        id: "saveRecentEditImageView"
+    commands:
+      - tapOn:
+          id: "saveRecentEditImageView"
+      - waitForAnimationToEnd:
+          timeout: 1500
+- extendedWaitUntil:
+    visible:
+      id: "editPhotoTextView"
+    timeout: 10000
+- extendedWaitUntil:
+    visible:
+      id: "editingOptionsImageView"
+    timeout: 10000

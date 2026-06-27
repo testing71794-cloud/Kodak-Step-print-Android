@@ -1,0 +1,16 @@
+appId: com.kodak.steptouch
+---
+# After pinch zoom: double-tap photo canvas should reset to original fit position.
+- extendedWaitUntil:
+    visible:
+      id: "borderIV"
+    timeout: 10000
+- assertVisible: "EDIT PHOTO"
+- takeScreenshot: ED_03_after_pinch_before_reset
+- doubleTapOn:
+    id: "toBeEditedFilterImageViewTouch"
+- waitForAnimationToEnd:
+    timeout: 1500
+- takeScreenshot: ED_03_after_double_tap_reset
+- assertVisible:
+    id: "borderIV"

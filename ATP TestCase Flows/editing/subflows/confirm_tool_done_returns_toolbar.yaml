@@ -1,0 +1,41 @@
+appId: com.kodak.steptouch
+---
+# Confirm edit-tool change: checkmark, exit slider panels, assert edit screen (never tap Done — exits edit).
+- runFlow:
+    when:
+      visible:
+        id: "saveRecentEditImageView"
+    commands:
+      - tapOn:
+          id: "saveRecentEditImageView"
+      - waitForAnimationToEnd:
+          timeout: 1500
+- runFlow:
+    when:
+      visible:
+        id: "brightnessSeekbar"
+    commands:
+      - tapOn: "Filter"
+      - waitForAnimationToEnd:
+          timeout: 1500
+- runFlow:
+    when:
+      visible:
+        id: "temperatureSeekbar"
+    commands:
+      - tapOn: "Filter"
+      - waitForAnimationToEnd:
+          timeout: 1500
+- extendedWaitUntil:
+    visible:
+      id: "editPhotoTextView"
+    timeout: 10000
+- extendedWaitUntil:
+    visible:
+      id: "filterEditingOptionsImageView"
+    timeout: 10000
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "editingOptionsImageView"
+    timeout: 10000

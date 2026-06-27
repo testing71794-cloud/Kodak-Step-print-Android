@@ -1,0 +1,6 @@
+# EXAMPLE ONLY — see examples/maestro/README.md
+# Maestro runScript cannot invoke .bat; use shell/Jenkins between Maestro runs.
+appId: com.kodak.steptouch
+---
+# Placeholder: pause for manual Appium pinch, or split flow and run run_pinch_zoom.bat externally.
+- assertVisible: "EDIT PHOTO"

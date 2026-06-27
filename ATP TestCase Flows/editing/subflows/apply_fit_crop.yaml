@@ -1,0 +1,59 @@
+appId: com.kodak.steptouch
+---
+# Fit/Crop canvas — white border overlay (MicrosoftTeams-video 24).
+# Crop zoom: two-finger pinch (pinch_fit_crop_on_canvas.yaml).
+# Note: saveRecentEditImageView / Done appear for sub-tools (e.g. Filter), not the default pan canvas.
+- extendedWaitUntil:
+    visible:
+      id: "borderIV"
+    timeout: 10000
+- assertVisible:
+    id: "framelayoutMain"
+- assertVisible: "EDIT PHOTO"
+# Two-finger pinch in/out on photo preview.
+- runFlow: pinch_fit_crop_on_canvas.yaml
+# Pan photo within crop frame (reposition after zoom).
+- swipe:
+    start: "50%, 42%"
+    end: "68%, 42%"
+    duration: 500
+- swipe:
+    start: "50%, 42%"
+    end: "32%, 42%"
+    duration: 500
+- swipe:
+    start: "50%, 42%"
+    end: "50%, 55%"
+    duration: 500
+- swipe:
+    start: "50%, 42%"
+    end: "50%, 30%"
+    duration: 500
+# Confirm when sub-tool checkmark is shown (optional — not on default fit/crop canvas).
+- runFlow:
+    when:
+      visible:
+        id: "saveRecentEditImageView"
+    commands:
+      - tapOn:
+          id: "saveRecentEditImageView"
+      - waitForAnimationToEnd:
+          timeout: 2000
+# Video 24: Done exits edit → photo detail. Tap when visible after a sub-tool confirm.
+- runFlow:
+    when:
+      visible: "Done"
+    commands:
+      - tapOn: "Done"
+      - waitForAnimationToEnd:
+          timeout: 2000
+# Default fit/crop canvas: back exits edit to photo detail (Edit / Print) — verified on device.
+- runFlow:
+    when:
+      visible:
+        id: "borderIV"
+    commands:
+      - tapOn:
+          id: "linearLayoutBack"
+      - waitForAnimationToEnd:
+          timeout: 2000

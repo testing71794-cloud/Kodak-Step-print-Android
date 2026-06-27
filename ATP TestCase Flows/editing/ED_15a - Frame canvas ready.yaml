@@ -1,0 +1,16 @@
+# TC_ID: ED_15a - Frames menu ready (before selection)
+appId: com.kodak.steptouch
+name: ED_15a - Frame canvas ready
+---
+- launchApp:
+    clearState: true
+- runFlow: ../signup-login/subflows/reach_gallery_after_onboarding_skip.yaml
+- assertVisible:
+    text: ".*(?i)my gallery.*"
+- runFlow: subflows/enter_edit_mode.yaml
+- tapOn: "Frames"
+- extendedWaitUntil:
+    visible:
+      id: "flFrameCategory"
+    timeout: 15000
+- takeScreenshot: ED_15_before_frame

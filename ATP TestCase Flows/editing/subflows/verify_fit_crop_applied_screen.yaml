@@ -1,0 +1,12 @@
+appId: com.kodak.steptouch
+---
+# Post-apply verification — photo detail after fit/crop (video 24 end state).
+# Optional AI: scripts/verify_ed03_fit_crop_screen_ai.py on ED_03_post_fit_crop_verify screenshot.
+- waitForAnimationToEnd:
+    timeout: 2000
+- extendedWaitUntil:
+    visible: "Edit"
+    timeout: 10000
+- assertVisible: "Edit"
+- assertVisible: "Print"
+- takeScreenshot: ED_03_post_fit_crop_verify

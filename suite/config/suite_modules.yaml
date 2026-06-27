@@ -1,0 +1,81 @@
+# Kodak Step Print — Complete ATP Suite configuration
+# Add or reorder modules here only; no orchestrator code changes required.
+
+suite:
+  name: Kodak Step Print Complete ATP Suite
+  continue_on_failure: true
+  clear_state_per_module: false
+  skip_yaml_preflight_after_first_module: true
+  refresh_devices_before_each_module: false
+  optional_retry_failed_modules: 0
+  build_result_on_partial_fail: UNSTABLE
+
+ai:
+  enabled: true
+  max_recovery_attempts_per_module: 2
+
+setup:
+  enabled: true
+  flow: suite/flows/MasterSetup.yaml
+  verify_app_installed: true
+  run_precheck: false
+
+modules:
+  - name: Connection
+    folder: connection
+    enabled: true
+
+  - name: Camera
+    folder: camera
+    enabled: true
+
+  - name: Collage
+    folder: collage
+    enabled: true
+
+  - name: Editing
+    folder: editing
+    enabled: true
+
+  - name: Onboarding
+    folder: onboarding
+    enabled: true
+
+  - name: PreCut
+    folder: precut
+    enabled: true
+
+  - name: Printing
+    folder: printing
+    enabled: true
+
+  - name: Settings
+    folder: settings
+    enabled: true
+
+  - name: SignIn
+    folder: signup-login
+    enabled: true
+
+  - name: PhotoBooth
+    folder: photobooth
+    enabled: false
+    skip_if_folder_missing: true
+
+  - name: Gallery
+    folder: gallery
+    enabled: false
+
+  - name: Permission
+    folder: permission
+    enabled: false
+
+  - name: Barbie
+    folder: Barbie
+    enabled: false
+
+reporting:
+  summary_dir: build-summary
+  summary_json: build-summary/suite_execution_summary.json
+  summary_txt: build-summary/suite_execution_summary.txt
+  copy_failed_artifacts: true

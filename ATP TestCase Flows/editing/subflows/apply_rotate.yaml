@@ -1,0 +1,13 @@
+appId: com.kodak.steptouch
+---
+# Rotate lives under Adjust (not main toolbar): mirror/flip/rotate icons.
+- tapOn: "Adjust"
+- extendedWaitUntil:
+    visible:
+      id: "adjustrotateImageView"
+    timeout: 8000
+- tapOn:
+    id: "adjustrotateImageView"
+- waitForAnimationToEnd:
+    timeout: 1500
+- runFlow: confirm_adjust_tool_returns_toolbar.yaml

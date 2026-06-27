@@ -75,6 +75,19 @@ def openrouter_model_fallback_2() -> str:
     return s or _DEFAULT_MODEL_FB2
 
 
+_DEFAULT_MODEL_VISION: str = "openrouter/free"
+
+
+def openrouter_model_vision() -> str:
+    s = (os.environ.get("OPENROUTER_MODEL_VISION", "") or _DEFAULT_MODEL_VISION).strip()
+    return s or _DEFAULT_MODEL_VISION
+
+
+def openrouter_ssl_verify() -> bool:
+    """Verify TLS certs for OpenRouter (set OPENROUTER_SSL_VERIFY=0 on corporate proxies)."""
+    return _truthy("OPENROUTER_SSL_VERIFY", "1")
+
+
 def openrouter_key_env_name_used() -> str:
     return next((k for k in _OPENROUTER_KEY_CANDIDATES if (os.environ.get(k) or "").strip()), "")
 

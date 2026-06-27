@@ -1,0 +1,28 @@
+appId: com.kodak.steptouch
+---
+# Open a gallery photo and enter edit mode (resource-id first, text fallbacks).
+- tapOn:
+    text: "All Photos"
+    optional: true
+- tapOn:
+    id: "imageViewPhoto"
+    index: 1
+    optional: true
+- doubleTapOn:
+    id: "relativeLayoutItem"
+    optional: true
+- tapOn:
+    id: "relativeLayoutItem"
+    index: 0
+    optional: true
+- runFlow: dismiss_edit_overlay_if_visible.yaml
+- tapOn:
+    id: "linearlayout_edit_photo"
+    optional: true
+- tapOn:
+    text: "Edit"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "filterEditingOptionsImageView"
+    timeout: 15000

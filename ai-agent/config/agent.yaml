@@ -1,0 +1,63 @@
+# AI Step Print Agent — global configuration (isolated module)
+agent:
+  name: "AI Step Print Agent"
+  enabled: true
+  app_package: "com.kodak.steptouch"
+  app_id: "kodak_step_print"
+
+execution:
+  # observe | assist | autonomous
+  mode: "assist"
+  max_recovery_attempts: 3
+  max_steps_per_session: 200
+  step_timeout_sec: 30
+  restart_app_on_failure: false
+
+learning:
+  auto_scan_on_first_run: true
+  rescan_if_repo_changed: true
+  knowledge_dir: "ai-agent/knowledge"
+  scan_paths:
+    - "ATP TestCase Flows"
+    - "scripts"
+    - "execution"
+    - "suite"
+    - "reports"
+    - "build-summary"
+
+memory:
+  backend: "sqlite"  # sqlite | chroma
+  sqlite_path: "ai-agent/knowledge/agent_memory.db"
+  chroma_path: "ai-agent/knowledge/chroma"
+
+llm:
+  provider: "openrouter"
+  model: "openai/gpt-4o-mini"
+  base_url: "https://openrouter.ai/api/v1"
+  api_key_env: "OPENROUTER_API_KEY"
+  min_confidence_for_llm: 0.55
+  timeout_sec: 45
+
+vision:
+  screenshot_dir: "ai-agent/logs/screenshots"
+  ui_dump_dir: "ai-agent/logs/ui_dumps"
+
+reporting:
+  excel_path: "ai-agent/reports/AI_Agent_Report.xlsx"
+  dashboard_html: "ai-agent/reports/AI_Agent_Dashboard.html"
+  decision_log_jsonl: "ai-agent/logs/decisions/decisions.jsonl"
+  summary_json: "ai-agent/reports/execution_summary.json"
+
+integrations:
+  maestro_cmd: "maestro.bat"
+  adb_timeout_sec: 15
+
+recovery:
+  strategies:
+    - dismiss_popup
+    - retry_tap
+    - navigate_back
+    - rescan_printers
+    - reconnect_bluetooth
+    - wait_and_retry
+    - refresh_screen

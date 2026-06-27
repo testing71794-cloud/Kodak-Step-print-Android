@@ -1,10 +1,15 @@
 # TC_ID: ED_04 - Rotate photo
+# ATP Steps: 1–5 Enter edit → 6. Open Rotate → 7. Rotate image → 8. Confirm
+# ATP Expected: Photo rotation is applied
 appId: com.kodak.steptouch
 name: ED_04 - Rotate photo
 ---
-# ATP ED_04 – Rotate photo
 - launchApp:
     clearState: true
 - runFlow: ../signup-login/subflows/reach_gallery_after_onboarding_skip.yaml
-- assertVisible: "My gallery"
-- runFlow: ../../flows/editing/ED_04_rotate.yaml
+- assertVisible:
+    text: ".*(?i)my gallery.*"
+- runFlow: subflows/enter_edit_mode.yaml
+- runFlow: subflows/apply_rotate.yaml
+- assertVisible:
+    id: "editingOptionsImageView"

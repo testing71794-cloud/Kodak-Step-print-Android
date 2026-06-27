@@ -1,0 +1,22 @@
+# TC_ID: ED_03a - Fit/crop canvas ready (Appium pinch checkpoint)
+# Run before Appium pinch in run_ed03_verify.bat — do not run alone for full ED_03.
+appId: com.kodak.steptouch
+name: ED_03a - Fit crop canvas ready
+---
+- launchApp:
+    clearState: true
+- runFlow: ../signup-login/subflows/reach_gallery_after_onboarding_skip.yaml
+- assertVisible:
+    text: ".*(?i)my gallery.*"
+- runFlow: subflows/enter_edit_mode.yaml
+- extendedWaitUntil:
+    visible:
+      id: "borderIV"
+    timeout: 10000
+- assertVisible:
+    id: "framelayoutMain"
+- assertVisible: "EDIT PHOTO"
+- tapOn:
+    id: "toBeEditedFilterImageViewTouch"
+- waitForAnimationToEnd:
+    timeout: 500

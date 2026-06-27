@@ -1,10 +1,23 @@
 # TC_ID: ED_E01 - Cancel edit without saving
+# ATP Steps: Enter edit → adjust brightness → cancel/back → discard → gallery
+# ATP Expected: Changes not saved; returns to gallery without persisting edit
 appId: com.kodak.steptouch
 name: ED_E01 - Cancel edit without saving
 ---
-# ATP ED_E01 – Cancel edit without saving
 - launchApp:
     clearState: true
 - runFlow: ../signup-login/subflows/reach_gallery_after_onboarding_skip.yaml
-- assertVisible: "My gallery"
-- runFlow: ../../flows/editing/ED_E01_cancel_without_saving.yaml
+- assertVisible:
+    text: ".*(?i)my gallery.*"
+- runFlow: subflows/enter_edit_mode.yaml
+- tapOn: "Brightness"
+- waitForAnimationToEnd:
+    timeout: 2000
+- swipe:
+    start: "30%,90%"
+    end: "80%,90%"
+# Cancel in-tool without Done
+- runFlow: subflows/cancel_tool_edit.yaml
+- runFlow: subflows/discard_changes.yaml
+- assertVisible:
+    text: ".*(?i)my gallery.*"

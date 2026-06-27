@@ -1,0 +1,18 @@
+# TC_ID: ED_04a - Adjust menu ready (before rotate tap)
+# Run first in run_ed04_verify.bat — leaves device on Adjust submenu with rotate icon visible.
+appId: com.kodak.steptouch
+name: ED_04a - Rotate canvas ready
+---
+- launchApp:
+    clearState: true
+- runFlow: ../signup-login/subflows/reach_gallery_after_onboarding_skip.yaml
+- assertVisible:
+    text: ".*(?i)my gallery.*"
+- runFlow: subflows/enter_edit_mode.yaml
+- tapOn: "Adjust"
+- extendedWaitUntil:
+    visible:
+      id: "adjustrotateImageView"
+    timeout: 8000
+- assertVisible: "EDIT PHOTO"
+- takeScreenshot: ED_04_before_rotate

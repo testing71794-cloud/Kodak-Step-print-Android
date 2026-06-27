@@ -1,0 +1,39 @@
+appId: com.kodak.steptouch
+---
+# Post-apply verification only — runs after apply_filter.yaml (do not edit that flow).
+- waitForAnimationToEnd:
+    timeout: 2000
+# Structural: edit photo screen with toolbar visible.
+- extendedWaitUntil:
+    visible:
+      id: "filterEditingOptionsImageView"
+    timeout: 10000
+- assertVisible:
+    id: "filterEditingOptionsImageView"
+- assertVisible: "Filter"
+- takeScreenshot: ED_02_post_filter_verify
+# Re-open filter carousel and confirm the last frame is still selected (correct filter persisted).
+- tapOn:
+    id: "filterEditingOptionsImageView"
+    index: 4
+- extendedWaitUntil:
+    visible:
+      id: "subEffectEditingOptionsRecyclerView"
+    timeout: 10000
+- tapOn:
+    id: "subEffectEditingOptionsRecyclerView"
+- runFlow: scroll_filter_carousel_to_end.yaml
+- scrollUntilVisible:
+    element:
+      id: "filterLayout"
+      index: 6
+    direction: LEFT
+    timeout: 25000
+    speed: 40
+    visibilityPercentage: 100
+- assertVisible:
+    id: "filterLayout"
+    index: 6
+- assertVisible:
+    id: "radious_border"
+- takeScreenshot: ED_02_last_filter_still_selected

@@ -1,10 +1,22 @@
 # TC_ID: ED_02 - Apply filter to photo
+# ATP Steps: 1–5 Enter edit → 6. Open Filters → 7. Scroll to last filter & select → 8. Confirm
+# ATP Expected: Last filter applied; post-apply screen verified (AI + persistence checks)
+# Screen recording: matches manual demo capture (e.g. MicrosoftTeams-video reference).
 appId: com.kodak.steptouch
 name: ED_02 - Apply filter to photo
 ---
-# ATP ED_02 – Apply filter to photo
+- startRecording:
+    path: ED_02_apply_filter
+    optional: true
+# Steps 1–5: Reach gallery and enter edit mode
 - launchApp:
     clearState: true
 - runFlow: ../signup-login/subflows/reach_gallery_after_onboarding_skip.yaml
-- assertVisible: "My gallery"
-- runFlow: ../../flows/editing/ED_02_filters.yaml
+- assertVisible:
+    text: ".*(?i)my gallery.*"
+- runFlow: subflows/enter_edit_mode.yaml
+# Steps 6–8: Apply last filter (apply_filter.yaml — unchanged)
+- runFlow: subflows/apply_filter.yaml
+# Step 9: Post-apply screen + AI verification (separate from apply flow)
+- runFlow: subflows/verify_filter_applied_screen.yaml
+- stopRecording

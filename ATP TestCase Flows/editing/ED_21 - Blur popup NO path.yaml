@@ -1,0 +1,23 @@
+# TC_ID: ED_21 - Blur NO BLUR path (no radial effect)
+appId: com.kodak.steptouch
+name: ED_21 - Blur popup NO path
+---
+- launchApp:
+    clearState: true
+- runFlow: ../signup-login/subflows/reach_gallery_after_onboarding_skip.yaml
+- assertVisible:
+    text: ".*(?i)my gallery.*"
+- runFlow: subflows/enter_edit_mode.yaml
+- runFlow:
+    when:
+      visible: "Blur"
+    file: subflows/apply_blur_no.yaml
+- runFlow:
+    when:
+      notVisible: "Blur"
+    commands:
+      - assertVisible:
+          id: "editPhotoTextView"
+- assertVisible:
+    id: "editPhotoTextView"
+    optional: true

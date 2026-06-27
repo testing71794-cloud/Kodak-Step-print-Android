@@ -1,0 +1,17 @@
+# TC_ID: ED_07a - Temperature slider ready (before swipe)
+appId: com.kodak.steptouch
+name: ED_07a - Temperature canvas ready
+---
+- launchApp:
+    clearState: true
+- runFlow: ../signup-login/subflows/reach_gallery_after_onboarding_skip.yaml
+- assertVisible:
+    text: ".*(?i)my gallery.*"
+- runFlow: subflows/enter_edit_mode.yaml
+- assertVisible: "Temperature"
+- tapOn: "Temperature"
+- extendedWaitUntil:
+    visible:
+      id: "temperatureSeekbar"
+    timeout: 8000
+- takeScreenshot: ED_07_before_temperature

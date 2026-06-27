@@ -1,0 +1,47 @@
+# Application-specific knowledge — Kodak Step Print
+application:
+  id: kodak_step_print
+  display_name: "Kodak Step Print"
+  package: "com.kodak.steptouch"
+
+workflows:
+  onboarding:
+    entry_screens: ["Welcome", "Terms", "Permissions"]
+  sign_in:
+    entry_screens: ["Join Step Print", "Log in", "Create Account"]
+  connection:
+    entry_screens: ["Connect", "Pair", "Bluetooth", "Printer"]
+  printing:
+    entry_screens: ["Print", "Copies", "Preview"]
+  camera:
+    entry_screens: ["Camera", "Capture", "Flash"]
+  editing:
+    entry_screens: ["Edit", "Crop", "Adjust", "Filter", "Sticker", "Text"]
+  settings:
+    entry_screens: ["Settings", "Account", "About"]
+
+known_popups:
+  - pattern: "Allow.*Bluetooth"
+    action: allow
+  - pattern: "Allow.*Camera"
+    action: allow
+  - pattern: "Allow.*notification"
+    action: allow
+  - pattern: "Paper out|Out of paper"
+    action: inform_user
+    severity: high
+  - pattern: "Battery.*low"
+    action: inform_user
+    severity: medium
+  - pattern: "Firmware update"
+    action: dismiss_or_defer
+    severity: medium
+
+business_rules:
+  printer_selection:
+    prefer_paired: true
+    prefer_signal_strength: true
+    avoid_busy_printers: true
+  recovery:
+    never_kill_app_by_default: true
+    max_bluetooth_rescan: 2

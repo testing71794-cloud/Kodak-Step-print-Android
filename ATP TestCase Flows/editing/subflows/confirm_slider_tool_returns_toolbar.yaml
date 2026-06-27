@@ -1,0 +1,38 @@
+appId: com.kodak.steptouch
+---
+# Slider tools (Brightness, Temperature): swipe applies live on seekbar.
+# Brightness panel: undoBrightnessImageView + brightnessSeekbar; confirm via checkmark when shown.
+# Never tap yellow Done on slider panel — it exits edit. Fallback: tap Filter to return to toolbar.
+- runFlow:
+    when:
+      visible:
+        id: "saveRecentEditImageView"
+    commands:
+      - tapOn:
+          id: "saveRecentEditImageView"
+      - waitForAnimationToEnd:
+          timeout: 1500
+- runFlow:
+    when:
+      visible:
+        id: "brightnessSeekbar"
+    commands:
+      - tapOn: "Filter"
+      - waitForAnimationToEnd:
+          timeout: 1500
+- runFlow:
+    when:
+      visible:
+        id: "temperatureSeekbar"
+    commands:
+      - tapOn: "Filter"
+      - waitForAnimationToEnd:
+          timeout: 1500
+- extendedWaitUntil:
+    visible:
+      id: "editPhotoTextView"
+    timeout: 10000
+- extendedWaitUntil:
+    visible:
+      id: "filterEditingOptionsImageView"
+    timeout: 10000

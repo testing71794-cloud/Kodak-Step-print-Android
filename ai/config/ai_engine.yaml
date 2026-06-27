@@ -1,0 +1,21 @@
+engine:
+  enabled: false
+  paths:
+    screenshot_dir: ai/logs/screenshots
+    decision_log_dir: ai/logs/decisions
+    printer_rules: ai/config/printer_rules.yaml
+    popup_rules: ai/config/popup_rules.yaml
+
+recovery:
+  max_attempts: 2
+  wait_after_action_ms: 1500
+  wait_before_retry_scan_ms: 3000
+  allow_bluetooth_enable: false
+  allow_app_restart: false
+
+llm:
+  enabled: true
+  use_when_rules_below_confidence: 0.55
+
+permissions:
+  default: allow_while_using

@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import logging
 import socket
+import ssl
 import urllib.error
 import urllib.request
 from typing import Any
@@ -35,6 +36,18 @@ TEMPERATURE = 0.1
 MAX_TOKENS = 300
 
 
+def _ssl_context() -> ssl.SSLContext:
+    try:
+        from intelligent_platform import config
+
+        verify = config.openrouter_ssl_verify()
+    except Exception:
+        verify = True
+    if verify:
+        return ssl.create_default_context()
+    return ssl._create_unverified_context()
+
+
 def call_openrouter(
     messages: list[dict[str, str]],
     model: str,
@@ -43,6 +56,7 @@ def call_openrouter(
     base_url: str,
     http_referer: str = "",
     app_title: str = "Kodak Intelligent Platform",
+    max_tokens: int | None = None,
 ) -> str:
     """
     POST /chat/completions. Returns assistant message content (string).
@@ -53,7 +67,7 @@ def call_openrouter(
         "model": model,
         "messages": messages,
         "temperature": TEMPERATURE,
-        "max_tokens": MAX_TOKENS,
+        "max_tokens": max_tokens if max_tokens is not None else MAX_TOKENS,
     }
     body = json.dumps(payload).encode("utf-8")
     headers = {
@@ -67,7 +81,9 @@ def call_openrouter(
 
     req = urllib.request.Request(url, data=body, headers=headers, method="POST")
     try:
-        with urllib.request.urlopen(req, timeout=DEFAULT_TIMEOUT_SEC) as resp:
+        with urllib.request.urlopen(
+            req, timeout=DEFAULT_TIMEOUT_SEC, context=_ssl_context()
+        ) as resp:
             raw = resp.read().decode("utf-8", errors="replace")
     except urllib.error.HTTPError as e:
         err_body = ""
@@ -94,3 +110,53 @@ def call_openrouter(
         content = str(content)
     logger.debug("OpenRouter model=%s response length=%s", model, len(content))
     return content.strip()
+
+
+VISION_MODEL_FALLBACKS: tuple[str, ...] = (
+    "openrouter/free",
+    "google/gemma-3-4b-it:free",
+    "meta-llama/llama-3.2-11b-vision-instruct:free",
+    "mistralai/mistral-small-3.1-24b-instruct:free",
+)
+
+
+def call_openrouter_vision(
+    messages: list[dict[str, str]],
+    *,
+    api_key: str,
+    base_url: str,
+    model: str,
+    http_referer: str = "",
+    app_title: str = "Kodak Intelligent Platform",
+    max_tokens: int = 400,
+) -> tuple[str, str]:
+    """Try primary vision model then fallbacks. Returns (content, model_used)."""
+    candidates: list[str] = []
+    for m in (model, *VISION_MODEL_FALLBACKS):
+        if m and m not in candidates:
+            candidates.append(m)
+    last_error: Exception | None = None
+    for candidate in candidates:
+        try:
+            content = call_openrouter(
+                messages,
+                candidate,
+                api_key=api_key,
+                base_url=base_url,
+                http_referer=http_referer,
+                app_title=app_title,
+                max_tokens=max_tokens,
+            )
+            return content, candidate
+        except OpenRouterHTTPError as e:
+            last_error = e
+            if e.code in {400, 402, 404, 429}:
+                logger.warning("OpenRouter vision model=%s unavailable: %s", candidate, e)
+                continue
+            raise
+        except RuntimeError as e:
+            last_error = e
+            raise
+    if last_error:
+        raise last_error
+    raise RuntimeError("OpenRouter vision: no models available")

@@ -1,0 +1,9 @@
+appId: com.kodak.steptouch
+---
+# ED_01 core: gallery photo → edit opens on the Filter screen by default.
+# Filter UI: carousel (subEffectEditingOptionsRecyclerView, "No Filter" + thumbnails),
+# bottom toolbar (Filter | Frames | Stickers | Brightness | Temperature | Adjust | Blur | Text | Paint).
+# After selecting a filter: confirm via checkmark (saveRecentEditImageView) — not the yellow Done pill.
+- runFlow: open_gallery_photo_for_edit.yaml
+- assertVisible:
+    id: "filterEditingOptionsImageView"

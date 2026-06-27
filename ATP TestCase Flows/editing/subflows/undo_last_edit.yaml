@@ -1,0 +1,12 @@
+appId: com.kodak.steptouch
+---
+- tapOn:
+    text: ".*(?i)undo.*"
+    optional: true
+- tapOn:
+    id: "imageViewUndo"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "filterEditingOptionsImageView"
+    timeout: 8000

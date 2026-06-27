@@ -1,0 +1,45 @@
+appId: com.kodak.steptouch
+---
+# Exit edit without saving — back from edit screen, then discard dialog.
+- runFlow:
+    when:
+      visible:
+        id: "brightnessSeekbar"
+    commands:
+      - tapOn: "Filter"
+      - waitForAnimationToEnd:
+          timeout: 1500
+- runFlow:
+    when:
+      visible:
+        id: "temperatureSeekbar"
+    commands:
+      - tapOn: "Filter"
+      - waitForAnimationToEnd:
+          timeout: 1500
+- tapOn:
+    id: "linearLayoutBack"
+- tapOn:
+    text: "Done"
+    optional: true
+- tapOn:
+    id: "image_cross"
+    optional: true
+- runFlow:
+    when:
+      visible:
+        text: ".*(?i)don't save.*"
+    commands:
+      - tapOn:
+          text: ".*(?i)don't save.*"
+- runFlow:
+    when:
+      visible:
+        text: ".*(?i)discard.*"
+    commands:
+      - tapOn:
+          text: ".*(?i)discard.*"
+- extendedWaitUntil:
+    visible:
+      text: ".*(?i)my gallery.*"
+    timeout: 15000

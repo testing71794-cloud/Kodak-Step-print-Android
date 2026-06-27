@@ -1,0 +1,25 @@
+appId: com.kodak.steptouch
+---
+# Dismiss coachmarks / fine-tune overlays before edit actions.
+- runFlow:
+    when:
+      visible: "Time to Fine-Tune"
+    commands:
+      - tapOn:
+          text: "Ok"
+          optional: true
+      - tapOn:
+          text: "OK"
+          optional: true
+- tapOn:
+    text: "Ok"
+    optional: true
+- tapOn:
+    text: "OK"
+    optional: true
+- tapOn:
+    text: "X"
+    optional: true
+- tapOn:
+    text: "Close"
+    optional: true

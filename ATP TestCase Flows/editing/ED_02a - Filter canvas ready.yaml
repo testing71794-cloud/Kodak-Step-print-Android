@@ -1,0 +1,11 @@
+# TC_ID: ED_02a - Edit canvas before filter
+appId: com.kodak.steptouch
+name: ED_02a - Filter canvas ready
+---
+- launchApp:
+    clearState: true
+- runFlow: ../signup-login/subflows/reach_gallery_after_onboarding_skip.yaml
+- assertVisible:
+    text: ".*(?i)my gallery.*"
+- runFlow: subflows/enter_edit_mode.yaml
+- takeScreenshot: ED_02_before_filter

@@ -1,0 +1,14 @@
+appId: com.kodak.steptouch
+---
+# Print edited image from preview/gallery (requires connected printer for full path).
+- tapOn:
+    text: ".*(?i)print.*"
+    optional: true
+- tapOn:
+    id: "imageViewPrint"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      text: ".*(?i)(print|copies|printer).*"
+    timeout: 15000
+    optional: true

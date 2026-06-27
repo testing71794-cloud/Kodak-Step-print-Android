@@ -1,0 +1,20 @@
+appId: com.kodak.steptouch
+---
+# Legacy builds that still label the tool "Doodle".
+- tapOn: "Doodle"
+- extendedWaitUntil:
+    visible: "Done"
+    timeout: 8000
+    optional: true
+- swipe:
+    start: "35%,45%"
+    end: "75%,65%"
+- runFlow:
+    when:
+      visible:
+        id: "saveRecentEditImageView"
+    commands:
+      - tapOn:
+          id: "saveRecentEditImageView"
+      - waitForAnimationToEnd:
+          timeout: 1500

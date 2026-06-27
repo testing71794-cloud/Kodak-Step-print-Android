@@ -49,26 +49,36 @@ PR_E03,Printing,Print with paper jam,ATP TestCase Flows/Printing/TC_PR_E03_Print
 PR_E04,Printing,Print - printer overheated,ATP TestCase Flows/Printing/TC_PR_E04_Print - printer overheated.yaml,2
 PR_E05,Printing,Cancel print job,ATP TestCase Flows/Printing/TC_PR_E05_Cancel print job.yaml,4
 PR_E06,Printing,Printer disconnects during print,ATP TestCase Flows/Printing/TC_PR_E06_Printer disconnects during print.yaml,5
-ED_01,Editing,Enter edit photo mode,ATP TestCase Flows/Editing/TC_ED_01_Enter edit photo mode.yaml,4
-ED_02,Editing,Apply filter to photo,ATP TestCase Flows/Editing/TC_ED_02_Apply filter to photo.yaml,8
-ED_03,Editing,Edit photo fit/crop,ATP TestCase Flows/Editing/TC_ED_03_Edit photo fit crop.yaml,6
-ED_04,Editing,Rotate photo,ATP TestCase Flows/Editing/TC_ED_04_Rotate photo.yaml,7
-ED_05,Editing,Adjust brightness,ATP TestCase Flows/Editing/TC_ED_05_Adjust brightness.yaml,5
-ED_06,Editing,Adjust contrast,ATP TestCase Flows/Editing/TC_ED_06_Adjust contrast.yaml,5
-ED_07,Editing,Adjust warmth,ATP TestCase Flows/Editing/TC_ED_07_Adjust warmth.yaml,5
-ED_08,Editing,Adjust saturation,ATP TestCase Flows/Editing/TC_ED_08_Adjust saturation.yaml,5
-ED_09,Editing,Adjust highlights,ATP TestCase Flows/Editing/TC_ED_09_Adjust highlights.yaml,5
-ED_10,Editing,Adjust shadows,ATP TestCase Flows/Editing/TC_ED_10_Adjust shadows.yaml,5
-ED_11,Editing,Add stickers to photo,ATP TestCase Flows/Editing/TC_ED_11_Add stickers to photo.yaml,10
-ED_12,Editing,Add text to photo,ATP TestCase Flows/Editing/TC_ED_12_Add text to photo.yaml,12
-ED_13,Editing,Add doodle to photo,ATP TestCase Flows/Editing/TC_ED_13_Add doodle to photo.yaml,8
-ED_14,Editing,Erase doodle from photo,ATP TestCase Flows/Editing/TC_ED_14_Erase doodle from photo.yaml,6
-ED_15,Editing,Add frame to photo,ATP TestCase Flows/Editing/TC_ED_15_Add frame to photo.yaml,7
-ED_16,Editing,Add AR video to photo,ATP TestCase Flows/Editing/TC_ED_16_Add AR video to photo.yaml,7
-ED_17,Editing,Scan AR video on printed photo,ATP TestCase Flows/Editing/TC_ED_17_Scan AR video on printed photo.yaml,6
-ED_E01,Editing,Cancel edit without saving,ATP TestCase Flows/Editing/TC_ED_E01_Cancel edit without saving.yaml,5
-ED_E02,Editing,Multiple edits combined,ATP TestCase Flows/Editing/TC_ED_E02_Multiple edits combined.yaml,7
-ED_E03,Editing,Edit very large image,ATP TestCase Flows/Editing/TC_ED_E03_Edit very large image.yaml,4
+ED_01,Editing,Enter edit photo mode,ATP TestCase Flows/editing/ED_01 - Enter edit photo mode.yaml,5
+ED_02,Editing,Apply filter to photo,ATP TestCase Flows/editing/ED_02 - Apply filter to photo.yaml,8
+ED_03,Editing,Edit photo fit/crop,ATP TestCase Flows/editing/ED_03 - Edit photo fit-crop.yaml,6
+ED_04,Editing,Rotate photo,ATP TestCase Flows/editing/ED_04 - Rotate photo.yaml,7
+ED_05,Editing,Adjust brightness,ATP TestCase Flows/editing/ED_05 - Adjust brightness.yaml,5
+ED_06,Editing,Adjust contrast,ATP TestCase Flows/editing/ED_06 - Adjust contrast.yaml,5
+ED_07,Editing,Adjust warmth,ATP TestCase Flows/editing/ED_07 - Adjust warmth.yaml,5
+ED_08,Editing,Adjust saturation,ATP TestCase Flows/editing/ED_08 - Adjust saturation.yaml,5
+ED_09,Editing,Adjust highlights,ATP TestCase Flows/editing/ED_09 - Adjust highlights.yaml,5
+ED_10,Editing,Adjust shadows,ATP TestCase Flows/editing/ED_10 - Adjust shadows.yaml,5
+ED_11,Editing,Add stickers to photo,ATP TestCase Flows/editing/ED_11 - Add stickers to photo.yaml,10
+ED_12,Editing,Add text to photo,ATP TestCase Flows/editing/ED_12 - Add text to photo.yaml,12
+ED_13,Editing,Add doodle to photo,ATP TestCase Flows/editing/ED_13 - Add doodle to photo.yaml,8
+ED_14,Editing,Erase doodle from photo,ATP TestCase Flows/editing/ED_14 - Erase doodle from photo.yaml,6
+ED_15,Editing,Add frame to photo,ATP TestCase Flows/editing/ED_15 - Add frame to photo.yaml,7
+ED_16,Editing,Add AR video to photo,ATP TestCase Flows/editing/ED_16 - Add AR video to photo.yaml,7
+ED_17,Editing,Scan AR video on printed photo,ATP TestCase Flows/editing/ED_17 - Scan AR video on printed photo.yaml,6
+ED_18,Editing,Save edited image to gallery,ATP TestCase Flows/editing/ED_18 - Save edited image to gallery.yaml,6
+ED_19,Editing,Discard changes dont save,ATP TestCase Flows/editing/ED_19 - Discard changes dont save.yaml,6
+ED_20,Editing,Blur popup YES path,ATP TestCase Flows/editing/ED_20 - Blur popup YES path.yaml,5
+ED_21,Editing,Blur popup NO path,ATP TestCase Flows/editing/ED_21 - Blur popup NO path.yaml,5
+ED_22,Editing,NO BLUR removes blur effect,ATP TestCase Flows/editing/ED_22 - NO BLUR removes blur effect.yaml,5
+ED_23,Editing,Undo last edit modification,ATP TestCase Flows/editing/ED_23 - Undo last edit modification.yaml,5
+ED_24,Editing,Cancel restores previous state,ATP TestCase Flows/editing/ED_24 - Cancel restores previous state.yaml,5
+ED_25,Editing,No save popup after discard,ATP TestCase Flows/editing/ED_25 - No save popup after discard.yaml,5
+ED_26,Editing,Print edited image,ATP TestCase Flows/editing/ED_26 - Print edited image.yaml,6
+ED_27,Editing,Auto-save after print,ATP TestCase Flows/editing/ED_27 - Auto-save after print.yaml,5
+ED_E01,Editing,Cancel edit without saving,ATP TestCase Flows/editing/ED_E01 - Cancel edit without saving.yaml,5
+ED_E02,Editing,Multiple edits combined,ATP TestCase Flows/editing/ED_E02 - Multiple edits combined.yaml,7
+ED_E03,Editing,Edit very large image,ATP TestCase Flows/editing/ED_E03 - Edit very large image.yaml,4
 CA_01,Camera,Enter camera mode,ATP TestCase Flows/camera/CA_01 - Enter camera mode.yaml,6
 CA_02,Camera,Open camera go back to gallery,ATP TestCase Flows/camera/CA_02 - Open camera go back to gallery.yaml,3
 CA_03,Camera,Capture and print photo,ATP TestCase Flows/camera/CA_03 - Capture with no flash.yaml,7

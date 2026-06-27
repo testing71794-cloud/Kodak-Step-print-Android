@@ -1,10 +1,23 @@
 # TC_ID: ED_11 - Add stickers to photo
+# ATP Steps: Enter edit → Stickers → category → select sticker → confirm
+# ATP Expected: Sticker placed on canvas and applied after checkmark/Done
 appId: com.kodak.steptouch
 name: ED_11 - Add stickers to photo
 ---
-# ATP ED_11 – Add stickers to photo
 - launchApp:
     clearState: true
 - runFlow: ../signup-login/subflows/reach_gallery_after_onboarding_skip.yaml
-- assertVisible: "My gallery"
-- runFlow: ../../flows/editing/ED_11_stickers.yaml
+- assertVisible:
+    text: ".*(?i)my gallery.*"
+- runFlow: subflows/enter_edit_mode.yaml
+- runFlow: subflows/apply_sticker.yaml
+- assertVisible:
+    id: "editingOptionsImageView"
+    optional: true
+- runFlow:
+    when:
+      notVisible:
+        id: "editingOptionsImageView"
+    commands:
+      - assertVisible:
+          id: "filterEditingOptionsImageView"

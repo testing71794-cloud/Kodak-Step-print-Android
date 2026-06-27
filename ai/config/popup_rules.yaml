@@ -1,0 +1,43 @@
+popup_handling:
+  default_action: dismiss
+  rules:
+    - name: firmware_update
+      match_text:
+        - "firmware update"
+        - "update available"
+        - "software update"
+      action: dismiss
+      tap_label: "Not now"
+      confidence: 0.85
+
+    - name: printer_busy
+      match_text:
+        - "printer busy"
+        - "try again later"
+        - "printer unavailable"
+      action: retry
+      confidence: 0.88
+
+    - name: paper_low
+      match_text:
+        - "paper low"
+        - "out of paper"
+        - "load paper"
+      action: dismiss
+      tap_label: "OK"
+      confidence: 0.8
+
+    - name: battery_low
+      match_text:
+        - "battery low"
+        - "charge your printer"
+      action: dismiss
+      tap_label: "OK"
+      confidence: 0.8
+
+    - name: generic_ok
+      match_text:
+        - "permission required"
+      action: dismiss
+      tap_label: "OK"
+      confidence: 0.7

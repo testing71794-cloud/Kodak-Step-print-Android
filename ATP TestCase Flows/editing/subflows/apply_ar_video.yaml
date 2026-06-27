@@ -1,0 +1,18 @@
+appId: com.kodak.steptouch
+---
+- tapOn: "Album"
+- extendedWaitUntil:
+    visible:
+      text: ".*(?i)(album|video|ar).*"
+    timeout: 8000
+- tapOn:
+    id: "imageViewPhoto"
+    index: 0
+    optional: true
+- tapOn:
+    id: "relativeLayoutItem"
+    index: 0
+    optional: true
+- tapOn: "AR"
+- tapOn: "Video"
+- runFlow: confirm_tool_done_returns_toolbar.yaml

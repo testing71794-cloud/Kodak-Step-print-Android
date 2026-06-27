@@ -1,0 +1,5 @@
+appId: com.kodak.steptouch
+---
+# ATP ED_13 = doodle; current build uses Paint tool (not "Doodle" label).
+- runFlow: open_paint_tool.yaml
+- runFlow: apply_paint_stroke.yaml

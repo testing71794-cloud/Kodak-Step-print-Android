@@ -1,0 +1,5 @@
+# Optional dependencies for AI Decision Engine (install only when using ai/ layer)
+# pip install -r ai/requirements.txt
+pyyaml>=6.0
+pillow>=10.0
+pytesseract>=0.3.10

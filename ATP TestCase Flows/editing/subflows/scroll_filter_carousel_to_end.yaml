@@ -1,0 +1,13 @@
+appId: com.kodak.steptouch
+---
+# Scroll the filter carousel to the last thumbnail (horizontal swipes on the strip only).
+# y≈87% targets subEffectEditingOptionsRecyclerView, not the photo or Adjust toolbar.
+- repeat:
+    times: 8
+    commands:
+      - swipe:
+          start: "88%, 87%"
+          end: "8%, 87%"
+          duration: 450
+      - waitForAnimationToEnd:
+          timeout: 400

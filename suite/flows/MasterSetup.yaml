@@ -1,0 +1,25 @@
+# SUITE_00 — One-time master setup (NEW flow; does not modify existing ATP cases).
+# Composes existing permission/onboarding subflows only.
+appId: com.kodak.steptouch
+name: SUITE_00 Master Setup
+---
+# Step 1: Fresh install state + deny all (grant in sequence below)
+- launchApp:
+    clearState: true
+    permissions:
+      all: deny
+
+# Step 2: Dismiss intro / coachmarks if shown
+- runFlow: ../permission/subflows/dismiss_app_intro_if_visible.yaml
+
+# Step 3: Onboarding + signup skip path (I'll do it later)
+- runFlow: ../permission/subflows/complete_onboarding_for_permission.yaml
+
+# Step 4: Grant all runtime permissions in app order → MY GALLERY
+- runFlow: ../permission/subflows/allow_all_permissions_sequence.yaml
+
+# Step 5: Confirm home / gallery ready for module execution
+- extendedWaitUntil:
+    visible: ".*(?i)my gallery.*"
+    timeout: 120000
+- assertVisible: ".*(?i)my gallery.*"

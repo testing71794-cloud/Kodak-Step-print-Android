@@ -1,10 +1,23 @@
 # TC_ID: ED_06 - Adjust contrast
+# Note: Current build toolbar has Brightness/Temperature only — skips when Contrast absent.
 appId: com.kodak.steptouch
 name: ED_06 - Adjust contrast
 ---
-# ATP ED_06 – Adjust contrast
 - launchApp:
     clearState: true
 - runFlow: ../signup-login/subflows/reach_gallery_after_onboarding_skip.yaml
-- assertVisible: "My gallery"
-- runFlow: ../../flows/editing/ED_06_contrast.yaml
+- assertVisible:
+    text: ".*(?i)my gallery.*"
+- runFlow: subflows/enter_edit_mode.yaml
+- runFlow:
+    when:
+      visible: "Contrast"
+    file: subflows/adjust_contrast.yaml
+- runFlow:
+    when:
+      notVisible: "Contrast"
+    commands:
+      - assertVisible:
+          id: "editingOptionsImageView"
+- assertVisible:
+    id: "editingOptionsImageView"

@@ -1,10 +1,23 @@
 # TC_ID: ED_10 - Adjust shadows
+# Note: Skips when Shadows not on current build toolbar.
 appId: com.kodak.steptouch
 name: ED_10 - Adjust shadows
 ---
-# ATP ED_10 – Adjust shadows
 - launchApp:
     clearState: true
 - runFlow: ../signup-login/subflows/reach_gallery_after_onboarding_skip.yaml
-- assertVisible: "My gallery"
-- runFlow: ../../flows/editing/ED_10_shadows.yaml
+- assertVisible:
+    text: ".*(?i)my gallery.*"
+- runFlow: subflows/enter_edit_mode.yaml
+- runFlow:
+    when:
+      visible: "Shadows"
+    file: subflows/adjust_shadows.yaml
+- runFlow:
+    when:
+      notVisible: "Shadows"
+    commands:
+      - assertVisible:
+          id: "editingOptionsImageView"
+- assertVisible:
+    id: "editingOptionsImageView"

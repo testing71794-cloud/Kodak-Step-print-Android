@@ -1,37 +1,4 @@
 appId: com.kodak.steptouch
 name: ED_15 - Frames
 ---
-
-- tapOn: "Frames"
-- waitForAnimationToEnd:
-    timeout: 2000
-- tapOn:
-    id: ivFrameCategory
-    index: 1
-- waitForAnimationToEnd:
-    timeout: 2000
-- scrollUntilVisible:
-    element:
-      id: imageViewFilter
-      index: 4
-# Tap any frame thumbnail (best-effort)
-- tapOn:
-    point: 56%,75%
-- waitForAnimationToEnd:
-    timeout: 2000
-- waitForAnimationToEnd:
-    timeout: 2000
-- doubleTapOn:
-    id: imageViewFilter
-    index: 3
-    delay: 100
-- waitForAnimationToEnd:
-    timeout: 2000
-# Save/apply
-- runFlow:
-    when:
-      visible: "Done"
-    commands:
-      - tapOn: "Done"
-      - waitForAnimationToEnd:
-          timeout: 2000
+- runFlow: "../../ATP TestCase Flows/editing/subflows/apply_frame.yaml"

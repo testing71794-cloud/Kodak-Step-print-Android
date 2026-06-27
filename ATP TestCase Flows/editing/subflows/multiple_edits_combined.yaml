@@ -1,0 +1,7 @@
+appId: com.kodak.steptouch
+---
+# ED_E02: chained slider adjustments on current build (Brightness + Temperature).
+- runFlow: adjust_brightness.yaml
+- runFlow: adjust_warmth.yaml
+- assertVisible:
+    id: "editingOptionsImageView"

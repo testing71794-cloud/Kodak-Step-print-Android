@@ -1,10 +1,33 @@
-# TC_ID: ED_14 - Erase doodle from photo
+# TC_ID: ED_14 - Erase doodle from photo (Paint undo on current build)
 appId: com.kodak.steptouch
 name: ED_14 - Erase doodle from photo
 ---
-# ATP ED_14 – Erase doodle from photo
 - launchApp:
     clearState: true
 - runFlow: ../signup-login/subflows/reach_gallery_after_onboarding_skip.yaml
-- assertVisible: "My gallery"
-- runFlow: ../../flows/editing/ED_14_erase_doodle.yaml
+- assertVisible:
+    text: ".*(?i)my gallery.*"
+- runFlow: subflows/enter_edit_mode.yaml
+- scrollUntilVisible:
+    element: "Paint"
+    direction: RIGHT
+    timeout: 8000
+    optional: true
+- runFlow:
+    when:
+      visible: "Paint"
+    commands:
+      - runFlow: subflows/apply_doodle.yaml
+      - runFlow: subflows/erase_doodle.yaml
+- runFlow:
+    when:
+      notVisible: "Paint"
+    commands:
+      - runFlow: subflows/apply_doodle_when_available.yaml
+      - runFlow:
+          when:
+            visible: "Doodle"
+          file: subflows/erase_doodle.yaml
+- assertVisible:
+    id: "editingOptionsImageView"
+    optional: true

@@ -1,0 +1,18 @@
+appId: com.kodak.steptouch
+---
+# Brightness UI (per device):
+# 1) Tap Brightness — slider panel: undo reset (undoBrightnessImageView), brightnessSeekbar, EDIT PHOTO header
+# 2) After swipe — may show X + checkmark (saveRecentEditImageView) on slider panel
+# 3) Yellow Done pill may appear — do NOT tap Done (exits edit); use checkmark or tap Filter to leave slider
+- assertVisible: "Brightness"
+- tapOn: "Brightness"
+- extendedWaitUntil:
+    visible:
+      id: "brightnessSeekbar"
+    timeout: 8000
+- waitForAnimationToEnd:
+    timeout: 1500
+- swipe:
+    start: "25%,88%"
+    end: "85%,88%"
+- runFlow: confirm_slider_tool_returns_toolbar.yaml

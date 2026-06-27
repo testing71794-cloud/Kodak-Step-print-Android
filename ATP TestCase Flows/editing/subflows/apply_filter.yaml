@@ -1,0 +1,55 @@
+appId: com.kodak.steptouch
+---
+# Open Filter carousel.
+- tapOn:
+    id: "filterEditingOptionsImageView"
+    index: 4
+- extendedWaitUntil:
+    visible:
+      id: "subEffectEditingOptionsRecyclerView"
+    timeout: 10000
+- assertVisible: "No Filter"
+# Focus the filter carousel so gestures hit the strip, not the photo preview.
+- tapOn:
+    id: "subEffectEditingOptionsRecyclerView"
+# Start from the first frame before scrolling to the end.
+- scrollUntilVisible:
+    element:
+      id: "filterLayout"
+      index: 0
+    direction: RIGHT
+    timeout: 10000
+    speed: 60
+# Swipe left across the filter strip until the last frame is reachable.
+- runFlow: scroll_filter_carousel_to_end.yaml
+# Fine-tune: scroll until the last carousel item is fully visible.
+- scrollUntilVisible:
+    element:
+      id: "filterLayout"
+      index: 6
+    direction: LEFT
+    timeout: 25000
+    speed: 40
+    visibilityPercentage: 100
+- assertVisible:
+    id: "filterLayout"
+    index: 6
+# Select the last filter frame (tap the clickable thumbnail row).
+- tapOn:
+    id: "filterEditingOptionsLinearLayout"
+    index: 6
+# Verify last filter is active (selection ring on thumbnail).
+- assertVisible:
+    id: "radious_border"
+# Confirm with checkmark when shown.
+- runFlow:
+    when:
+      visible:
+        id: "saveRecentEditImageView"
+    commands:
+      - tapOn:
+          id: "saveRecentEditImageView"
+      - extendedWaitUntil:
+          visible:
+            id: "filterEditingOptionsImageView"
+          timeout: 10000

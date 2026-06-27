@@ -1,0 +1,17 @@
+# TC_ID: ED_07b - Swipe temperature, confirm, assert toolbar
+appId: com.kodak.steptouch
+name: ED_07b - Temperature apply and verify
+---
+- extendedWaitUntil:
+    visible:
+      id: "temperatureSeekbar"
+    timeout: 8000
+- swipe:
+    start: "25%,88%"
+    end: "85%,88%"
+- waitForAnimationToEnd:
+    timeout: 1500
+- takeScreenshot: ED_07_after_temperature
+- runFlow: subflows/confirm_slider_tool_returns_toolbar.yaml
+- assertVisible:
+    id: "editingOptionsImageView"

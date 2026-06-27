@@ -1,0 +1,15 @@
+# TC_ID: ED_19 - Discard changes (Don't Save)
+# ATP Expected: Edits not persisted when Don't Save is selected
+appId: com.kodak.steptouch
+name: ED_19 - Discard changes dont save
+---
+- launchApp:
+    clearState: true
+- runFlow: ../signup-login/subflows/reach_gallery_after_onboarding_skip.yaml
+- assertVisible:
+    text: ".*(?i)my gallery.*"
+- runFlow: subflows/enter_edit_mode.yaml
+- runFlow: subflows/adjust_brightness.yaml
+- runFlow: subflows/discard_changes.yaml
+- assertVisible:
+    text: ".*(?i)my gallery.*"

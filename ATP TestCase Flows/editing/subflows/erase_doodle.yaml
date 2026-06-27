@@ -1,0 +1,27 @@
+appId: com.kodak.steptouch
+---
+# Erase paint stroke via undo reset on Paint panel (ATP ED_14 erase doodle).
+- runFlow: open_paint_tool.yaml
+- tapOn:
+    point: "10%,88%"
+    optional: true
+    label: Paint undo reset
+- tapOn:
+    id: "undoPaintImageView"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 1500
+- runFlow:
+    when:
+      visible:
+        id: "saveRecentEditImageView"
+    commands:
+      - tapOn:
+          id: "saveRecentEditImageView"
+      - waitForAnimationToEnd:
+          timeout: 1500
+- extendedWaitUntil:
+    visible:
+      id: "editingOptionsImageView"
+    timeout: 10000
+    optional: true

@@ -1,23 +1,4 @@
 appId: com.kodak.steptouch
 name: ED_13 - Doodle
 ---
-
-- tapOn: "Doodle"
-- waitForAnimationToEnd:
-    timeout: 2000
-
-# Draw stroke (no draw/drag; use swipe across canvas)
-- swipe:
-    start: "35%,45%"
-    end: "75%,65%"
-- waitForAnimationToEnd:
-    timeout: 2000
-
-# Save/apply
-- runFlow:
-    when:
-      visible: "Done"
-    commands:
-      - tapOn: "Done"
-      - waitForAnimationToEnd:
-          timeout: 2000
+- runFlow: "../../ATP TestCase Flows/editing/subflows/apply_doodle.yaml"

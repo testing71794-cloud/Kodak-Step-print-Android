@@ -1,0 +1,17 @@
+# TC_ID: ED_22 - NO BLUR removes blur effect
+appId: com.kodak.steptouch
+name: ED_22 - NO BLUR removes blur effect
+---
+- launchApp:
+    clearState: true
+- runFlow: ../signup-login/subflows/reach_gallery_after_onboarding_skip.yaml
+- assertVisible:
+    text: ".*(?i)my gallery.*"
+- runFlow: subflows/enter_edit_mode.yaml
+- runFlow: subflows/remove_blur_no_blur.yaml
+- assertVisible:
+    id: "editPhotoTextView"
+    optional: true
+- assertVisible:
+    id: "editingOptionsImageView"
+    optional: true

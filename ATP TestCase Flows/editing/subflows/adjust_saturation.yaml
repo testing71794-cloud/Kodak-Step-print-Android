@@ -1,0 +1,10 @@
+appId: com.kodak.steptouch
+---
+- assertVisible: "Saturation"
+- tapOn: "Saturation"
+- waitForAnimationToEnd:
+    timeout: 2000
+- swipe:
+    start: "30%,90%"
+    end: "80%,90%"
+- runFlow: confirm_slider_tool_returns_toolbar.yaml

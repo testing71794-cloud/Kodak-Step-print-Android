@@ -1,10 +1,12 @@
 # TC_ID: ED_17 - Scan AR video on printed photo
+# ATP Expected: AR video plays when scanning printed output (hardware/manual validation)
 appId: com.kodak.steptouch
 name: ED_17 - Scan AR video on printed photo
 ---
-# ATP ED_17 – Scan AR video on printed photo
 - launchApp:
     clearState: true
 - runFlow: ../signup-login/subflows/reach_gallery_after_onboarding_skip.yaml
-- assertVisible: "My gallery"
-- runFlow: ../../flows/editing/ED_17_scan_ar_video.yaml
+- assertVisible:
+    text: ".*(?i)my gallery.*"
+- runFlow: subflows/enter_edit_mode.yaml
+- runFlow: subflows/scan_ar_video_on_print.yaml

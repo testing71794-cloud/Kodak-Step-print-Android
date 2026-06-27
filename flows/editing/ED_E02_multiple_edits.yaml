@@ -1,14 +1,4 @@
 appId: com.kodak.steptouch
 name: ED_E02 - Multiple Edits
 ---
-- runFlow: ED_01_enter_edit_mode.yaml
-- tapOn: "Brightness"
-- swipe:
-    start: "30%,90%"
-    end: "80%,90%"
-- tapOn: "Done"
-- tapOn: "Contrast"
-- swipe:
-    start: "30%,90%"
-    end: "80%,90%"
-- tapOn: "Done"
+- runFlow: "../../ATP TestCase Flows/editing/subflows/multiple_edits_combined.yaml"

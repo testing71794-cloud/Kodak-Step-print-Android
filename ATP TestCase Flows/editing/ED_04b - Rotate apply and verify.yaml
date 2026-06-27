@@ -1,0 +1,17 @@
+# TC_ID: ED_04b - Tap rotate, confirm, assert toolbar
+# Run after ED_04a in run_ed04_verify.bat (same edit session).
+appId: com.kodak.steptouch
+name: ED_04b - Rotate apply and verify
+---
+- extendedWaitUntil:
+    visible:
+      id: "adjustrotateImageView"
+    timeout: 8000
+- tapOn:
+    id: "adjustrotateImageView"
+- waitForAnimationToEnd:
+    timeout: 1500
+- takeScreenshot: ED_04_after_rotate
+- runFlow: subflows/confirm_adjust_tool_returns_toolbar.yaml
+- assertVisible:
+    id: "editingOptionsImageView"

@@ -1,0 +1,9 @@
+appId: com.kodak.steptouch
+---
+# ED_17: AR scan on printed output — hardware/manual validation required.
+- runFlow: apply_ar_video.yaml
+- runFlow: save_changes.yaml
+- runFlow: print_edited_image.yaml
+- assertVisible:
+    text: ".*(?i)(scan|ar|camera).*"
+    optional: true

@@ -1,9 +1,4 @@
 appId: com.kodak.steptouch
 name: ED_10 - Shadows
 ---
-
-- tapOn: "Shadows"
-- swipe:
-    start: "30%,90%"
-    end: "80%,90%"
-- tapOn: "Done"
+- runFlow: "../../ATP TestCase Flows/editing/subflows/adjust_shadows.yaml"

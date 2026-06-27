@@ -1,0 +1,18 @@
+# TC_ID: ED_05b - Swipe brightness, confirm, assert toolbar
+# Run after ED_05a in run_ed05_verify.bat (same edit session).
+appId: com.kodak.steptouch
+name: ED_05b - Brightness apply and verify
+---
+- extendedWaitUntil:
+    visible:
+      id: "brightnessSeekbar"
+    timeout: 8000
+- swipe:
+    start: "25%,88%"
+    end: "85%,88%"
+- waitForAnimationToEnd:
+    timeout: 1500
+- takeScreenshot: ED_05_after_brightness
+- runFlow: subflows/confirm_slider_tool_returns_toolbar.yaml
+- assertVisible:
+    id: "editingOptionsImageView"
