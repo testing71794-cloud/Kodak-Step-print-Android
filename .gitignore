@@ -22,3 +22,28 @@ ai-doctor/.env
 __pycache__/
 *.pyc
 *.zip
+
+# Local device / verification artifacts (not for CI or repo)
+/detected_devices.txt
+/logs/
+/_archive6_extract/
+/.video_frames_*/
+/ED_*.png
+/ED_*.mp4
+/probe_*.png
+/window_dump*.xml
+
+# Appium gesture module build output and run screenshots
+automation/appium-gestures/target/
+
+# AI agent runtime (keep .gitkeep placeholders)
+ai-agent/knowledge/*.db
+ai-agent/knowledge/chroma/
+ai-agent/logs/**/*.jsonl
+ai-agent/logs/**/*.png
+ai-agent/logs/**/*.xml
+ai-agent/logs/**/agent.log
+ai-agent/reports/*.xlsx
+ai-agent/reports/*.html
+ai-agent/reports/*.json
+!ai-agent/**/.gitkeep
