@@ -12,6 +12,14 @@ set OPENROUTER_API_KEY=your_key
 scripts\run_ai_agent.bat assist
 ```
 
+## How it works (hybrid execution)
+
+1. **Knowledge load** — cached by content hash; full rescan only when repo changes (`AI_AGENT_FORCE_RESCAN=1` to force).
+2. **Fast path** — each module runs via existing `jenkins_atp_stage.py` (no Maestro YAML changes).
+3. **Smart path** — on module failure only: rules → optional screenshot/UI → LLM only if still unknown.
+4. **Continue on failure** — all modules in `config/modules.yaml` run sequentially.
+5. **Reports always** — `AI_Agent_Report.xlsx` + `execution_summary.txt` written even on failure.
+
 ## Modes
 
 | Mode | Behavior |

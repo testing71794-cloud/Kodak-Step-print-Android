@@ -6,16 +6,16 @@ agent:
   app_id: "kodak_step_print"
 
 execution:
-  # observe | assist | autonomous
+  # observe | assist | autonomous — hybrid fast path (Maestro modules + smart recovery)
   mode: "assist"
-  max_recovery_attempts: 3
-  max_steps_per_session: 200
-  step_timeout_sec: 30
-  restart_app_on_failure: false
+  max_recovery_attempts: 2
+  llm_only_on_unknown: true
+  rule_confidence_threshold: 0.72
 
 learning:
   auto_scan_on_first_run: true
   rescan_if_repo_changed: true
+  # Set AI_AGENT_FORCE_RESCAN=1 to rebuild knowledge base
   knowledge_dir: "ai-agent/knowledge"
   scan_paths:
     - "ATP TestCase Flows"
@@ -36,7 +36,7 @@ llm:
   base_url: "https://openrouter.ai/api/v1"
   api_key_env: "OPENROUTER_API_KEY"
   min_confidence_for_llm: 0.55
-  timeout_sec: 45
+  timeout_sec: 30
 
 vision:
   screenshot_dir: "ai-agent/logs/screenshots"

@@ -90,7 +90,7 @@ class DecisionEngine:
             best_action = f"tap:{tap_target.text or tap_target.content_desc}"
             best_conf = min(0.95, best_conf + 0.05)
 
-        if best_conf < self.min_confidence_for_llm and self.llm.available:
+        if best_conf < self.min_confidence_for_llm and self.llm.available and best_action == "wait_and_retry":
             llm_dec = self._llm_advise(visible_text, maestro_error, historical or [])
             if llm_dec:
                 return llm_dec

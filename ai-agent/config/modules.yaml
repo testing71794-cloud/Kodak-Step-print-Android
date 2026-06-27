@@ -1,0 +1,42 @@
+# Modules executed by AI Step Print Agent (full application coverage)
+execution:
+  continue_on_failure: true
+  clear_state_first_module: true
+  max_recovery_attempts: 2
+  retry_module_after_recovery: true
+
+modules:
+  - name: Onboarding
+    folder: onboarding
+    enabled: true
+  - name: SignIn
+    folder: signup-login
+    enabled: true
+  - name: Connection
+    folder: connection
+    enabled: true
+    skip_if_folder_missing: true
+  - name: Camera
+    folder: camera
+    enabled: true
+  - name: Collage
+    folder: collage
+    enabled: true
+  - name: Gallery
+    folder: gallery
+    enabled: true
+    skip_if_folder_missing: true
+  - name: PreCut
+    folder: precut
+    enabled: true
+    skip_if_folder_missing: true
+  - name: Editing
+    folder: editing
+    enabled: true
+  - name: Printing
+    folder: printing
+    enabled: true
+    skip_if_folder_missing: true
+  - name: Settings
+    folder: settings
+    enabled: true
