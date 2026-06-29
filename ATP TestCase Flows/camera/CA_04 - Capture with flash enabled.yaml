@@ -5,9 +5,12 @@ appId: com.kodak.steptouch
 name: CA_04 - Capture with flash enabled
 ---
 # Step 1: open app and reach gallery.
-- launchApp:
-    clearState: true
-- runFlow: subflows/reach_gallery_for_camera.yaml
+- launchApp
+- runFlow:
+    when:
+      visible: "No Thanks"
+    commands:
+      - tapOn: "No Thanks"
 # Step 2: tap on the camera icon located at the bottom-right of the screen.
 - runFlow: subflows/open_camera_bottom_right.yaml
 # Step 3: tap on the flash icon until the icon is solid.
