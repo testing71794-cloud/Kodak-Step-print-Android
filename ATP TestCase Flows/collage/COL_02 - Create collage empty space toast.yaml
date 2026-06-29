@@ -1,8 +1,8 @@
-# TC_ID: COL_02 - Create collage empty space toast
-# Sheet: create collage (empty space)
-# Steps: select 1 photo → collage → layout → next → switch layout → next → toast
+# TC_ID: COL_02
+# Sheet: create collage (matching photos and layout)
+# Steps: select → 2-4 photos → collage → highlighted layout → next → create collage → save
 appId: com.kodak.steptouch
-name: COL_02 - Create collage empty space toast
+name: COL_02 - Create collage matching photos and layout
 ---
 - launchApp:
     clearState: false
@@ -12,4 +12,4 @@ name: COL_02 - Create collage empty space toast
     commands:
       - runFlow: subflows/reach_gallery_for_collage.yaml
 - runFlow: subflows/reach_gallery_fast.yaml
-- runFlow: subflows/create_collage_one_photo_empty_space.yaml
+- runFlow: subflows/create_collage_two_photos.yaml

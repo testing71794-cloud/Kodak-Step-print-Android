@@ -357,6 +357,139 @@ def _add_file_attachment(msg: EmailMessage, path: Path) -> None:
     logger.info("Attached: %s (%s)", name, _format_bytes(len(data)))
 
 
+def _truthy_env(name: str, default: str = "") -> bool:
+    return getenv_any(name, default=default).lower() in ("1", "true", "yes", "on")
+
+
+def _smtp_ssl_context() -> ssl.SSLContext:
+    if _truthy_env("SMTP_SSL_VERIFY", default="1"):
+        return ssl.create_default_context()
+    logger.warning("[gcp-email] SMTP_SSL_VERIFY=0 — TLS certificate verification disabled")
+    return ssl._create_unverified_context()
+
+
+def _format_smtp_error(exc: BaseException) -> str:
+    parts = [f"{type(exc).__name__}: {exc}"]
+    if isinstance(exc, smtplib.SMTPResponseException):
+        parts.append(f"smtp_code={exc.smtp_code}")
+        try:
+            parts.append(f"smtp_error={exc.smtp_error!r}")
+        except Exception:
+            pass
+    if isinstance(exc, OSError):
+        if getattr(exc, "errno", None) is not None:
+            parts.append(f"errno={exc.errno}")
+        if getattr(exc, "strerror", None):
+            parts.append(f"strerror={exc.strerror}")
+        if getattr(exc, "winerror", None) is not None:
+            parts.append(f"winerror={exc.winerror}")
+    if isinstance(exc, ssl.SSLError) and getattr(exc, "reason", None):
+        parts.append(f"ssl_reason={exc.reason}")
+    cause = exc.__cause__
+    if cause is not None:
+        parts.append(f"cause={type(cause).__name__}: {cause}")
+    return " | ".join(parts)
+
+
+def _smtp_failure_hint(exc: BaseException, *, smtp_server: str = "", port: int = 0) -> str:
+    host_hint = f" ({smtp_server!r}:{port})" if smtp_server else ""
+    if isinstance(exc, socket.gaierror):
+        return f"DNS resolution failed for SMTP host{host_hint} — check SMTP_SERVER/SMTP_HOST."
+    if isinstance(exc, (TimeoutError, socket.timeout)):
+        return "SMTP connection or operation timed out — check firewall, port, and SMTP_TIMEOUT."
+    if isinstance(exc, ConnectionRefusedError):
+        return "SMTP connection refused — verify host, port, and that the server accepts inbound SMTP."
+    if isinstance(exc, ssl.SSLError):
+        return "TLS/SSL handshake failed — try SMTP_SSL=1 on port 465, SMTP_USE_TLS=1 on 587, or SMTP_SSL_VERIFY=0 on corporate proxies."
+    if isinstance(exc, smtplib.SMTPAuthenticationError):
+        return "SMTP authentication failed — verify SMTP_USER and SMTP_PASS (Gmail requires an App Password)."
+    if isinstance(exc, smtplib.SMTPServerDisconnected):
+        return "SMTP server closed the connection — often wrong port/TLS mode, idle timeout, or oversized attachments."
+    if isinstance(exc, smtplib.SMTPNotSupportedError):
+        return "SMTP server does not support the requested TLS mode — check SMTP_SSL / SMTP_USE_TLS and port."
+    if isinstance(exc, OSError) and getattr(exc, "errno", None) in (11001,):
+        return "SMTP host could not be resolved or reached (Windows WSAHOST_NOT_FOUND)."
+    if isinstance(exc, OSError) and getattr(exc, "errno", None) in (101, 113, 111):
+        return "SMTP network unreachable or connection refused — check host, port, and agent egress/firewall."
+    return "See exception details above."
+
+
+def _smtp_close(server: smtplib.SMTP | smtplib.SMTP_SSL | None) -> None:
+    if server is None:
+        return
+    try:
+        server.quit()
+    except Exception as quit_exc:
+        logger.debug("[gcp-email] SMTP quit failed: %s", quit_exc)
+        try:
+            server.close()
+        except Exception:
+            pass
+
+
+def _smtp_send_once(
+    msg: EmailMessage,
+    *,
+    smtp_server: str,
+    port: int,
+    smtp_user: str,
+    smtp_pass: str,
+) -> None:
+    timeout_raw = getenv_any("SMTP_TIMEOUT", default="120")
+    try:
+        timeout = max(10, int(timeout_raw))
+    except ValueError:
+        timeout = 120
+
+    use_ssl = _truthy_env("SMTP_SSL") or port == 465
+    use_tls = (not use_ssl) and _truthy_env("SMTP_USE_TLS", default="1")
+    context = _smtp_ssl_context()
+
+    logger.info(
+        "[gcp-email] SMTP connect host=%r port=%s ssl=%s starttls=%s timeout=%ss user=%r",
+        smtp_server,
+        port,
+        use_ssl,
+        use_tls,
+        timeout,
+        smtp_user,
+    )
+
+    server: smtplib.SMTP | smtplib.SMTP_SSL | None = None
+    try:
+        if use_ssl:
+            server = smtplib.SMTP_SSL(
+                smtp_server,
+                port,
+                timeout=timeout,
+                context=context,
+            )
+        else:
+            server = smtplib.SMTP(timeout=timeout)
+            code, resp = server.connect(smtp_server, port)
+            logger.info("[gcp-email] SMTP connect response: %s %s", code, resp.decode(errors="replace") if isinstance(resp, bytes) else resp)
+
+        ehlo_code, ehlo_resp = server.ehlo()
+        logger.debug(
+            "[gcp-email] SMTP EHLO: %s %s",
+            ehlo_code,
+            ehlo_resp.decode(errors="replace")[:200] if isinstance(ehlo_resp, bytes) else str(ehlo_resp)[:200],
+        )
+
+        if use_tls:
+            if not server.has_extn("starttls"):
+                raise smtplib.SMTPNotSupportedError("STARTTLS not advertised by SMTP server")
+            server.starttls(context=context)
+            server.ehlo()
+
+        server.login(smtp_user, smtp_pass)
+        refused = server.send_message(msg)
+        if refused:
+            raise smtplib.SMTPRecipientsRefused(refused)
+    finally:
+        _smtp_close(server)
+
+
 def _send_smtp_with_retry(
     msg: EmailMessage,
     *,
@@ -368,14 +501,16 @@ def _send_smtp_with_retry(
     max_attempts: int = 3,
     delay_seconds: int = 10,
 ) -> bool:
-    context = ssl.create_default_context()
     last_exc: Exception | None = None
     for attempt in range(1, max_attempts + 1):
         try:
-            with smtplib.SMTP(smtp_server, port, timeout=60) as server:
-                server.starttls(context=context)
-                server.login(smtp_user, smtp_pass)
-                server.send_message(msg)
+            _smtp_send_once(
+                msg,
+                smtp_server=smtp_server,
+                port=port,
+                smtp_user=smtp_user,
+                smtp_pass=smtp_pass,
+            )
             logger.info(
                 "[gcp-email] Email sent to %s (attempt %d/%d)",
                 receiver,
@@ -385,28 +520,31 @@ def _send_smtp_with_retry(
             return True
         except Exception as exc:
             last_exc = exc
+            detail = _format_smtp_error(exc)
+            hint = _smtp_failure_hint(exc, smtp_server=smtp_server, port=port)
             logger.warning(
                 "[gcp-email] SMTP attempt %d/%d failed: %s",
                 attempt,
                 max_attempts,
-                exc,
+                detail,
             )
+            logger.warning("[gcp-email] SMTP diagnosis: %s", hint)
             if attempt < max_attempts:
+                logger.info(
+                    "[gcp-email] Retrying SMTP in %ss with a fresh connection...",
+                    delay_seconds,
+                )
                 time.sleep(delay_seconds)
     if last_exc is not None:
-        logger.error("[gcp-email] Email failed after %d attempts: %s", max_attempts, last_exc)
-        if isinstance(last_exc, socket.gaierror) or (
-            isinstance(last_exc, OSError)
-            and (
-                getattr(last_exc, "errno", None) == 11001
-                or getattr(last_exc, "winerror", None) == 11001
-            )
-        ):
-            logger.error(
-                "[gcp-email] SMTP DNS/network: host %r port %s could not be resolved or reached.",
-                smtp_server,
-                port,
-            )
+        logger.error(
+            "[gcp-email] Email failed after %d attempts: %s",
+            max_attempts,
+            _format_smtp_error(last_exc),
+        )
+        logger.error(
+            "[gcp-email] SMTP diagnosis: %s",
+            _smtp_failure_hint(last_exc, smtp_server=smtp_server, port=port),
+        )
     return False
 
 

@@ -1,6 +1,6 @@
 atp_id,flow_file,feature,description
-COL_01,COL_01 - Create collage matching photos and layout.yaml,Collage,Create collage matching photos and layout
-COL_02,COL_02 - Create collage empty space toast.yaml,Collage,Create collage empty space toast
+COL_01,COL_01 - Create collage matching photos and layout.yaml,Collage,Create collage empty space toast Please fill all frame images
+COL_02,COL_02 - Create collage empty space toast.yaml,Collage,Create collage matching photos and highlighted layout
 COL_03,COL_03 - Edit collage border.yaml,Collage,Edit collage border
 COL_04,COL_04 - Edit collage mirror.yaml,Collage,Edit collage mirror
 COL_05,COL_05 - Edit collage flip.yaml,Collage,Edit collage flip

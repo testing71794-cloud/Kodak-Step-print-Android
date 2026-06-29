@@ -6,10 +6,15 @@ cd "$ROOT"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=_venv.sh
 source "$SCRIPT_DIR/_venv.sh"
-resolve_gcp_python "$ROOT" || {
-  echo "[gcp-email] WARN: venv bootstrap failed; using system python for send_email.py"
-  PY="${PYTHON_BOOT:-python3}"
-}
+if ! resolve_gcp_python "$ROOT"; then
+  echo "[gcp-email] WARN: resolve_gcp_python failed; using boot python for send_email.py"
+  export PY="${PYTHON_BOOT:-python3}"
+elif [[ -z "${PY:-}" ]]; then
+  echo "[gcp-email] WARN: PY not set after resolve_gcp_python; using boot python"
+  export PY="${PYTHON_BOOT:-python3}"
+else
+  echo "[gcp-email] Python mode: ${GCP_PYTHON_MODE:-unknown} PY=$PY"
+fi
 
 if [[ -n "${BRANCH_NAME:-}" && -z "${ATP_GIT_BRANCH:-}" ]]; then
   export ATP_GIT_BRANCH="$BRANCH_NAME"

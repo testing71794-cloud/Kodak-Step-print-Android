@@ -1,6 +1,6 @@
 appId: com.kodak.steptouch
 ---
-# Sheet: 1 photo, layout, Next, switch layout, Next → toast fill all frames.
+# Sheet: create collage (empty space) — 1 photo, layout, Next, switch layout, Next → toast.
 - runFlow: enter_gallery_select_mode.yaml
 - runFlow: select_one_photo.yaml
 - runFlow: tap_collage_from_selection_bar.yaml
@@ -24,3 +24,4 @@ appId: com.kodak.steptouch
 - extendedWaitUntil:
     visible: "Please fill all frame images"
     timeout: 2000
+- assertVisible: "Please fill all frame images"
