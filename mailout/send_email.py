@@ -393,6 +393,11 @@ def _format_smtp_error(exc: BaseException) -> str:
 
 def _smtp_failure_hint(exc: BaseException, *, smtp_server: str = "", port: int = 0) -> str:
     host_hint = f" ({smtp_server!r}:{port})" if smtp_server else ""
+    if isinstance(exc, ValueError) and "server_hostname" in str(exc).lower():
+        return (
+            "TLS STARTTLS failed: SSL certificate hostname check requires the SMTP server name "
+            f"{smtp_server!r} during handshake."
+        )
     if isinstance(exc, socket.gaierror):
         return f"DNS resolution failed for SMTP host{host_hint} — check SMTP_SERVER/SMTP_HOST."
     if isinstance(exc, (TimeoutError, socket.timeout)):
@@ -427,6 +432,38 @@ def _smtp_close(server: smtplib.SMTP | smtplib.SMTP_SSL | None) -> None:
             pass
 
 
+def _smtp_starttls(
+    server: smtplib.SMTP,
+    *,
+    smtp_server: str,
+    context: ssl.SSLContext,
+) -> None:
+    """Upgrade plain SMTP to TLS; always pass server_hostname for Python 3.12+ SSL."""
+    server.ehlo_or_helo_if_needed()
+    if not server.has_extn("starttls"):
+        raise smtplib.SMTPNotSupportedError("STARTTLS not advertised by SMTP server")
+
+    hostname = (smtp_server or getattr(server, "_host", "") or "").strip()
+    if not hostname:
+        raise ValueError("SMTP server hostname is empty; set SMTP_SERVER/SMTP_HOST")
+
+    server._host = hostname
+    try:
+        server.starttls(context=context)
+    except ValueError as exc:
+        if "server_hostname" not in str(exc).lower():
+            raise
+        logger.warning(
+            "[gcp-email] starttls() failed (%s); wrapping socket with server_hostname=%r",
+            exc,
+            hostname,
+        )
+        server.sock = context.wrap_socket(server.sock, server_hostname=hostname)
+        server.file = server.sock.makefile("rb")
+        server._host = hostname
+    server.ehlo()
+
+
 def _smtp_send_once(
     msg: EmailMessage,
     *,
@@ -459,28 +496,23 @@ def _smtp_send_once(
     try:
         if use_ssl:
             server = smtplib.SMTP_SSL(
-                smtp_server,
-                port,
+                host=smtp_server,
+                port=port,
                 timeout=timeout,
                 context=context,
             )
+            server.ehlo_or_helo_if_needed()
         else:
-            server = smtplib.SMTP(timeout=timeout)
-            code, resp = server.connect(smtp_server, port)
-            logger.info("[gcp-email] SMTP connect response: %s %s", code, resp.decode(errors="replace") if isinstance(resp, bytes) else resp)
-
-        ehlo_code, ehlo_resp = server.ehlo()
-        logger.debug(
-            "[gcp-email] SMTP EHLO: %s %s",
-            ehlo_code,
-            ehlo_resp.decode(errors="replace")[:200] if isinstance(ehlo_resp, bytes) else str(ehlo_resp)[:200],
-        )
-
-        if use_tls:
-            if not server.has_extn("starttls"):
-                raise smtplib.SMTPNotSupportedError("STARTTLS not advertised by SMTP server")
-            server.starttls(context=context)
-            server.ehlo()
+            server = smtplib.SMTP(host=smtp_server, port=port, timeout=timeout)
+            logger.info(
+                "[gcp-email] SMTP connected to %s:%s",
+                smtp_server,
+                port,
+            )
+            if use_tls:
+                _smtp_starttls(server, smtp_server=smtp_server, context=context)
+            else:
+                server.ehlo_or_helo_if_needed()
 
         server.login(smtp_user, smtp_pass)
         refused = server.send_message(msg)
