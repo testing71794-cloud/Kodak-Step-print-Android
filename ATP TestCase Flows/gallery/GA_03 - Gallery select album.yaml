@@ -3,7 +3,7 @@ appId: com.kodak.steptouch
 name: GA_03 - Gallery select album
 ---
 - launchApp:
-    clearState: false
+    clearState: true
 - runFlow:
     when:
       visible: "Create an account"
@@ -11,15 +11,24 @@ name: GA_03 - Gallery select album
       - runFlow: subflows/reach_gallery_for_collage.yaml
 - runFlow: subflows/reach_gallery_fast.yaml
 - runFlow: subflows/wait_for_gallery_grid.yaml
-- runFlow: subflows/open_gallery_dropdown.yaml
+- tapOn: "MY GALLERY"
+- scrollUntilVisible:
+    element:
+      text: "Camera"
+    direction: DOWN
+    timeout: 10000
+
+- assertVisible:
+    text: "Camera"
+
 - tapOn:
-    text: "All Photos"
-    optional: true
-- tapOn:
-    text: ".*(?i)all photos.*"
-    optional: true
-- waitForAnimationToEnd:
-    timeout: 2000
+    text: "Camera"
+- waitForAnimationToEnd
 - assertVisible:
     id: "ivItemGridImage"
     index: 4
+- tapOn:
+    id: "ivItemGridImage"
+    index: 3
+- tapOn:
+    id: "edit_layout"
