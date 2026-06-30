@@ -4,12 +4,18 @@ name: GA_01 - Gallery change view and switch back
 ---
 - launchApp:
     clearState: true
-- runFlow: subflows/reach_gallery_for_gallery.yaml
+- runFlow:
+    when:
+      visible: "Create an account"
+    commands:
+      - runFlow: subflows/reach_gallery_for_collage.yaml
+- runFlow: subflows/reach_gallery_fast.yaml
+- runFlow: subflows/wait_for_gallery_grid.yaml
 - runFlow: subflows/open_gallery_dropdown.yaml
 - tapOn:
-    id: "imageViewAlbumPlaceHolder"
-    index: 2
-
-- tapOn:
-    id: "ivItemGridImage"
-    index: 2
+    point: "50%, 22%"
+    label: Gallery view option 1
+- extendedWaitUntil:
+    visible:
+      id: "camera_image"
+    timeout: 2000

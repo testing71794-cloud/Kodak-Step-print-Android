@@ -6,20 +6,12 @@ name: GA_11 - Open photo then edit and save
     clearState: false
 - runFlow:
     when:
-      visible: "No Thanks"
+      visible: "Create an account"
     commands:
-      - tapOn: "No Thanks"
-- waitForAnimationToEnd:
-    timeout: 2000
-- assertVisible: "MY GALLERY"
-- doubleTapOn:
-    id: "relativeLayoutItem"
-- runFlow:
-    when:
-      visible: "Time to Fine-Tune"
-    commands:
-      - tapOn: "Ok"
-      - tapOn: "OK"
+      - runFlow: subflows/reach_gallery_for_collage.yaml
+- runFlow: subflows/reach_gallery_fast.yaml
+- runFlow: subflows/open_photo.yaml
+- runFlow: subflows/close_overlay_if_visible.yaml
 - tapOn:
     id: "linearlayout_edit_photo"
     repeat: 2
@@ -41,8 +33,6 @@ name: GA_11 - Open photo then edit and save
 - tapOn: "Done"
 - tapOn:
     id: "image_cross"
-    repeat: 1
-    delay: 200
+    optional: true
 - tapOn: "SAVE"
 - assertVisible: "MY GALLERY"
-

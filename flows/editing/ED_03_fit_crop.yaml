@@ -1,4 +1,4 @@
 appId: com.kodak.steptouch
 name: ED_03 - Fit Crop
 ---
-- runFlow: "../../ATP TestCase Flows/editing/subflows/apply_fit_crop.yaml"
+- runFlow: "../../ATP TestCase Flows/editing/ED_03 - Edit photo fit-crop.yaml"

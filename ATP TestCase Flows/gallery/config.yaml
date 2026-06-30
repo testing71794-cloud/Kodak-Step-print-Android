@@ -1,0 +1,3 @@
+# Maestro workspace config for gallery flows (CLI + Studio when opened from this folder).
+# Screenshots from takeScreenshot land under reports/gallery/maestro-debug for OpenRouter verify.
+testOutputDir: ../../reports/gallery/maestro-debug

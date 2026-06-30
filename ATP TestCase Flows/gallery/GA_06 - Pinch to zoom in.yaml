@@ -6,12 +6,11 @@ name: GA_06 - Pinch to zoom in
     clearState: false
 - runFlow:
     when:
-      visible: "No Thanks"
+      visible: "Create an account"
     commands:
-      - tapOn: "No Thanks"
-- waitForAnimationToEnd:
-    timeout: 2000
-- assertVisible: "MY GALLERY"
+      - runFlow: subflows/reach_gallery_for_collage.yaml
+- runFlow: subflows/reach_gallery_fast.yaml
+- runFlow: subflows/wait_for_gallery_grid.yaml
 - tapOn:
     id: "ivItemGridImage"
     index: 4

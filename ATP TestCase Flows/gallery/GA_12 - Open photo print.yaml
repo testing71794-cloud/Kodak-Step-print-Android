@@ -1,6 +1,6 @@
-# TC_ID: GA_04 - Gallery open Facebook album
+# TC_ID: GA_12 - Open photo print
 appId: com.kodak.steptouch
-name: GA_04 - Gallery open Facebook album
+name: GA_12 - Open photo print
 ---
 - launchApp:
     clearState: false
@@ -10,20 +10,19 @@ name: GA_04 - Gallery open Facebook album
     commands:
       - runFlow: subflows/reach_gallery_for_collage.yaml
 - runFlow: subflows/reach_gallery_fast.yaml
-- runFlow: subflows/wait_for_gallery_grid.yaml
-- runFlow: subflows/open_gallery_dropdown.yaml
+- runFlow: subflows/open_photo.yaml
+- runFlow: subflows/close_overlay_if_visible.yaml
 - tapOn:
-    text: "Facebook"
+    point: "88%, 92%"
+    label: Print bottom-right
+    optional: true
+- tapOn: "Print"
     optional: true
 - tapOn:
-    text: "Continue"
-    optional: true
-- tapOn:
-    text: "Log in"
+    id: "textViewPrint"
     optional: true
 - extendedWaitUntil:
     visible:
-      text: ".*(?i)facebook.*"
+      text: ".*(?i)(connect|printer|print|not connected).*"
     timeout: 2000
     optional: true
-- tapOn: "CONNECT"

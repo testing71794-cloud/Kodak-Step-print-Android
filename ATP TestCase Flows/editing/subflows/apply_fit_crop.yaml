@@ -1,6 +1,7 @@
 appId: com.kodak.steptouch
 ---
-# Fit/Crop canvas — white border overlay (MicrosoftTeams-video 24).
+# Fit/Crop canvas — white border overlay (legacy Edit Photo canvas / MicrosoftTeams-video 24).
+# Video (29) uses photo detail preview pinch: open_photo_detail_preview.yaml + pinch_photo_detail_preview.yaml
 # Crop zoom: two-finger pinch (pinch_fit_crop_on_canvas.yaml).
 # Note: saveRecentEditImageView / Done appear for sub-tools (e.g. Filter), not the default pan canvas.
 - extendedWaitUntil:

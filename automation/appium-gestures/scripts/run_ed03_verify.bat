@@ -9,9 +9,6 @@ set "REPO_ROOT=%~dp0..\..\.."
 cd /d "%REPO_ROOT%"
 
 set "DEVICE=%~1"
-if "%DEVICE%"=="" set "DEVICE=ZA222RFQ75"
-set "ANDROID_SERIAL=%DEVICE%"
-set "MAESTRO_DEVICE=%DEVICE%"
 
 set "JAVA_HOME_FALLBACK=C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot"
 if not defined JAVA_HOME if exist "%JAVA_HOME_FALLBACK%\bin\java.exe" set "JAVA_HOME=%JAVA_HOME_FALLBACK%"
@@ -25,11 +22,26 @@ if not defined ANDROID_SDK_ROOT set "ANDROID_SDK_ROOT=%ANDROID_HOME%"
 set "MODULE_DIR=%REPO_ROOT%\automation\appium-gestures"
 set "PINCH_MODE=adb"
 
+if not exist "%ADB%" set "ADB=adb"
+
+if "%DEVICE%"=="" (
+  for /f "skip=1 tokens=1" %%D in ('"%ADB%" devices 2^>nul') do (
+    if "%%D" neq "" (
+      set "DEVICE=%%D"
+      goto :device_ok
+    )
+  )
+  set "DEVICE=ZA222RFQ75"
+)
+:device_ok
+set "ANDROID_SERIAL=%DEVICE%"
+set "MAESTRO_DEVICE=%DEVICE%"
+echo [INFO] Device: %DEVICE%
+
 if not exist "%MAESTRO_BIN%" (
   echo ERROR: Maestro not found at %MAESTRO_BIN%
   exit /b 1
 )
-if not exist "%ADB%" set "ADB=adb"
 
 "%ADB%" devices -l | findstr /I "%DEVICE%" >nul
 if errorlevel 1 (
@@ -54,7 +66,7 @@ if "!PINCH_MODE!"=="appium" (
   )
 )
 
-echo [INFO] ED_03 real pinch path: ED_03a - !PINCH_MODE! pinch - ED_03c double-tap - ED_03b
+echo [INFO] ED_03 real pinch path (video 29): ED_03a detail preview - !PINCH_MODE! pinch - ED_03b verify
 call "%MAESTRO_BIN%" --device %DEVICE% test --reinstall-driver "ATP TestCase Flows\editing\ED_03a - Fit crop canvas ready.yaml"
 if errorlevel 1 exit /b 1
 
@@ -74,24 +86,19 @@ if errorlevel 1 (
   exit /b 2
 )
 
-echo [INFO] Resetting adb so Maestro can reconnect for ED_03c...
+echo [INFO] Resetting adb so Maestro can reconnect for ED_03b...
 "%ADB%" reconnect >nul 2>&1
 ping 127.0.0.1 -n 5 >nul
 
-call "%MAESTRO_BIN%" --device %DEVICE% test --reinstall-driver "ATP TestCase Flows\editing\ED_03c - Fit crop double tap reset.yaml"
-if errorlevel 1 (
-  echo ERROR: ED_03c double-tap reset failed
-  exit /b 3
-)
-
 set "OPENROUTER_SSL_VERIFY=0"
+if not defined OPENROUTER_MODEL_VISION set "OPENROUTER_MODEL_VISION=openai/gpt-4.1-mini"
 where py >nul 2>&1
 if not errorlevel 1 (
-  echo [INFO] Verify double-tap reset vs original fit...
-  py -3 "%REPO_ROOT%\scripts\verify_ed03_double_tap_reset.py"
-  set "RESET_RC=!ERRORLEVEL!"
-  if not "!RESET_RC!"=="0" (
-    echo WARN: Double-tap reset AI verify returned !RESET_RC!
+  echo [INFO] Verify photo detail pinch ^(model=%OPENROUTER_MODEL_VISION%^)...
+  py -3 "%REPO_ROOT%\scripts\verify_ed03_detail_pinch_ai.py"
+  set "PINCH_AI_RC=!ERRORLEVEL!"
+  if not "!PINCH_AI_RC!"=="0" (
+    echo WARN: Photo detail pinch AI verify returned !PINCH_AI_RC!
   )
 )
 
@@ -104,9 +111,10 @@ if not "!MAESTRO_RC!"=="0" (
 )
 
 set "OPENROUTER_SSL_VERIFY=0"
+if not defined OPENROUTER_MODEL_VISION set "OPENROUTER_MODEL_VISION=openai/gpt-4.1-mini"
 where py >nul 2>&1
 if not errorlevel 1 (
-  echo [INFO] OpenRouter AI verify ...
+  echo [INFO] OpenRouter AI verify ^(model=%OPENROUTER_MODEL_VISION%^)...
   py -3 "%REPO_ROOT%\scripts\verify_ed03_fit_crop_screen_ai.py"
 )
 

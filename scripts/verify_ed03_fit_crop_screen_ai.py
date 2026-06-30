@@ -21,17 +21,17 @@ from intelligent_platform.config import (  # noqa: E402
 )
 from intelligent_platform.openrouter_client import call_openrouter_vision  # noqa: E402
 
-_PROMPT = """You are validating a Kodak Step Prints Android app screenshot taken AFTER fit/crop editing (pinch zoom + pan).
+_PROMPT = """You are validating a Kodak Step Prints Android app screenshot taken AFTER fit/crop pinch on the photo DETAIL preview (MicrosoftTeams-video 29).
 
-The expected end screen is the single-photo detail view: large photo preview on top, action buttons below such as Edit, Print, Pre-Cut Stickers, or Collage.
+The expected screen is the single-photo detail view: large photo preview in a white frame, action buttons below such as Edit, Print, Pre-Cut Stickers, and Collage. NOT gallery grid, NOT Edit Photo toolbar with filter carousel.
 
 Reply with ONLY valid JSON (no markdown), exactly:
 {"screen_correct": true, "crop_applied": true, "summary": "one short sentence"}
 
 Rules:
-- screen_correct=true if this looks like the photo detail/preview screen after editing (not gallery grid, not edit canvas with EDIT PHOTO header).
-- crop_applied=true if a photo is visible in the preview area (assume crop/fit was applied if a normal photo preview is shown).
-- Use false only when the screen is clearly wrong (error, blank, gallery grid, or still on edit canvas)."""
+- screen_correct=true if this looks like the photo detail/preview screen after pinch (Edit + Print + Collage visible).
+- crop_applied=true if the preview photo framing changed or pinch visibly affected the image inside the white frame.
+- Use false only when the screen is clearly wrong (error, blank, gallery grid, or Edit Photo edit canvas)."""
 
 
 def _parse_json_response(raw: str) -> dict:

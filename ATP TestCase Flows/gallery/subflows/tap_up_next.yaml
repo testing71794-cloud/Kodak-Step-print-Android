@@ -1,9 +1,3 @@
 appId: com.kodak.steptouch
 ---
-- tapOn:
-    text: ".*(?i)up next.*"
-    optional: true
-- tapOn:
-    point: "27%, 19%"
-    label: Up Next / creation strip
-    optional: true
+- runFlow: ../../collage/subflows/tap_up_next.yaml

@@ -3,6 +3,7 @@ appId: com.kodak.steptouch
 - tapOn:
     text: ".*(?i)my gallery.*"
     optional: true
-- tapOn: "MY GALLERY"
-
-
+- tapOn:
+    point: "50%, 12%"
+    label: Gallery title dropdown
+    optional: true

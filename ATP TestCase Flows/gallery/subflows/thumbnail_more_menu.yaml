@@ -1,8 +1,10 @@
 appId: com.kodak.steptouch
 ---
+# Thumbnail overflow menu (same as CO_02 quick print entry).
 - tapOn:
-    point: "3%,19%"
-    label: Thumbnail more (top-left)
+    id: "linearLayout_threeDot"
+    index: 2
 - tapOn:
-    point: "6%,21%"
+    id: "linearLayout_threeDot"
+    index: 2
     optional: true

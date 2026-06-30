@@ -1,0 +1,13 @@
+appId: com.kodak.steptouch
+---
+# Post-pinch photo detail — video (29) end state: still on preview with Edit / Print / Collage.
+# AI: scripts/verify_ed03_fit_crop_screen_ai.py or verify_ed03_detail_pinch_ai.py
+- waitForAnimationToEnd:
+    timeout: 2000
+- extendedWaitUntil:
+    visible: "Edit"
+    timeout: 10000
+- assertVisible: "Edit"
+- assertVisible: "Print"
+- assertVisible: "Collage"
+- takeScreenshot: ED_03_post_fit_crop_verify

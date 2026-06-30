@@ -1,6 +1,6 @@
-# TC_ID: GA_07 - Refresh gallery (pull down)
+# TC_ID: GA_13 - Scan photo (up next)
 appId: com.kodak.steptouch
-name: GA_07 - Refresh gallery (pull down)
+name: GA_13 - Scan photo up next
 ---
 - launchApp:
     clearState: false
@@ -11,10 +11,9 @@ name: GA_07 - Refresh gallery (pull down)
       - runFlow: subflows/reach_gallery_for_collage.yaml
 - runFlow: subflows/reach_gallery_fast.yaml
 - runFlow: subflows/wait_for_gallery_grid.yaml
-- swipe:
-    start: "50%, 20%"
-    end: "50%, 75%"
-    label: Pull to refresh
-- assertVisible:
-    id: "ivItemGridImage"
-    index: 2
+- runFlow: subflows/tap_up_next.yaml
+- extendedWaitUntil:
+    visible:
+      text: ".*(?i)(scan|camera|ar).*"
+    timeout: 2000
+    optional: true

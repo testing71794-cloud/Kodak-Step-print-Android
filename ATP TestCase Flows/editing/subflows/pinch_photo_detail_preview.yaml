@@ -1,0 +1,32 @@
+appId: com.kodak.steptouch
+---
+# Two-finger pinch on photo detail preview (video 29) — NOT real multitouch in Maestro.
+# Real W3C pinch: scripts\run_ed03_real_pinch.bat
+- tapOn:
+    id: "imageViewPhoto"
+    optional: true
+- tapOn:
+    point: "50%, 42%"
+    label: Focus photo preview for pinch
+- waitForAnimationToEnd:
+    timeout: 500
+- swipe:
+    start: "42%, 42%"
+    end: "28%, 42%"
+    duration: 300
+- swipe:
+    start: "58%, 42%"
+    end: "72%, 42%"
+    duration: 300
+- waitForAnimationToEnd:
+    timeout: 800
+- swipe:
+    start: "28%, 42%"
+    end: "42%, 42%"
+    duration: 300
+- swipe:
+    start: "72%, 42%"
+    end: "58%, 42%"
+    duration: 300
+- waitForAnimationToEnd:
+    timeout: 800

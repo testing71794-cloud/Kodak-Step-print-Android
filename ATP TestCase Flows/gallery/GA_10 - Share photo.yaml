@@ -1,19 +1,30 @@
 # TC_ID: GA_10 - Share photo
+# Steps: Select → 2 photos → Share → Photos → Just once → Upload
 appId: com.kodak.steptouch
 name: GA_10 - Share photo
 ---
 - launchApp:
-    clearState: true
-- runFlow: subflows/reach_gallery_for_gallery.yaml
-- tapOn: "Select"
-- tapOn:
-    point: "30%, 35%"
-- tapOn:
-    point: "70%, 35%"
+    clearState: false
+- runFlow:
+    when:
+      visible: "Create an account"
+    commands:
+      - runFlow: subflows/reach_gallery_for_collage.yaml
+- runFlow: subflows/reach_gallery_fast.yaml
+- runFlow: subflows/wait_for_gallery_grid.yaml
+- runFlow: subflows/enter_gallery_select_mode.yaml
+- runFlow: subflows/select_two_photos.yaml
 - tapOn:
     point: "90%, 8%"
+    label: Share
 - swipe:
     start: "50%, 80%"
     end: "50%, 30%"
+- tapOn: "Photos"
+    optional: true
+- tapOn:
+    text: ".*(?i)(just once|only once).*"
+    optional: true
+- tapOn: "Upload"
+    optional: true
 - assertVisible: "Sharing image"
-

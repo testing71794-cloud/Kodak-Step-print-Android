@@ -1,9 +1,23 @@
 appId: com.kodak.steptouch
 ---
+- extendedWaitUntil:
+    visible:
+      id: "ivItemGridImage"
+    timeout: 2000
 - tapOn:
-    id: "imageViewPhoto"
-    index: 1
+    id: "ivItemGridImage"
+    index: 0
+- doubleTapOn:
+    id: "relativeLayoutItem"
     optional: true
 - tapOn:
     point: "50%, 45%"
     label: Gallery photo fallback
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 2000
+- extendedWaitUntil:
+    visible:
+      text: ".*(Edit|Print|Collage|Share).*"
+    timeout: 2000
+    optional: true

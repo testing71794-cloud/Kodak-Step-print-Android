@@ -3,8 +3,7 @@ appId: com.kodak.steptouch
 name: ED_02a - Filter canvas ready
 ---
 - launchApp:
-    clearState: true
-- runFlow: ../signup-login/subflows/reach_gallery_after_onboarding_skip.yaml
+    clearState: false
 - assertVisible:
     text: ".*(?i)my gallery.*"
 - runFlow: subflows/enter_edit_mode.yaml

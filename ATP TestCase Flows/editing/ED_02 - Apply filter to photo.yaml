@@ -10,8 +10,7 @@ name: ED_02 - Apply filter to photo
     optional: true
 # Steps 1–5: Reach gallery and enter edit mode
 - launchApp:
-    clearState: true
-- runFlow: ../signup-login/subflows/reach_gallery_after_onboarding_skip.yaml
+    clearState: false
 - assertVisible:
     text: ".*(?i)my gallery.*"
 - runFlow: subflows/enter_edit_mode.yaml
