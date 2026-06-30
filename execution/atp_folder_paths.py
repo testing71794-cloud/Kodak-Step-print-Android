@@ -1,6 +1,7 @@
 """Resolve Jenkins ATP stage folder names to on-disk ATP TestCase Flows directories."""
 from __future__ import annotations
 
+import os
 import re
 from pathlib import Path
 
@@ -50,12 +51,15 @@ def discover_atp_yaml_files(repo: Path, atp_subfolder: str, *, exclude_subflows:
         roots = [folder_root]
     else:
         roots = [atp_root]
+    include = (os.environ.get("ATP_FLOW_INCLUDE") or "").strip()
     flows: list[Path] = []
     for root in roots:
         for p in sorted(root.rglob("*"), key=lambda x: str(x).lower()):
             if not p.is_file() or p.suffix.lower() not in (".yaml", ".yml"):
                 continue
             if exclude_subflows and is_subflow_helper(p):
+                continue
+            if include and include.lower() not in p.name.lower():
                 continue
             flows.append(p)
     return flows

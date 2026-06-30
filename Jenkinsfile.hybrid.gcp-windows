@@ -116,6 +116,16 @@ pipeline {
             defaultValue: 'OPENROUTER_API_KEY',
             description: 'Jenkins "Secret text" credential ID only (e.g. OPENROUTER_API_KEY). Injects as OPENROUTER_API_KEY. Do not paste the whole parameter line. Leave empty to use env already set on the agent.'
         )
+        string(
+            name: 'ATP_FLOW_INCLUDE',
+            defaultValue: '',
+            description: 'Optional: run only flows whose filename contains this text (e.g. GA_02). Applies within each enabled ATP module. Leave empty to run all flows in that module.'
+        )
+        string(
+            name: 'OPENROUTER_MODEL_VISION',
+            defaultValue: 'openai/gpt-4.1-mini',
+            description: 'OpenRouter vision model for in-flow AI verify (GA_02 3x3 grid, ED_03, etc.).'
+        )
     }
 
     options {
@@ -272,8 +282,15 @@ pipeline {
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     script {
-                        withEnv(maestroEnvList()) {
-                            bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all gallery "${params.APP_PACKAGE}" "${params.CLEAR_STATE.toString()}" "${params.MAESTRO_CMD}" """
+                        withOpenRouterCredentials(params.OPENROUTER_CREDENTIALS_ID) {
+                            withEnv(maestroEnvList() + [
+                                "ATP_FLOW_INCLUDE=${params.ATP_FLOW_INCLUDE}",
+                                "OPENROUTER_MODEL_VISION=${params.OPENROUTER_MODEL_VISION}",
+                                "OpenRouterAPI=${env.OPENROUTER_API_KEY ?: ''}",
+                                'PYTHONIOENCODING=utf-8',
+                            ]) {
+                                bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all gallery "${params.APP_PACKAGE}" "${params.CLEAR_STATE.toString()}" "${params.MAESTRO_CMD}" """
+                            }
                         }
                     }
                 }
