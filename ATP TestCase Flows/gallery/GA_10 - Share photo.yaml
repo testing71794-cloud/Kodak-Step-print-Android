@@ -20,11 +20,13 @@ name: GA_10 - Share photo
 - swipe:
     start: "50%, 80%"
     end: "50%, 30%"
-- tapOn: "Photos"
-  optional: true
 - tapOn:
-  text: ".*(?i)(just once|only once).*"
-  optional: true
-- tapOn: "Upload"
-  optional: true
+    text: "Photos"
+    optional: true
+- tapOn:
+    text: ".*(?i)(just once|only once).*"
+    optional: true
+- tapOn:
+    text: "Upload"
+    optional: true
 - assertVisible: "Sharing image"

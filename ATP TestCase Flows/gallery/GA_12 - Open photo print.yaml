@@ -16,8 +16,9 @@ name: GA_12 - Open photo print
     point: "88%, 92%"
     label: Print bottom-right
     optional: true
-- tapOn: "Print"
-  optional: true
+- tapOn:
+    text: "Print"
+    optional: true
 - tapOn:
     id: "textViewPrint"
     optional: true
