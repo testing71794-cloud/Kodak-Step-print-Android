@@ -132,6 +132,48 @@ def _validate_maestro_yaml_preflight() -> int:
     return proc.returncode
 
 
+def _is_gallery_folder(folder: str) -> bool:
+    resolved = resolve_atp_subfolder(REPO, folder)
+    key = (resolved or folder or "").strip().lower()
+    return key == "gallery"
+
+
+def _prepare_gallery_openrouter(folder: str) -> None:
+    """GraalJS host access + local verify server for GA_02 OpenRouter vision verify."""
+    if not _is_gallery_folder(folder):
+        return
+    import importlib.util
+
+    mod_path = REPO / "scripts" / "ensure_maestro_verify_server.py"
+    spec = importlib.util.spec_from_file_location("ensure_maestro_verify_server", mod_path)
+    if spec is None or spec.loader is None:
+        print(f"[jenkins_atp_stage] WARN: cannot load {mod_path}", flush=True)
+        return
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+
+    mod.apply_maestro_graaljs_env()
+    print(
+        "[jenkins_atp_stage] gallery OpenRouter: "
+        f"MAESTRO_CLI_DANGEROUS_GRAALJS_ALLOW_HOST_ACCESS={os.environ.get('MAESTRO_CLI_DANGEROUS_GRAALJS_ALLOW_HOST_ACCESS', '')} "
+        f"OPENROUTER_MODEL_VISION={os.environ.get('OPENROUTER_MODEL_VISION', '')}",
+        flush=True,
+    )
+    if os.environ.get("ATP_GALLERY_VERIFY_SERVER", "1").strip().lower() in (
+        "0",
+        "false",
+        "no",
+        "off",
+    ):
+        print("[jenkins_atp_stage] ATP_GALLERY_VERIFY_SERVER=0 — skip verify server", flush=True)
+        return
+    if not mod.ensure_verify_server(REPO):
+        print(
+            "[jenkins_atp_stage] WARN: verify server not ready; GA_02 may still use GraalJS adb capture",
+            flush=True,
+        )
+
+
 def cmd_run(folder: str, app: str, clear_state: str, maestro_cmd: str) -> int:
     resolved = resolve_atp_subfolder(REPO, folder)
     sid = folder_to_suite_id(resolved or folder)
@@ -140,6 +182,7 @@ def cmd_run(folder: str, app: str, clear_state: str, maestro_cmd: str) -> int:
     if yaml_rc != 0:
         touch_flag(f"{sid}_failed.flag")
         return yaml_rc
+    _prepare_gallery_openrouter(folder)
     _refresh_devices_on_this_agent(REPO)
     _log_orchestrator_fingerprint(REPO)
     maestro_argv = [

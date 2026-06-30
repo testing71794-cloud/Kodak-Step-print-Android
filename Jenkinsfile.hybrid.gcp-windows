@@ -78,6 +78,14 @@ def maestroEnvList() {
     return envList
 }
 
+/** GraalJS host access for in-flow adb capture (GA_02 OpenRouter verify). */
+def galleryOpenRouterEnvList() {
+    return [
+        'MAESTRO_CLI_DANGEROUS_GRAALJS_ALLOW_HOST_ACCESS=1',
+        'MAESTRO_CLI_DANGEROUS_GRAALJS_ALLOW_HOST_CLASS_LOOKUP=1',
+    ]
+}
+
 pipeline {
     agent none
 
@@ -283,7 +291,7 @@ pipeline {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     script {
                         withOpenRouterCredentials(params.OPENROUTER_CREDENTIALS_ID) {
-                            withEnv(maestroEnvList() + [
+                            withEnv(maestroEnvList() + galleryOpenRouterEnvList() + [
                                 "ATP_FLOW_INCLUDE=${params.ATP_FLOW_INCLUDE}",
                                 "OPENROUTER_MODEL_VISION=${params.OPENROUTER_MODEL_VISION}",
                                 "OpenRouterAPI=${env.OPENROUTER_API_KEY ?: ''}",
