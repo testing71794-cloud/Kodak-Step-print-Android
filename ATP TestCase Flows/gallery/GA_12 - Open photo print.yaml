@@ -17,7 +17,7 @@ name: GA_12 - Open photo print
     label: Print bottom-right
     optional: true
 - tapOn: "Print"
-    optional: true
+  optional: true
 - tapOn:
     id: "textViewPrint"
     optional: true

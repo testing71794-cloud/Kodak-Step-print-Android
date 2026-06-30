@@ -19,7 +19,7 @@ name: GA_09 - Thumbnail more menu print
     text: ".*(?i)print.*"
     optional: true
 - tapOn: "Print"
-    optional: true
+  optional: true
 - extendedWaitUntil:
     visible:
       text: ".*(?i)(connect|printer|bluetooth|not connected).*"

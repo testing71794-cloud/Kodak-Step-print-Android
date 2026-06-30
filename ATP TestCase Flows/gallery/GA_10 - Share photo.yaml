@@ -21,10 +21,10 @@ name: GA_10 - Share photo
     start: "50%, 80%"
     end: "50%, 30%"
 - tapOn: "Photos"
-    optional: true
+  optional: true
 - tapOn:
-    text: ".*(?i)(just once|only once).*"
-    optional: true
+  text: ".*(?i)(just once|only once).*"
+  optional: true
 - tapOn: "Upload"
-    optional: true
+  optional: true
 - assertVisible: "Sharing image"
