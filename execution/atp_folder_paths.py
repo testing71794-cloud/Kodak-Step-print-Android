@@ -39,6 +39,13 @@ def is_subflow_helper(path: Path) -> bool:
     return any(part.lower() == "subflows" for part in path.parts)
 
 
+def safe_flow_stem(name: str) -> str:
+    """Filesystem-safe flow stem for Windows cmd/batch (parentheses break grouped blocks)."""
+    slug = re.sub(r"[^\w\-.]+", "_", (name or "").strip())
+    slug = re.sub(r"_+", "_", slug).strip("_")
+    return slug or "flow"
+
+
 def discover_atp_yaml_files(repo: Path, atp_subfolder: str, *, exclude_subflows: bool = True) -> list[Path]:
     atp_root = repo / "ATP TestCase Flows"
     if not atp_root.is_dir():

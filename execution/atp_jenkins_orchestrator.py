@@ -384,7 +384,9 @@ def write_section(title: str) -> None:
 
 
 def _safe_flow_stem(flow: Path) -> str:
-    return re.sub(r"\s+", "_", flow.stem)
+    from execution.atp_folder_paths import safe_flow_stem
+
+    return safe_flow_stem(flow.stem)
 
 
 def _log_path(repo: Path, suite_id: str, flow: Path, device_id: str) -> Path:

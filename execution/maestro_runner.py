@@ -26,6 +26,7 @@ if str(_REPO_ROOT) not in sys.path:
 
 from utils.device_utils import get_device_display_name  # noqa: E402
 
+from .atp_folder_paths import safe_flow_stem
 from .flow_timing import append_timing, read_status_fields
 from .subprocess_launch import log_subprocess_launch
 
@@ -277,7 +278,7 @@ def build_maestro_java_cmd_prefix(
 
 def flow_log_tail(repo: Path, suite_id: str, flow_path: Path, device_id: str) -> str:
     """Same stem convention as scripts/run_one_flow_on_device.bat SAFE_FLOW."""
-    flow_name = re.sub(r"\s+", "_", flow_path.stem)
+    flow_name = safe_flow_stem(flow_path.stem)
     safe_dev = re.sub(r"\s+", "_", device_id)
     logf = repo / "reports" / suite_id / "logs" / f"{flow_name}_{safe_dev}.log"
     if not logf.is_file():
@@ -344,7 +345,7 @@ def _parallel_maestro_isolation_enabled() -> bool:
 
 
 def flow_device_log_path(repo: Path, suite_id: str, flow_path: Path, device_id: str) -> Path:
-    flow_name = re.sub(r"\s+", "_", flow_path.stem)
+    flow_name = safe_flow_stem(flow_path.stem)
     safe_dev = re.sub(r"\s+", "_", device_id)
     return repo / "reports" / suite_id / "logs" / f"{flow_name}_{safe_dev}.log"
 
@@ -534,13 +535,13 @@ def _apply_parallel_maestro_env(
         env.pop("ATP_MAESTRO_DRIVER_PORT", None)
 
     debug_root = (repo / "reports" / suite_id / "maestro-debug").resolve()
-    debug_dir = debug_root / f"{flow_path.stem}__{slug}"
+    debug_dir = debug_root / f"{safe_flow_stem(flow_path.stem)}__{slug}"
     debug_dir.mkdir(parents=True, exist_ok=True)
     env["ATP_MAESTRO_DEBUG_OUTPUT"] = str(debug_dir)
     meta["debug_output"] = str(debug_dir)
 
     recordings_root = (repo / "reports" / suite_id / "recordings").resolve()
-    recordings_dir = recordings_root / f"{flow_path.stem}__{slug}"
+    recordings_dir = recordings_root / f"{safe_flow_stem(flow_path.stem)}__{slug}"
     recordings_dir.mkdir(parents=True, exist_ok=True)
     env["ATP_MAESTRO_TEST_OUTPUT"] = str(recordings_dir)
     meta["test_output"] = str(recordings_dir)
@@ -922,7 +923,7 @@ def run_run_one_flow_device_bat(
 
 
 def _status_file_path(repo: Path, suite_id: str, flow_path: Path, device_id: str) -> Path:
-    safe_flow = flow_path.stem.replace(" ", "_")
+    safe_flow = safe_flow_stem(flow_path.stem)
     safe_device = device_id.replace(" ", "_")
     return repo / "status" / f"{suite_id}__{safe_flow}__{safe_device}.txt"
 

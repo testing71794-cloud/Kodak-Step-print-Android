@@ -1,6 +1,6 @@
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
-REM script_rev=2026-05-jenkins-spaces-quoted-maestro-7
+REM script_rev=2026-06-jenkins-flow-parens-safe-8
 goto :script_body
 
 REM Approximate sleep without timeout.exe (Jenkins + non-TTY stdin makes timeout print
@@ -19,7 +19,7 @@ exit /b 0
 
 REM Log resolved paths before Maestro (Jenkins workspace may contain spaces).
 :log_maestro_invoke_context
-echo [DEBUG] script_rev=2026-05-jenkins-spaces-quoted-maestro-7>> "%LOG_FILE%"
+echo [DEBUG] script_rev=2026-06-jenkins-flow-parens-safe-8>> "%LOG_FILE%"
 echo [DEBUG] CD=!CD!>> "%LOG_FILE%"
 echo [DEBUG] REPO_ROOT=!REPO_ROOT!>> "%LOG_FILE%"
 echo [DEBUG] FLOW_PATH=!FLOW_PATH!>> "%LOG_FILE%"
@@ -47,65 +47,62 @@ set "MAESTRO_FLOW_PATH=%RECORD_WRAPPER%"
 echo [INFO] Maestro auto-record wrapper: %RECORD_WRAPPER%>> "%LOG_FILE%"
 exit /b 0
 
-REM Write a one-shot wrapper .cmd with fully quoted paths (avoids cmd.exe splitting on spaces).
+REM Write a one-shot wrapper .cmd with fully quoted paths (avoids cmd.exe splitting on spaces/parens).
 :write_maestro_wrapper
 set "MWRAP=%~1"
 set "MAESTRO_OUT_DIR="
 if defined ATP_MAESTRO_TEST_OUTPUT set "MAESTRO_OUT_DIR=--test-output-dir "%ATP_MAESTRO_TEST_OUTPUT%""
 if /I "!MAESTRO_FLOW1B!"=="1" goto :write_maestro_wrapper_flow1b
-(
-echo @echo off
-echo cd /d "%REPO_ROOT%"
-if defined ATP_JAVA_USER_HOME (
-  if defined ATP_MAESTRO_DRIVER_PORT (
-    if /I "!MAESTRO_USE_REINSTALL!"=="1" (
-      if defined ATP_MAESTRO_DEBUG_OUTPUT (
-        echo "%JAVA_EXE%" "-Duser.home=%ATP_JAVA_USER_HOME%" -classpath "%MAESTRO_CLASSPATH%" maestro.cli.AppKt --device "%DEVICE_ID%" --driver-host-port %ATP_MAESTRO_DRIVER_PORT% test --reinstall-driver !MAESTRO_OUT_DIR! --debug-output "%ATP_MAESTRO_DEBUG_OUTPUT%" "%MAESTRO_FLOW_PATH%"
-      ) else (
-        echo "%JAVA_EXE%" "-Duser.home=%ATP_JAVA_USER_HOME%" -classpath "%MAESTRO_CLASSPATH%" maestro.cli.AppKt --device "%DEVICE_ID%" --driver-host-port %ATP_MAESTRO_DRIVER_PORT% test --reinstall-driver !MAESTRO_OUT_DIR! "%MAESTRO_FLOW_PATH%"
-      )
-    ) else (
-      if defined ATP_MAESTRO_DEBUG_OUTPUT (
-        echo "%JAVA_EXE%" "-Duser.home=%ATP_JAVA_USER_HOME%" -classpath "%MAESTRO_CLASSPATH%" maestro.cli.AppKt --device "%DEVICE_ID%" --driver-host-port %ATP_MAESTRO_DRIVER_PORT% test !MAESTRO_OUT_DIR! --debug-output "%ATP_MAESTRO_DEBUG_OUTPUT%" "%MAESTRO_FLOW_PATH%"
-      ) else (
-        echo "%JAVA_EXE%" "-Duser.home=%ATP_JAVA_USER_HOME%" -classpath "%MAESTRO_CLASSPATH%" maestro.cli.AppKt --device "%DEVICE_ID%" --driver-host-port %ATP_MAESTRO_DRIVER_PORT% test !MAESTRO_OUT_DIR! "%MAESTRO_FLOW_PATH%"
-      )
-    )
-  ) else (
-    if /I "!MAESTRO_USE_REINSTALL!"=="1" (
-      if defined ATP_MAESTRO_DEBUG_OUTPUT (
-        echo "%JAVA_EXE%" "-Duser.home=%ATP_JAVA_USER_HOME%" -classpath "%MAESTRO_CLASSPATH%" maestro.cli.AppKt --device "%DEVICE_ID%" test --reinstall-driver !MAESTRO_OUT_DIR! --debug-output "%ATP_MAESTRO_DEBUG_OUTPUT%" "%MAESTRO_FLOW_PATH%"
-      ) else (
-        echo "%JAVA_EXE%" "-Duser.home=%ATP_JAVA_USER_HOME%" -classpath "%MAESTRO_CLASSPATH%" maestro.cli.AppKt --device "%DEVICE_ID%" test --reinstall-driver !MAESTRO_OUT_DIR! "%MAESTRO_FLOW_PATH%"
-      )
-    ) else (
-      if defined ATP_MAESTRO_DEBUG_OUTPUT (
-        echo "%JAVA_EXE%" "-Duser.home=%ATP_JAVA_USER_HOME%" -classpath "%MAESTRO_CLASSPATH%" maestro.cli.AppKt --device "%DEVICE_ID%" test !MAESTRO_OUT_DIR! --debug-output "%ATP_MAESTRO_DEBUG_OUTPUT%" "%MAESTRO_FLOW_PATH%"
-      ) else (
-        echo "%JAVA_EXE%" "-Duser.home=%ATP_JAVA_USER_HOME%" -classpath "%MAESTRO_CLASSPATH%" maestro.cli.AppKt --device "%DEVICE_ID%" test !MAESTRO_OUT_DIR! "%MAESTRO_FLOW_PATH%"
-      )
-    )
-  )
+> "%MWRAP%" echo @echo off
+>> "%MWRAP%" echo cd /d "%REPO_ROOT%"
+if not defined ATP_JAVA_USER_HOME goto :wmw_no_java_user
+if defined ATP_MAESTRO_DRIVER_PORT goto :wmw_java_driver_port
+if /I "!MAESTRO_USE_REINSTALL!"=="1" goto :wmw_java_reinstall
+if defined ATP_MAESTRO_DEBUG_OUTPUT goto :wmw_java_debug
+>> "%MWRAP%" echo "%JAVA_EXE%" "-Duser.home=%ATP_JAVA_USER_HOME%" -classpath "%MAESTRO_CLASSPATH%" maestro.cli.AppKt --device "%DEVICE_ID%" test !MAESTRO_OUT_DIR! "!MAESTRO_FLOW_PATH!"
+goto :wmw_done
+:wmw_java_debug
+>> "%MWRAP%" echo "%JAVA_EXE%" "-Duser.home=%ATP_JAVA_USER_HOME%" -classpath "%MAESTRO_CLASSPATH%" maestro.cli.AppKt --device "%DEVICE_ID%" test !MAESTRO_OUT_DIR! --debug-output "!ATP_MAESTRO_DEBUG_OUTPUT!" "!MAESTRO_FLOW_PATH!"
+goto :wmw_done
+:wmw_java_reinstall
+if defined ATP_MAESTRO_DEBUG_OUTPUT goto :wmw_java_reinstall_debug
+>> "%MWRAP%" echo "%JAVA_EXE%" "-Duser.home=%ATP_JAVA_USER_HOME%" -classpath "%MAESTRO_CLASSPATH%" maestro.cli.AppKt --device "%DEVICE_ID%" test --reinstall-driver !MAESTRO_OUT_DIR! "!MAESTRO_FLOW_PATH!"
+goto :wmw_done
+:wmw_java_reinstall_debug
+>> "%MWRAP%" echo "%JAVA_EXE%" "-Duser.home=%ATP_JAVA_USER_HOME%" -classpath "%MAESTRO_CLASSPATH%" maestro.cli.AppKt --device "%DEVICE_ID%" test --reinstall-driver !MAESTRO_OUT_DIR! --debug-output "!ATP_MAESTRO_DEBUG_OUTPUT!" "!MAESTRO_FLOW_PATH!"
+goto :wmw_done
+:wmw_java_driver_port
+if /I "!MAESTRO_USE_REINSTALL!"=="1" goto :wmw_java_driver_reinstall
+if defined ATP_MAESTRO_DEBUG_OUTPUT goto :wmw_java_driver_debug
+>> "%MWRAP%" echo "%JAVA_EXE%" "-Duser.home=%ATP_JAVA_USER_HOME%" -classpath "%MAESTRO_CLASSPATH%" maestro.cli.AppKt --device "%DEVICE_ID%" --driver-host-port %ATP_MAESTRO_DRIVER_PORT% test !MAESTRO_OUT_DIR! "!MAESTRO_FLOW_PATH!"
+goto :wmw_done
+:wmw_java_driver_debug
+>> "%MWRAP%" echo "%JAVA_EXE%" "-Duser.home=%ATP_JAVA_USER_HOME%" -classpath "%MAESTRO_CLASSPATH%" maestro.cli.AppKt --device "%DEVICE_ID%" --driver-host-port %ATP_MAESTRO_DRIVER_PORT% test !MAESTRO_OUT_DIR! --debug-output "!ATP_MAESTRO_DEBUG_OUTPUT!" "!MAESTRO_FLOW_PATH!"
+goto :wmw_done
+:wmw_java_driver_reinstall
+if defined ATP_MAESTRO_DEBUG_OUTPUT goto :wmw_java_driver_reinstall_debug
+>> "%MWRAP%" echo "%JAVA_EXE%" "-Duser.home=%ATP_JAVA_USER_HOME%" -classpath "%MAESTRO_CLASSPATH%" maestro.cli.AppKt --device "%DEVICE_ID%" --driver-host-port %ATP_MAESTRO_DRIVER_PORT% test --reinstall-driver !MAESTRO_OUT_DIR! "!MAESTRO_FLOW_PATH!"
+goto :wmw_done
+:wmw_java_driver_reinstall_debug
+>> "%MWRAP%" echo "%JAVA_EXE%" "-Duser.home=%ATP_JAVA_USER_HOME%" -classpath "%MAESTRO_CLASSPATH%" maestro.cli.AppKt --device "%DEVICE_ID%" --driver-host-port %ATP_MAESTRO_DRIVER_PORT% test --reinstall-driver !MAESTRO_OUT_DIR! --debug-output "!ATP_MAESTRO_DEBUG_OUTPUT!" "!MAESTRO_FLOW_PATH!"
+goto :wmw_done
+:wmw_no_java_user
+if defined ATP_MAESTRO_DRIVER_PORT (
+  >> "%MWRAP%" echo "%JAVA_EXE%" -classpath "%MAESTRO_CLASSPATH%" maestro.cli.AppKt --device "%DEVICE_ID%" --driver-host-port %ATP_MAESTRO_DRIVER_PORT% test !MAESTRO_OUT_DIR! "!MAESTRO_FLOW_PATH!"
 ) else (
-  if defined ATP_MAESTRO_DRIVER_PORT (
-    echo "%JAVA_EXE%" -classpath "%MAESTRO_CLASSPATH%" maestro.cli.AppKt --device "%DEVICE_ID%" --driver-host-port %ATP_MAESTRO_DRIVER_PORT% test !MAESTRO_OUT_DIR! "%MAESTRO_FLOW_PATH%"
-  ) else (
-    echo "%JAVA_EXE%" -classpath "%MAESTRO_CLASSPATH%" maestro.cli.AppKt --device "%DEVICE_ID%" test !MAESTRO_OUT_DIR! "%MAESTRO_FLOW_PATH%"
-  )
+  >> "%MWRAP%" echo "%JAVA_EXE%" -classpath "%MAESTRO_CLASSPATH%" maestro.cli.AppKt --device "%DEVICE_ID%" test !MAESTRO_OUT_DIR! "!MAESTRO_FLOW_PATH!"
 )
-) > "%MWRAP%"
+:wmw_done
 exit /b 0
 
 :write_maestro_wrapper_flow1b
-(
-echo @echo off
-echo cd /d "%REPO_ROOT%"
+> "%MWRAP%" echo @echo off
+>> "%MWRAP%" echo cd /d "%REPO_ROOT%"
 if defined ATP_JAVA_USER_HOME (
-  echo "%JAVA_EXE%" "-Duser.home=%ATP_JAVA_USER_HOME%" -classpath "%MAESTRO_CLASSPATH%" maestro.cli.AppKt --device "%DEVICE_ID%" test !MAESTRO_OUT_DIR! -e FULL_NAME="!FULL_NAME!" -e EMAIL="!EMAIL!" -e PASSWORD="!PASSWORD!" "%MAESTRO_FLOW_PATH%"
+  >> "%MWRAP%" echo "%JAVA_EXE%" "-Duser.home=%ATP_JAVA_USER_HOME%" -classpath "%MAESTRO_CLASSPATH%" maestro.cli.AppKt --device "%DEVICE_ID%" test !MAESTRO_OUT_DIR! -e FULL_NAME="!FULL_NAME!" -e EMAIL="!EMAIL!" -e PASSWORD="!PASSWORD!" "!MAESTRO_FLOW_PATH!"
 ) else (
-  echo "%JAVA_EXE%" -classpath "%MAESTRO_CLASSPATH%" maestro.cli.AppKt --device "%DEVICE_ID%" test !MAESTRO_OUT_DIR! -e FULL_NAME="!FULL_NAME!" -e EMAIL="!EMAIL!" -e PASSWORD="!PASSWORD!" "%MAESTRO_FLOW_PATH%"
+  >> "%MWRAP%" echo "%JAVA_EXE%" -classpath "%MAESTRO_CLASSPATH%" maestro.cli.AppKt --device "%DEVICE_ID%" test !MAESTRO_OUT_DIR! -e FULL_NAME="!FULL_NAME!" -e EMAIL="!EMAIL!" -e PASSWORD="!PASSWORD!" "!MAESTRO_FLOW_PATH!"
 )
-) > "%MWRAP%"
 exit /b 0
 
 REM Isolated Maestro via java maestro.cli.AppKt (wrapper .cmd has quoted paths baked in).
@@ -127,15 +124,13 @@ REM Fallback: maestro.bat wrapper (quoted device + flow only).
 set "MAESTRO_OUT_DIR="
 if defined ATP_MAESTRO_TEST_OUTPUT set "MAESTRO_OUT_DIR=--test-output-dir "%ATP_MAESTRO_TEST_OUTPUT%""
 set "MWRAP=%TEMP%\atp_maestro_bat_%RANDOM%_%RANDOM%.cmd"
-(
-echo @echo off
-echo cd /d "%REPO_ROOT%"
+> "%MWRAP%" echo @echo off
+>> "%MWRAP%" echo cd /d "%REPO_ROOT%"
 if /I "!MAESTRO_USE_REINSTALL!"=="1" (
-  echo "%MAESTRO_BIN%" --device "%DEVICE_ID%" test --reinstall-driver !MAESTRO_OUT_DIR! "%MAESTRO_FLOW_PATH%"
+  >> "%MWRAP%" echo "%MAESTRO_BIN%" --device "%DEVICE_ID%" test --reinstall-driver !MAESTRO_OUT_DIR! "!MAESTRO_FLOW_PATH!"
 ) else (
-  echo "%MAESTRO_BIN%" --device "%DEVICE_ID%" test !MAESTRO_OUT_DIR! "%MAESTRO_FLOW_PATH%"
+  >> "%MWRAP%" echo "%MAESTRO_BIN%" --device "%DEVICE_ID%" test !MAESTRO_OUT_DIR! "!MAESTRO_FLOW_PATH!"
 )
-) > "%MWRAP%"
 echo [DEBUG] maestro_bat_wrapper=!MWRAP!>> "%LOG_FILE%"
 type "%MWRAP%" >> "%LOG_FILE%"
 call "%MWRAP%" >> "%LOG_FILE%" 2>&1
@@ -221,6 +216,13 @@ set "MAESTRO_CLASSPATH=%MAESTRO_APP_HOME%\lib\*"
 
 for %%I in ("%FLOW_PATH%") do set "FLOW_NAME=%%~nI"
 
+set "SAFE_FLOW="
+for /f "delims=" %%S in ('python -c "import sys; from pathlib import Path; sys.path.insert(0, r\"%REPO_ROOT%\"); from execution.atp_folder_paths import safe_flow_stem; print(safe_flow_stem(Path(sys.argv[1]).stem))" "%FLOW_PATH%" 2^>nul') do if not defined SAFE_FLOW set "SAFE_FLOW=%%S"
+if defined SAFE_FLOW goto :safe_flow_ready
+set "SAFE_FLOW=%FLOW_NAME: =_%"
+set "SAFE_FLOW=%SAFE_FLOW:(=_%"
+set "SAFE_FLOW=%SAFE_FLOW:)=_%"
+:safe_flow_ready
 set "REPORT_ROOT=%REPO_ROOT%\reports\%SUITE%"
 set "LOG_DIR=%REPORT_ROOT%\logs"
 set "RESULT_DIR=%REPORT_ROOT%\results"
@@ -231,48 +233,45 @@ if not exist "%LOG_DIR%" mkdir "%LOG_DIR%"
 if not exist "%RESULT_DIR%" mkdir "%RESULT_DIR%"
 if not exist "%STATUS_DIR%" mkdir "%STATUS_DIR%"
 
-set "SAFE_FLOW=%FLOW_NAME: =_%"
 set "SAFE_DEVICE=%DEVICE_ID: =_%"
 set "LOG_FILE=%LOG_DIR%\%SAFE_FLOW%_%SAFE_DEVICE%.log"
 set "RESULT_FILE=%RESULT_DIR%\%SAFE_FLOW%_%SAFE_DEVICE%.csv"
 set "STATUS_FILE=%STATUS_DIR%\%SUITE%__%SAFE_FLOW%__%SAFE_DEVICE%.txt"
 
 if not defined ATP_MAESTRO_TEST_OUTPUT (
-  set "ATP_MAESTRO_TEST_OUTPUT=%REPORT_ROOT%\recordings\%FLOW_NAME%__%SAFE_DEVICE%"
+  set "ATP_MAESTRO_TEST_OUTPUT=%REPORT_ROOT%\recordings\%SAFE_FLOW%__%SAFE_DEVICE%"
 )
 if not exist "%REPORT_ROOT%\recordings" mkdir "%REPORT_ROOT%\recordings"
 if not exist "%ATP_MAESTRO_TEST_OUTPUT%" mkdir "%ATP_MAESTRO_TEST_OUTPUT%"
 
-(
-echo =====================================
-echo RUN ONE FLOW ON DEVICE
-echo =====================================
-echo Timestamp        : %date% %time%
-echo Suite            : %SUITE%
-echo Flow path        : %FLOW_PATH%
-echo Flow name        : %FLOW_NAME%
-echo Device           : %DEVICE_ID%
-echo App id           : %APP_ID%
-echo Clear state      : %CLEAR_STATE%
-echo Include tag      : %INCLUDE_TAG%
-echo JAVA_HOME        : %JAVA_HOME%
-echo MAESTRO_HOME     : %MAESTRO_HOME%
-echo Maestro cmd      : %MAESTRO_BIN%
-echo =====================================
-echo BATCH ARGUMENTS / WORKSPACE
-echo =====================================
-echo script_rev        : 2026-05-jenkins-spaces-quoted-maestro-7
-echo arg1 SUITE        : %~1
-echo arg2 FLOW_PATH    : %~2
-echo arg3 DEVICE_ID    : %~3
-echo arg4 APP_ID       : %~4
-echo arg5 CLEAR_STATE  : %~5
-echo arg6 MAESTRO_CMD  : %~6
-echo arg7 INCLUDE_TAG  : %~7
-echo REPO_ROOT         : %REPO_ROOT%
-echo CD after cd /d    : %CD%
-echo =====================================
-) > "%LOG_FILE%"
+> "%LOG_FILE%" echo =====================================
+>> "%LOG_FILE%" echo RUN ONE FLOW ON DEVICE
+>> "%LOG_FILE%" echo =====================================
+>> "%LOG_FILE%" echo Timestamp        : %date% %time%
+>> "%LOG_FILE%" echo Suite            : %SUITE%
+>> "%LOG_FILE%" echo Flow path        : %FLOW_PATH%
+>> "%LOG_FILE%" echo Flow name        : %FLOW_NAME%
+>> "%LOG_FILE%" echo Device           : %DEVICE_ID%
+>> "%LOG_FILE%" echo App id           : %APP_ID%
+>> "%LOG_FILE%" echo Clear state      : %CLEAR_STATE%
+>> "%LOG_FILE%" echo Include tag      : %INCLUDE_TAG%
+>> "%LOG_FILE%" echo JAVA_HOME        : %JAVA_HOME%
+>> "%LOG_FILE%" echo MAESTRO_HOME     : %MAESTRO_HOME%
+>> "%LOG_FILE%" echo Maestro cmd      : %MAESTRO_BIN%
+>> "%LOG_FILE%" echo =====================================
+>> "%LOG_FILE%" echo BATCH ARGUMENTS / WORKSPACE
+>> "%LOG_FILE%" echo =====================================
+>> "%LOG_FILE%" echo script_rev        : 2026-06-jenkins-flow-parens-safe-8
+>> "%LOG_FILE%" echo arg1 SUITE        : %~1
+>> "%LOG_FILE%" echo arg2 FLOW_PATH    : %~2
+>> "%LOG_FILE%" echo arg3 DEVICE_ID    : %~3
+>> "%LOG_FILE%" echo arg4 APP_ID       : %~4
+>> "%LOG_FILE%" echo arg5 CLEAR_STATE  : %~5
+>> "%LOG_FILE%" echo arg6 MAESTRO_CMD  : %~6
+>> "%LOG_FILE%" echo arg7 INCLUDE_TAG  : %~7
+>> "%LOG_FILE%" echo REPO_ROOT         : %REPO_ROOT%
+>> "%LOG_FILE%" echo CD after cd /d    : %CD%
+>> "%LOG_FILE%" echo =====================================
 
 where java >> "%LOG_FILE%" 2>&1
 java -version >> "%LOG_FILE%" 2>&1
@@ -287,13 +286,15 @@ set "REASON=OK"
 set "MAESTRO_DEVICE_RETRY_USED=0"
 set "MAESTRO_DRIVER_7001_RETRY=0"
 
-if not exist "%FLOW_PATH%" (
-    echo ERROR: Flow file not found: %FLOW_PATH%>> "%LOG_FILE%"
-    set "RUN_EXIT=20"
-    set "STATUS_VALUE=FAIL"
-    set "REASON=FLOW_FILE_NOT_FOUND"
-    goto :write_result
-)
+if not exist "%FLOW_PATH%" goto :flow_file_not_found
+goto :flow_file_ok
+:flow_file_not_found
+>> "%LOG_FILE%" echo ERROR: Flow file not found: "%FLOW_PATH%"
+set "RUN_EXIT=20"
+set "STATUS_VALUE=FAIL"
+set "REASON=FLOW_FILE_NOT_FOUND"
+goto :write_result
+:flow_file_ok
 
 REM ---- ADB: ensure server is up (mitigates stale Jenkins adb on Windows) ----
 adb start-server >> "%LOG_FILE%" 2>&1
@@ -572,25 +573,23 @@ if not defined DEVICE_NAME (
   for /f "delims=" %%N in ('python "%REPO_ROOT%\scripts\resolve_device_name.py" "%DEVICE_ID%" 2^>nul') do set "DEVICE_NAME=%%N"
 )
 if not defined DEVICE_NAME set "DEVICE_NAME=%DEVICE_ID%"
-> "%STATUS_FILE%" (
-    echo suite=%SUITE%
-    echo flow=%FLOW_NAME%
-    echo device=%DEVICE_ID%
-    echo device_id=%DEVICE_ID%
-    echo device_name=%DEVICE_NAME%
-    echo status=%STATUS_VALUE%
-    echo exit_code=%RUN_EXIT%
-    echo reason=%REASON%
-    echo log_file=%LOG_FILE%
-    echo first_log_path=%LOG_FILE%
-    echo log_path=%LOG_FILE%
-    echo test_output_dir=%ATP_MAESTRO_TEST_OUTPUT%
-    echo retry_count=!SIGNUP_RETRY_USED!
-    echo maestro_device_reconnect_retry=!MAESTRO_DEVICE_RETRY_USED!
-    echo maestro_driver_7001_retry=!MAESTRO_DRIVER_7001_RETRY!
-    echo duration_ms=!FLOW_DURATION_MS!
-    echo timestamp=%date% %time%
-)
+> "%STATUS_FILE%" echo suite=%SUITE%
+>> "%STATUS_FILE%" echo flow=%FLOW_NAME%
+>> "%STATUS_FILE%" echo device=%DEVICE_ID%
+>> "%STATUS_FILE%" echo device_id=%DEVICE_ID%
+>> "%STATUS_FILE%" echo device_name=%DEVICE_NAME%
+>> "%STATUS_FILE%" echo status=%STATUS_VALUE%
+>> "%STATUS_FILE%" echo exit_code=%RUN_EXIT%
+>> "%STATUS_FILE%" echo reason=%REASON%
+>> "%STATUS_FILE%" echo log_file=%LOG_FILE%
+>> "%STATUS_FILE%" echo first_log_path=%LOG_FILE%
+>> "%STATUS_FILE%" echo log_path=%LOG_FILE%
+>> "%STATUS_FILE%" echo test_output_dir=%ATP_MAESTRO_TEST_OUTPUT%
+>> "%STATUS_FILE%" echo retry_count=!SIGNUP_RETRY_USED!
+>> "%STATUS_FILE%" echo maestro_device_reconnect_retry=!MAESTRO_DEVICE_RETRY_USED!
+>> "%STATUS_FILE%" echo maestro_driver_7001_retry=!MAESTRO_DRIVER_7001_RETRY!
+>> "%STATUS_FILE%" echo duration_ms=!FLOW_DURATION_MS!
+>> "%STATUS_FILE%" echo timestamp=%date% %time%
 if defined VIDEO_FILE >>"%STATUS_FILE%" echo video_file=!VIDEO_FILE!
 if /I "%FLOW_NAME%"=="flow1b" if defined EMAIL (
     >>"%STATUS_FILE%" echo signup_email=!EMAIL!
@@ -599,10 +598,8 @@ if /I "%FLOW_NAME%"=="flow1b" if defined EMAIL (
     if defined KODAK_SIGNUP_JSON >>"%STATUS_FILE%" echo kodak_signup_json_path=!KODAK_SIGNUP_JSON!
 )
 
-> "%RESULT_FILE%" (
-    echo suite,flow,device,status,exit_code,reason,log_file
-    echo %SUITE%,%FLOW_NAME%,%DEVICE_ID%,%STATUS_VALUE%,%RUN_EXIT%,%REASON%,"%LOG_FILE%"
-)
+> "%RESULT_FILE%" echo suite,flow,device,status,exit_code,reason,log_file
+>> "%RESULT_FILE%" echo %SUITE%,%FLOW_NAME%,%DEVICE_ID%,%STATUS_VALUE%,%RUN_EXIT%,%REASON%,"%LOG_FILE%"
 
 echo. >> "%LOG_FILE%"
 if /I "%AUTOFILL_RESTORE_AFTER_TEST%"=="1" (
