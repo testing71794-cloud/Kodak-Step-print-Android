@@ -40,10 +40,8 @@ def is_subflow_helper(path: Path) -> bool:
 
 
 def is_excluded_top_level_flow(path: Path) -> bool:
-    """Appium split flows (GA_05a/b, GA_06a/b) are not standalone Jenkins tests."""
-    from .flow_appium_runners import is_appium_helper_flow
-
-    return is_appium_helper_flow(path)
+    """Reserved for flows that must not be discovered as top-level Jenkins tests."""
+    return False
 
 
 def safe_flow_stem(name: str) -> str:

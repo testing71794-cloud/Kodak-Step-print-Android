@@ -1,17 +1,21 @@
 # TC_ID: GA_06 - Pinch to zoom in
-# Maestro-only paired swipes are NOT real multitouch.
-# Real W3C pinch: scripts\run_ga06_real_pinch.bat [DEVICE]
+# Appium (Jenkins): scripts\run_ga06_real_pinch.bat — pinchOpenGesture zoom IN only.
+# Maestro-only fallback when ATP_GALLERY_APPIUM_PINCH=0 uses subflow below.
 appId: com.kodak.steptouch
 name: GA_06 - Pinch to zoom in
 ---
-- launchApp:
-    clearState: false
+- launchApp
 - runFlow:
     when:
-      visible: "Create an account"
+      visible: "No Thanks"
     commands:
-      - runFlow: subflows/reach_gallery_for_collage.yaml
-- runFlow: subflows/reach_gallery_fast.yaml
+      - tapOn: "No Thanks"
+- waitForAnimationToEnd:
+    timeout: 2000
+- extendedWaitUntil:
+    visible: "MY GALLERY"
+    timeout: 15000
+- tapOn: "MY GALLERY"
 - runFlow: subflows/wait_for_gallery_grid.yaml
 - runFlow: subflows/gallery_photo_detail_for_pinch.yaml
 - runFlow: subflows/pinch_gallery_zoom_in_maestro_approx.yaml

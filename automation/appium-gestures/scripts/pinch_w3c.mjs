@@ -17,6 +17,7 @@ const device = process.argv[3] || process.env.ANDROID_SERIAL || '';
 const appiumUrl = process.env.APPIUM_SERVER_URL || 'http://127.0.0.1:4723';
 const appPackage = process.env.APP_PACKAGE || 'com.kodak.steptouch';
 const galleryPinch = process.env.GALLERY_PINCH === '1';
+const galleryGa05ZoomOut = process.env.GALLERY_GA05_ZOOM_OUT === '1';
 const galleryImageId = process.env.GALLERY_IMAGE_RESOURCE_ID || `${appPackage}:id/camera_image`;
 const sdkRoot = process.env.ANDROID_SDK_ROOT || process.env.ANDROID_HOME || join(process.env.LOCALAPPDATA || '', 'Android', 'Sdk');
 const adb = join(sdkRoot, 'platform-tools', process.platform === 'win32' ? 'adb.exe' : 'adb');
@@ -115,11 +116,44 @@ async function logForegroundActivity() {
   }
 }
 
-async function resolvePinchCenter(driver, width, height) {
-  const shortId = galleryImageId.includes(':id/')
-    ? galleryImageId.split(':id/')[1]
-    : galleryImageId.replace(/^id[=/]/, '');
-  const el = await driver.$(`id=${shortId}`);
+async function findPinchTarget(driver, timeoutMs = 10000) {
+  const fullIds = [
+    galleryImageId.includes(':id/') ? galleryImageId : `${appPackage}:id/camera_image`,
+    `${appPackage}:id/camera_image`,
+    `${appPackage}:id/cameara_layout`,
+  ];
+  const selectors = [];
+  for (const fullId of [...new Set(fullIds)]) {
+    selectors.push(`android=new UiSelector().resourceId("${fullId}")`);
+    selectors.push(`-android uiautomator:new UiSelector().resourceId("${fullId}")`);
+    const shortId = fullId.split(':id/')[1];
+    if (shortId) selectors.push(`id=${shortId}`);
+  }
+  let lastErr = null;
+  for (const sel of selectors) {
+    try {
+      const el = await driver.$(sel);
+      await el.waitForExist({ timeout: Math.min(timeoutMs, 4000) });
+      console.log(`[INFO] Pinch target found via selector: ${sel}`);
+      return { el, selector: sel };
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+  throw lastErr ?? new Error('pinch target not found');
+}
+
+async function elementBounds(el) {
+  try {
+    return await el.getElementRect();
+  } catch {
+    const loc = await el.getLocation();
+    const size = await el.getSize();
+    return { x: loc.x, y: loc.y, width: size.width, height: size.height };
+  }
+}
+
+async function resolvePinchTargetBounds(driver, width, height) {
   const skipActivate = galleryPinch || process.env.SKIP_ACTIVATE_APP === '1';
   try {
     if (!skipActivate) {
@@ -128,32 +162,45 @@ async function resolvePinchCenter(driver, width, height) {
     } else {
       await driver.pause(1200);
     }
-    await el.waitForExist({ timeout: skipActivate ? 10000 : 8000 });
-    const rect = await el.getElementRect();
+    const { el, selector } = await findPinchTarget(driver, skipActivate ? 10000 : 8000);
+    const rect = await elementBounds(el);
     const cx = Math.round(rect.x + rect.width / 2);
     const cy = Math.round(rect.y + rect.height / 2);
     const span = Math.round(Math.min(rect.width, rect.height) * 0.32);
-    console.log(`[INFO] Pinch center from ${galleryImageId} bounds [${rect.x},${rect.y}][${rect.x + rect.width},${rect.y + rect.height}] -> ${cx},${cy} span=${span}`);
-    return { cx, cy, inner: Math.round(span * 0.35), outer: span };
+    console.log(`[INFO] Pinch center from ${selector} bounds [${rect.x},${rect.y}][${rect.x + rect.width},${rect.y + rect.height}] -> ${cx},${cy} span=${span}`);
+    return { cx, cy, inner: Math.round(span * 0.35), outer: span, rect, selector };
   } catch (err) {
     const msg = `Pinch center element lookup failed for ${galleryImageId}: ${err.message}`;
     if (galleryPinch) {
-      throw new Error(`${msg} (gallery detail must stay open after Maestro GA_05a)`);
+      throw new Error(`${msg} (gallery detail must stay open after Maestro pre-pinch)`);
     }
     console.log(`[INFO] ${msg}`);
   }
   const cx = Math.round((width * centerXPercent) / 100);
   const cy = Math.round((height * centerYPercent) / 100);
   console.log(`[INFO] Pinch center fallback ${centerXPercent}%,${centerYPercent}% -> ${cx},${cy}`);
-  return { cx, cy, inner, outer };
+  return { cx, cy, inner, outer, rect: null, selector: 'fallback' };
 }
 
-async function performPinch(driver, spread) {
-  const { width, height } = await driver.getWindowSize();
-  const center = await resolvePinchCenter(driver, width, height);
-  const { cx, cy } = center;
-  const innerRadius = center.inner ?? inner;
-  const outerRadius = center.outer ?? outer;
+async function performMobilePinch(driver, spread, rect) {
+  const percent = parseFloat(process.env.PINCH_GESTURE_PERCENT || '0.85', 10);
+  const args = {
+    left: Math.round(rect.x),
+    top: Math.round(rect.y),
+    width: Math.round(rect.width),
+    height: Math.round(rect.height),
+    percent,
+  };
+  const cmd = spread ? 'mobile: pinchOpenGesture' : 'mobile: pinchCloseGesture';
+  console.log(`[INFO] ${cmd} ${JSON.stringify(args)}`);
+  await driver.execute(cmd, args);
+  await driver.pause(durationMs + 500);
+}
+
+async function performW3cPinchFromTarget(driver, spread, target) {
+  const { cx, cy } = target;
+  const innerRadius = target.inner ?? inner;
+  const outerRadius = target.outer ?? outer;
 
   let finger1Start;
   let finger1End;
@@ -193,7 +240,26 @@ async function performPinch(driver, spread) {
     fingerSequence('finger2', finger2Start[0], finger2Start[1], finger2End[0], finger2End[1]),
   ]);
   await driver.releaseActions();
-  await driver.pause(durationMs + 200);
+  await driver.pause(durationMs + 500);
+}
+
+async function performPinch(driver, spread) {
+  const { width, height } = await driver.getWindowSize();
+  const target = await resolvePinchTargetBounds(driver, width, height);
+  if (galleryPinch && spread && target.rect) {
+    await performMobilePinch(driver, true, target.rect);
+    return;
+  }
+  if (galleryPinch && !spread) {
+    console.log('[INFO] GA_05 zoom-out: W3C two-finger pinch-in (mobile pinchClose unreliable on this app)');
+    await performW3cPinchFromTarget(driver, false, target);
+    return;
+  }
+  if (galleryPinch && target.rect) {
+    await performMobilePinch(driver, spread, target.rect);
+    return;
+  }
+  await performW3cPinchFromTarget(driver, spread, target);
 }
 
 let driver;
@@ -216,7 +282,7 @@ try {
     'appium:settings[waitForIdleTimeout]': 0,
   };
   if (galleryPinch) {
-    // Maestro GA_05a leaves photo detail open — attach without relaunching main activity.
+    // Maestro pre-pinch leaves photo detail open — attach without relaunching main activity.
     capabilities['appium:autoLaunch'] = false;
     console.log('[INFO] Gallery pinch: autoLaunch=false (keep Maestro photo detail screen)');
   } else {
@@ -236,20 +302,33 @@ try {
   console.log(`[INFO] viewport=${size.width}x${size.height}`);
   await logForegroundActivity();
 
-  await saveScreenshot(driver, 'before_pinch');
+  const ga05ZoomOutTest = galleryPinch && galleryGa05ZoomOut && gesture === 'pinch-in';
 
-  if (gesture === 'pinch-out' || gesture === 'both') {
+  if (ga05ZoomOutTest) {
+    console.log('[INFO] GA_05: default fit -> mobile pinchOpen (setup) -> W3C pinch-in (zoom out test)');
+    await saveScreenshot(driver, 'default_fit');
     await performPinch(driver, true);
-    if (gesture === 'both') {
-      await saveScreenshot(driver, 'after_pinch_out');
-    }
-  }
-  if (gesture === 'pinch-in' || gesture === 'both') {
-    if (gesture === 'both') await driver.pause(600);
+    await driver.pause(1500);
+    await saveScreenshot(driver, 'before_pinch');
     await performPinch(driver, false);
-  }
+    await driver.pause(1500);
+    await saveScreenshot(driver, 'after_pinch');
+  } else {
+    await saveScreenshot(driver, 'before_pinch');
 
-  await saveScreenshot(driver, 'after_pinch');
+    if (gesture === 'pinch-out' || gesture === 'both') {
+      await performPinch(driver, true);
+      if (gesture === 'both') {
+        await saveScreenshot(driver, 'after_pinch_out');
+      }
+    }
+    if (gesture === 'pinch-in' || gesture === 'both') {
+      if (gesture === 'both') await driver.pause(600);
+      await performPinch(driver, false);
+    }
+
+    await saveScreenshot(driver, 'after_pinch');
+  }
   console.log('[OK] W3C pinch completed');
   prepareDeviceForMaestro();
   await driver.deleteSession();

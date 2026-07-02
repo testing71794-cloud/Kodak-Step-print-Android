@@ -1,6 +1,6 @@
 # TC_ID: GA_05 - Pinch to zoom out
-# Maestro paired swipes are NOT real multitouch — zoom may not change visually in Studio.
-# Real W3C pinch (spread setup + pinch-in on camera_image): scripts\run_ga05_real_pinch.bat [DEVICE]
+# Appium (Jenkins): scripts\run_ga05_real_pinch.bat — pinchCloseGesture zoom OUT only.
+# Maestro-only fallback when ATP_GALLERY_APPIUM_PINCH=0 uses subflow below.
 appId: com.kodak.steptouch
 name: GA_05 - Pinch to zoom out
 ---

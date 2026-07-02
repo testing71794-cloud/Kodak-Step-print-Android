@@ -11,17 +11,17 @@ automation\appium-gestures\scripts\run_ed03_verify.bat ZA222RFQ75
 
 ## GA_05 / GA_06 gallery pinch (real W3C multitouch)
 
-**Jenkins Gallery stage** (`RUN_ATP_GALLERY=true`) routes `GA_05` / `GA_06` through Appium automatically via `scripts/run_one_flow_on_device.bat` → `run_ga05_real_pinch.bat` / `run_ga06_real_pinch.bat`. Split flows `GA_05a/b` and `GA_06a/b` are excluded from discovery (invoked by those runners).
+**Jenkins Gallery stage** (`RUN_ATP_GALLERY=true`) routes `GA_05` / `GA_06` through Appium via `scripts/run_one_flow_on_device.bat` → `run_ga05_real_pinch.bat` / `run_ga06_real_pinch.bat`.
 
 ```bat
-REM GA_05 zoom out (pinch-in after double-tap zoom-in setup)
+REM GA_05 zoom OUT only (pinchCloseGesture)
 scripts\run_ga05_real_pinch.bat ZA222RFQ75
 
-REM GA_06 zoom in (pinch-out / spread)
+REM GA_06 zoom IN only (pinchOpenGesture)
 scripts\run_ga06_real_pinch.bat ZA222RFQ75
 ```
 
-Flow: `GA_06a` or `GA_05a` (Maestro → photo detail) → Appium `pinch_w3c.mjs` → `GA_06b` / `GA_05b` (assert Edit/Print/Collage).
+Flow: Maestro `subflows/gallery_ready_for_appium_pinch*.yaml` → Appium `pinch_w3c.mjs` (single gesture) → optional OpenRouter vision verify.
 
 **One-time setup (Windows agent):**
 

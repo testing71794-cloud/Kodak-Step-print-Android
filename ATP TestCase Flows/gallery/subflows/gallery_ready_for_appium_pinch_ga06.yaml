@@ -1,0 +1,21 @@
+appId: com.kodak.steptouch
+---
+# Maestro preamble for GA_06 Appium pinch-open (zoom in only).
+- launchApp
+- runFlow:
+    when:
+      visible: "No Thanks"
+    commands:
+      - tapOn: "No Thanks"
+- waitForAnimationToEnd:
+    timeout: 2000
+- extendedWaitUntil:
+    visible: "MY GALLERY"
+    timeout: 15000
+- tapOn: "MY GALLERY"
+- runFlow: wait_for_gallery_grid.yaml
+- runFlow: gallery_photo_detail_for_pinch.yaml
+- tapOn:
+    id: "camera_image"
+    optional: true
+- takeScreenshot: GA_06_before_appium
