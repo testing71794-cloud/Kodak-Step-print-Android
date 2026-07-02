@@ -1,4 +1,6 @@
 # TC_ID: GA_09 - Thumbnail more menu print (not connected)
+# ATP Steps: 1. MY GALLERY grid → 2. Thumbnail three-dot menu → 3. Print icon → 4. Verify not connected dialog
+# ATP Expected: Printer Not Connected dialog when no printer is paired
 appId: com.kodak.steptouch
 name: GA_09 - Thumbnail more menu print
 ---
@@ -6,23 +8,23 @@ name: GA_09 - Thumbnail more menu print
     clearState: false
 - runFlow:
     when:
+      visible: "No Thanks"
+    commands:
+      - tapOn: "No Thanks"
+- runFlow:
+    when:
       visible: "Create an account"
     commands:
       - runFlow: subflows/reach_gallery_for_collage.yaml
 - runFlow: subflows/reach_gallery_fast.yaml
+- tapOn: "MY GALLERY"
 - runFlow: subflows/wait_for_gallery_grid.yaml
+- assertVisible:
+    id: "ivItemGridImage"
 - runFlow: subflows/thumbnail_more_menu.yaml
 - tapOn:
     id: "imagePrintPreview"
-    optional: true
-- tapOn:
-    text: ".*(?i)print.*"
-    optional: true
-- tapOn:
-    text: "Print"
-    optional: true
-- extendedWaitUntil:
-    visible:
-      text: ".*(?i)(connect|printer|bluetooth|not connected).*"
-    timeout: 2000
-    optional: true
+- assertVisible: "Printer Not Connected"
+- assertVisible: "Would you like to connect your printer?"
+- tapOn: "Not right now"
+- assertVisible: "MY GALLERY"
