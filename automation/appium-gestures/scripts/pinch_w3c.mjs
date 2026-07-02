@@ -103,18 +103,21 @@ function fingerSequence(id, startX, startY, endX, endY) {
 }
 
 async function resolvePinchCenter(driver, width, height) {
+  const shortId = galleryImageId.includes(':id/')
+    ? galleryImageId.split(':id/')[1]
+    : galleryImageId.replace(/^id[=/]/, '');
+  const el = await driver.$(`id=${shortId}`);
+  const skipActivate = process.env.GALLERY_PINCH === '1' || process.env.SKIP_ACTIVATE_APP === '1';
   try {
-    await driver.activateApp(appPackage);
-    await driver.pause(800);
-    const shortId = galleryImageId.includes(':id/')
-      ? galleryImageId.split(':id/')[1]
-      : galleryImageId.replace(/^id[=/]/, '');
-    const el = await driver.$(`id=${shortId}`);
-    await el.waitForExist({ timeout: 8000 });
+    if (!skipActivate) {
+      await driver.activateApp(appPackage);
+      await driver.pause(800);
+    }
+    await el.waitForExist({ timeout: skipActivate ? 5000 : 8000 });
     const rect = await el.getElementRect();
     const cx = Math.round(rect.x + rect.width / 2);
     const cy = Math.round(rect.y + rect.height / 2);
-    const span = Math.round(Math.min(rect.width, rect.height) * 0.22);
+    const span = Math.round(Math.min(rect.width, rect.height) * 0.32);
     console.log(`[INFO] Pinch center from ${galleryImageId} bounds [${rect.x},${rect.y}][${rect.x + rect.width},${rect.y + rect.height}] -> ${cx},${cy} span=${span}`);
     return { cx, cy, inner: Math.round(span * 0.35), outer: span };
   } catch (err) {
@@ -208,9 +211,12 @@ try {
 
   if (gesture === 'pinch-out' || gesture === 'both') {
     await performPinch(driver, true);
+    if (gesture === 'both') {
+      await saveScreenshot(driver, 'after_pinch_out');
+    }
   }
   if (gesture === 'pinch-in' || gesture === 'both') {
-    if (gesture === 'both') await driver.pause(400);
+    if (gesture === 'both') await driver.pause(600);
     await performPinch(driver, false);
   }
 

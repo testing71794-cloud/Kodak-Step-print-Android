@@ -1,4 +1,5 @@
-# TC_ID: GA_05b - Verify gallery photo detail after Appium W3C pinch-in (zoom out)
+# TC_ID: GA_05b - Verify gallery photo detail after Appium W3C pinch (zoom out)
+# Asserts UI only — zoom change is verified by scripts/verify_ga05_gallery_pinch_ai.py on W3C screenshots.
 # Run after pinch-in in scripts\run_ga05_real_pinch.bat
 appId: com.kodak.steptouch
 name: GA_05b - Gallery after pinch verify

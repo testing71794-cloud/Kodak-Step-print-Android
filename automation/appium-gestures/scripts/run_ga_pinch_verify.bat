@@ -112,11 +112,8 @@ if "!PINCH_MODE!"=="appium" (
   set "GALLERY_PINCH=1"
   set "PINCH_STYLE=diagonal"
   if /I "!CASE_ID!"=="GA_05" (
-    echo [INFO] GA_05: diagonal pinch-out ^(zoom in setup^) then pinch-in ^(zoom out^)
-    call "%MODULE_DIR%\examples\scripts\run_pinch_zoom_w3c.bat" pinch-out %DEVICE%
-    if errorlevel 1 exit /b 2
-    ping 127.0.0.1 -n 2 >nul
-    call "%MODULE_DIR%\examples\scripts\run_pinch_zoom_w3c.bat" pinch-in %DEVICE%
+    echo [INFO] GA_05: single-session both ^(pinch-out zoom-in setup then pinch-in zoom-out^)
+    call "%MODULE_DIR%\examples\scripts\run_pinch_zoom_w3c.bat" both %DEVICE%
   ) else (
     echo [INFO] Appium W3C two-finger %GESTURE% ^(real multitouch^) for !CASE_ID!
     call "%MODULE_DIR%\examples\scripts\run_pinch_zoom_w3c.bat" %GESTURE% %DEVICE%
@@ -129,6 +126,23 @@ if "!PINCH_MODE!"=="appium" (
 if errorlevel 1 (
   echo ERROR: Pinch gesture failed
   exit /b 2
+)
+
+if /I "!CASE_ID!"=="GA_05" (
+  set "OPENROUTER_SSL_VERIFY=0"
+  if not defined OPENROUTER_MODEL_VISION set "OPENROUTER_MODEL_VISION=openai/gpt-4.1-mini"
+  where py >nul 2>&1
+  if not errorlevel 1 (
+    echo [INFO] GA_05 vision verify pinch zoom ^(model=!OPENROUTER_MODEL_VISION!^)...
+    py -3 "%REPO_ROOT%\scripts\verify_ga05_gallery_pinch_ai.py"
+    set "PINCH_AI_RC=!ERRORLEVEL!"
+    if not "!PINCH_AI_RC!"=="0" (
+      echo ERROR: GA_05 pinch did not visibly change the photo preview ^(vision verify exit=!PINCH_AI_RC!^)
+      exit /b !PINCH_AI_RC!
+    )
+  ) else (
+    echo WARN: py not found — GA_05 passes without vision verify of zoom change
+  )
 )
 
 echo [INFO] Resetting adb so Maestro can reconnect for post-pinch verify...
