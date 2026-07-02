@@ -94,6 +94,8 @@ def galleryAppiumPinchEnvList() {
         'PINCH_STYLE=diagonal',
         'NODE_HOME=C:\\Program Files\\nodejs',
         'NPM_GLOBAL=C:\\Tools\\npm-global',
+        'MAESTRO_HOME=C:\\Tools\\maestro-parallel\\bin',
+        'ATP_MAESTRO_PARALLEL_HOME=C:\\Tools\\maestro-parallel\\bin',
         'PATH+NODEJS=C:\\Program Files\\nodejs',
         'PATH+APPIUM=C:\\Tools\\npm-global',
         'PATH+NPM=C:\\Tools\\npm-global',

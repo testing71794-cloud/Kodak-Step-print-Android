@@ -610,7 +610,23 @@ def run_run_one_flow_device_bat(
 
     log_isolated_runtime_confirmed(device_id=device_id, meta=iso)
     disable_device_animations(device_id)
-    run_maestro_warmup(maestro_launcher=maestro_launcher, device_id=device_id, env=env)
+    from .flow_appium_runners import resolve_appium_runner_bat
+
+    appium_runner = resolve_appium_runner_bat(flow_path, repo)
+    appium_pinch_enabled = os.environ.get("ATP_GALLERY_APPIUM_PINCH", "1").strip().lower() not in (
+        "0",
+        "false",
+        "no",
+        "off",
+    )
+    if appium_runner and appium_pinch_enabled:
+        print(
+            f"[ATP] appium_pinch_flow device={_dev_log(device_id)} flow={flow_path.stem} "
+            f"runner={appium_runner} (skip orchestrator Maestro warmup)",
+            flush=True,
+        )
+    else:
+        run_maestro_warmup(maestro_launcher=maestro_launcher, device_id=device_id, env=env)
     use_watchdog = startup_watchdog_enabled(
         native_parallel=native_parallel, use_startup_gate=use_startup_gate
     )

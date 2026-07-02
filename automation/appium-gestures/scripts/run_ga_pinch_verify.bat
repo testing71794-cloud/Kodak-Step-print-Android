@@ -42,10 +42,18 @@ if exist "C:\Tools\npm-global" set "PATH=C:\Tools\npm-global;%PATH%"
 if not defined NODE_HOME if exist "C:\Program Files\nodejs\node.exe" set "NODE_HOME=C:\Program Files\nodejs"
 
 set "MAESTRO_BIN=C:\Tools\maestro-parallel\bin\maestro.bat"
+if defined ATP_MAESTRO_PARALLEL_HOME if exist "%ATP_MAESTRO_PARALLEL_HOME%\maestro.bat" set "MAESTRO_BIN=%ATP_MAESTRO_PARALLEL_HOME%\maestro.bat"
+if defined MAESTRO_HOME if exist "%MAESTRO_HOME%\maestro.bat" set "MAESTRO_BIN=%MAESTRO_HOME%\maestro.bat"
 if not exist "%MAESTRO_BIN%" set "MAESTRO_BIN=C:\Users\HP\maestro\maestro\bin\maestro.bat"
-set "ADB=%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe"
 if not defined ANDROID_HOME set "ANDROID_HOME=%LOCALAPPDATA%\Android\Sdk"
 if not defined ANDROID_SDK_ROOT set "ANDROID_SDK_ROOT=%ANDROID_HOME%"
+if defined ANDROID_HOME if exist "%ANDROID_HOME%\platform-tools\adb.exe" (
+  set "ADB=%ANDROID_HOME%\platform-tools\adb.exe"
+) else if defined ADB_HOME if exist "%ADB_HOME%\adb.exe" (
+  set "ADB=%ADB_HOME%\adb.exe"
+) else (
+  set "ADB=%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe"
+)
 set "MODULE_DIR=%REPO_ROOT%\automation\appium-gestures"
 set "PINCH_MODE=adb"
 

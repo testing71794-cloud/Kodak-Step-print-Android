@@ -552,6 +552,7 @@ set "REASON=MAESTRO_FAILED"
 goto :after_flow1b_maestro
 
 :run_appium_pinch_flow
+echo [INFO] Appium W3C pinch runner for %FLOW_NAME%: !APPIUM_FLOW_BAT!
 echo [INFO] Appium W3C pinch runner for %FLOW_NAME%: !APPIUM_FLOW_BAT!>> "%LOG_FILE%"
 for /f %%t in ('python -c "import time; print(int(time.time()*1000))" 2^>nul') do set "FLOW_START_MS=%%t"
 if not defined FLOW_START_MS set "FLOW_START_MS=0"
