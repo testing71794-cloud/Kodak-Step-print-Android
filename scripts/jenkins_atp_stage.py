@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import os
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -138,6 +139,38 @@ def _is_gallery_folder(folder: str) -> bool:
     return key == "gallery"
 
 
+def _prepend_path(*dirs: Path) -> None:
+    cur = os.environ.get("PATH", "")
+    parts = [str(d) for d in dirs if d.is_dir()]
+    if not parts:
+        return
+    prefix = os.pathsep.join(parts)
+    if prefix.lower() not in cur.lower():
+        os.environ["PATH"] = prefix + os.pathsep + cur
+
+
+def _resolve_npm_executable() -> str | None:
+    """Windows Jenkins agents need npm.cmd — bare 'npm' is not a CreateProcess executable."""
+    candidates: list[Path] = []
+    node_home = os.environ.get("NODE_HOME", "").strip().strip('"')
+    if node_home:
+        candidates.append(Path(node_home) / ("npm.cmd" if os.name == "nt" else "npm"))
+    candidates.append(Path(r"C:\Program Files\nodejs\npm.cmd"))
+    candidates.append(Path(r"C:\Program Files\nodejs\npm"))
+    for path in candidates:
+        if path.is_file():
+            return str(path.resolve())
+    found = shutil.which("npm")
+    if found:
+        return found
+    if os.name == "nt":
+        for name in ("npm.cmd", "npm.exe", "npm"):
+            found = shutil.which(name)
+            if found:
+                return found
+    return None
+
+
 def _prepare_gallery_appium(folder: str) -> None:
     """Node/Appium deps for GA_05/GA_06 real W3C pinch when Jenkins runs gallery suite."""
     if not _is_gallery_folder(folder):
@@ -155,32 +188,33 @@ def _prepare_gallery_appium(folder: str) -> None:
     os.environ.setdefault("GALLERY_PINCH", "1")
     os.environ.setdefault("PINCH_STYLE", "diagonal")
 
-    node_dir = Path(r"C:\Program Files\nodejs")
-    if node_dir.is_dir():
-        node_path = str(node_dir)
-        npm_roaming = Path.home() / "AppData" / "Roaming" / "npm"
-        extra = node_path
-        if npm_roaming.is_dir():
-            extra = node_path + os.pathsep + str(npm_roaming)
-        cur = os.environ.get("PATH", "")
-        if node_path.lower() not in cur.lower():
-            os.environ["PATH"] = extra + os.pathsep + cur
+    _prepend_path(Path(r"C:\Program Files\nodejs"), Path.home() / "AppData" / "Roaming" / "npm")
 
     mod = REPO / "automation" / "appium-gestures"
     pkg = mod / "package.json"
     wdio = mod / "node_modules" / "webdriverio"
     if pkg.is_file() and not wdio.is_dir():
-        print(f"[jenkins_atp_stage] gallery Appium: npm install in {mod}", flush=True)
-        subprocess.run(
-            ["npm", "install", "--no-fund", "--no-audit"],
-            cwd=str(mod),
-            check=False,
-        )
+        npm = _resolve_npm_executable()
+        if not npm:
+            print(
+                "[jenkins_atp_stage] WARN: npm not found — skip appium-gestures npm install; "
+                "install Node.js on agent or set NODE_HOME (GA_05/GA_06 Appium pinch may fail)",
+                flush=True,
+            )
+        else:
+            cmd = [npm, "install", "--no-fund", "--no-audit"]
+            print(f"[jenkins_atp_stage] gallery Appium: npm install in {mod} via {npm}", flush=True)
+            log_subprocess_launch(cmd, cwd=mod, shell=False, label="gallery_appium_npm_install")
+            try:
+                subprocess.run(cmd, cwd=str(mod), check=False, shell=False)
+            except OSError as exc:
+                print(f"[jenkins_atp_stage] WARN: npm install failed to start: {exc}", flush=True)
     print(
         "[jenkins_atp_stage] gallery Appium pinch: "
         f"ATP_GALLERY_APPIUM_PINCH={os.environ.get('ATP_GALLERY_APPIUM_PINCH', '')} "
         f"GALLERY_PINCH={os.environ.get('GALLERY_PINCH', '')} "
-        f"PINCH_STYLE={os.environ.get('PINCH_STYLE', '')}",
+        f"PINCH_STYLE={os.environ.get('PINCH_STYLE', '')} "
+        f"npm={_resolve_npm_executable() or 'not-found'}",
         flush=True,
     )
 
