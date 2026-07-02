@@ -1,4 +1,6 @@
 # TC_ID: GA_08 - Thumbnail more menu edit image
+# ATP Steps: 1. MY GALLERY grid → 2. Thumbnail three-dot menu → 3. Edit icon → 4. Apply edit → 5. Save
+# ATP Expected: User can edit a photo from the thumbnail overflow menu
 appId: com.kodak.steptouch
 name: GA_08 - Thumbnail more menu edit image
 ---
@@ -6,30 +8,43 @@ name: GA_08 - Thumbnail more menu edit image
     clearState: false
 - runFlow:
     when:
+      visible: "No Thanks"
+    commands:
+      - tapOn: "No Thanks"
+- runFlow:
+    when:
       visible: "Create an account"
     commands:
       - runFlow: subflows/reach_gallery_for_collage.yaml
 - runFlow: subflows/reach_gallery_fast.yaml
+- tapOn: "MY GALLERY"
 - runFlow: subflows/wait_for_gallery_grid.yaml
+- assertVisible:
+    id: "ivItemGridImage"
 - runFlow: subflows/thumbnail_more_menu.yaml
 - tapOn:
-    text: ".*(?i)edit image.*"
-    optional: true
-- tapOn:
-    text: "Edit"
-    optional: true
+    id: "imageViewEdit"
+- extendedWaitUntil:
+    visible:
+      id: "filterEditingOptionsImageView"
+    timeout: 5000
 - tapOn:
     id: "filterEditingOptionsImageView"
     index: 4
 - waitForAnimationToEnd:
     timeout: 2000
-- assertVisible:
-    id: "saveRecentEditImageView"
-- tapOn:
-    id: "saveRecentEditImageView"
+- runFlow:
+    when:
+      visible:
+        id: "saveRecentEditImageView"
+    commands:
+      - tapOn:
+          id: "saveRecentEditImageView"
 - tapOn: "Done"
-- extendedWaitUntil:
-    visible:
-      text: "Stickers"
-    timeout: 2000
+- tapOn:
+    id: "image_cross"
     optional: true
+- tapOn:
+    text: "SAVE"
+    optional: true
+- assertVisible: "MY GALLERY"

@@ -1,10 +1,12 @@
 appId: com.kodak.steptouch
 ---
-# Thumbnail overflow menu (same as CO_02 quick print entry).
+# Thumbnail overflow menu (three-dot on grid item index 2).
 - tapOn:
     id: "linearLayout_threeDot"
     index: 2
-- tapOn:
-    id: "linearLayout_threeDot"
-    index: 2
-    optional: true
+- waitForAnimationToEnd:
+    timeout: 1500
+- extendedWaitUntil:
+    visible:
+      id: "imageViewEdit"
+    timeout: 3000
