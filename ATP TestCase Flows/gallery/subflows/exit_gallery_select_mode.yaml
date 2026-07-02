@@ -1,0 +1,14 @@
+appId: com.kodak.steptouch
+---
+# Leave multi-select mode and restore the normal gallery action bar.
+- extendedWaitUntil:
+    visible:
+      id: cancelText
+    timeout: 5000
+- tapOn:
+    id: cancelText
+- waitForAnimationToEnd:
+    timeout: 2000
+- extendedWaitUntil:
+    visible: "MY GALLERY"
+    timeout: 5000
