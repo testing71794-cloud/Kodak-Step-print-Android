@@ -169,6 +169,14 @@ def main() -> int:
     result = verify_three(before, zoomed, after)
     print(json.dumps(result, indent=2))
     if result.get("skipped"):
+        require = __import__("os").environ.get("ATP_REQUIRE_PINCH_VISION", "").strip().lower() in (
+            "1",
+            "true",
+            "yes",
+        )
+        if require:
+            print("ERROR: vision verify skipped but ATP_REQUIRE_PINCH_VISION=1", file=sys.stderr)
+            return 3
         return 0
     if (
         result.get("zoom_in_applied")

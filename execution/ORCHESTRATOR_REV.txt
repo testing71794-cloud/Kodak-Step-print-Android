@@ -1,1 +1,1 @@
-2026-06-gallery-appium-skip-warmup-maestro25-18
+2026-06-gallery-appium-attach-foreground-19

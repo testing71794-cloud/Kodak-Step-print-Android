@@ -1,6 +1,6 @@
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
-REM script_rev=2026-06-jenkins-gallery-appium-pinch-9
+REM script_rev=2026-06-jenkins-gallery-appium-pinch-10
 goto :script_body
 
 REM Approximate sleep without timeout.exe (Jenkins + non-TTY stdin makes timeout print
@@ -19,7 +19,7 @@ exit /b 0
 
 REM Log resolved paths before Maestro (Jenkins workspace may contain spaces).
 :log_maestro_invoke_context
-echo [DEBUG] script_rev=2026-06-jenkins-gallery-appium-pinch-9>> "%LOG_FILE%"
+echo [DEBUG] script_rev=2026-06-jenkins-gallery-appium-pinch-10>> "%LOG_FILE%"
 echo [DEBUG] CD=!CD!>> "%LOG_FILE%"
 echo [DEBUG] REPO_ROOT=!REPO_ROOT!>> "%LOG_FILE%"
 echo [DEBUG] FLOW_PATH=!FLOW_PATH!>> "%LOG_FILE%"
@@ -261,7 +261,7 @@ if not exist "%ATP_MAESTRO_TEST_OUTPUT%" mkdir "%ATP_MAESTRO_TEST_OUTPUT%"
 >> "%LOG_FILE%" echo =====================================
 >> "%LOG_FILE%" echo BATCH ARGUMENTS / WORKSPACE
 >> "%LOG_FILE%" echo =====================================
->> "%LOG_FILE%" echo script_rev        : 2026-06-jenkins-gallery-appium-pinch-9
+>> "%LOG_FILE%" echo script_rev        : 2026-06-jenkins-gallery-appium-pinch-10
 >> "%LOG_FILE%" echo arg1 SUITE        : %~1
 >> "%LOG_FILE%" echo arg2 FLOW_PATH    : %~2
 >> "%LOG_FILE%" echo arg3 DEVICE_ID    : %~3
@@ -557,8 +557,12 @@ echo [INFO] Appium W3C pinch runner for %FLOW_NAME%: !APPIUM_FLOW_BAT!>> "%LOG_F
 for /f %%t in ('python -c "import time; print(int(time.time()*1000))" 2^>nul') do set "FLOW_START_MS=%%t"
 if not defined FLOW_START_MS set "FLOW_START_MS=0"
 echo [TIMING] flow_start_ms=!FLOW_START_MS!>> "%LOG_FILE%"
-call "!APPIUM_FLOW_BAT!" "%DEVICE_ID%" >> "%LOG_FILE%" 2>&1
+set "APPIUM_OUT=%TEMP%\atp_appium_%RANDOM%_%RANDOM%.log"
+call "!APPIUM_FLOW_BAT!" "%DEVICE_ID%" > "!APPIUM_OUT!" 2>&1
 set "RUN_EXIT=!ERRORLEVEL!"
+type "!APPIUM_OUT!"
+type "!APPIUM_OUT!" >> "%LOG_FILE%"
+del "!APPIUM_OUT!" 2>nul
 if "!RUN_EXIT!"=="0" (
   set "STATUS_VALUE=PASS"
   set "REASON=APPIUM_PINCH_OK"

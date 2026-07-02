@@ -37,9 +37,11 @@ if /I "%GESTURE%"=="pinch-out" (
 set "JAVA_HOME_FALLBACK=C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot"
 if not defined JAVA_HOME if exist "%JAVA_HOME_FALLBACK%\bin\java.exe" set "JAVA_HOME=%JAVA_HOME_FALLBACK%"
 
-if exist "C:\Program Files\nodejs\node.exe" set "PATH=C:\Program Files\nodejs;C:\Tools\npm-global;%PATH%"
-if exist "C:\Tools\npm-global" set "PATH=C:\Tools\npm-global;%PATH%"
+if not defined NPM_GLOBAL set "NPM_GLOBAL=C:\Tools\npm-global"
 if not defined NODE_HOME if exist "C:\Program Files\nodejs\node.exe" set "NODE_HOME=C:\Program Files\nodejs"
+if defined NODE_HOME set "PATH=%NODE_HOME%;%PATH%"
+if exist "%NPM_GLOBAL%" set "PATH=%NPM_GLOBAL%;%PATH%"
+if defined ADB_HOME for %%I in ("%ADB_HOME%") do if not defined ANDROID_HOME set "ANDROID_HOME=%%~dpI.."
 
 set "MAESTRO_BIN=C:\Tools\maestro-parallel\bin\maestro.bat"
 if defined ATP_MAESTRO_PARALLEL_HOME if exist "%ATP_MAESTRO_PARALLEL_HOME%\maestro.bat" set "MAESTRO_BIN=%ATP_MAESTRO_PARALLEL_HOME%\maestro.bat"
@@ -88,17 +90,29 @@ echo [INFO] Ensuring adb + Maestro driver are ready...
 "%ADB%" reconnect >nul 2>&1
 ping 127.0.0.1 -n 3 >nul
 
-where appium >nul 2>&1
-if not errorlevel 1 set "PINCH_MODE=appium"
+set "APPIUM_BIN="
+if defined NPM_GLOBAL if exist "%NPM_GLOBAL%\appium.cmd" set "APPIUM_BIN=%NPM_GLOBAL%\appium.cmd"
+if not defined APPIUM_BIN if exist "C:\Tools\npm-global\appium.cmd" set "APPIUM_BIN=C:\Tools\npm-global\appium.cmd"
+if not defined APPIUM_BIN (
+  where appium >nul 2>&1
+  if not errorlevel 1 for /f "delims=" %%A in ('where appium 2^>nul') do if not defined APPIUM_BIN set "APPIUM_BIN=%%A"
+)
+if defined APPIUM_BIN set "PINCH_MODE=appium"
+echo [INFO] PINCH_MODE=!PINCH_MODE! APPIUM_BIN=!APPIUM_BIN! NODE_HOME=!NODE_HOME! ANDROID_HOME=!ANDROID_HOME!
 
 if "!PINCH_MODE!"=="appium" (
   set "APPIUM_PORT=4723"
   netstat -an | findstr /C:":!APPIUM_PORT! " | findstr LISTENING >nul 2>&1
   if errorlevel 1 (
-    echo [INFO] Starting Appium on port !APPIUM_PORT! ...
-    start "Appium" /B cmd /c "set ANDROID_HOME=%ANDROID_HOME%&& set ANDROID_SDK_ROOT=%ANDROID_SDK_ROOT%&& set APPIUM_SKIP_CHROMEDRIVER_INSTALL=1&& appium --address 127.0.0.1 --port !APPIUM_PORT!"
+    echo [INFO] Starting Appium on port !APPIUM_PORT! via "!APPIUM_BIN!" ...
+    start "Appium" /B cmd /c "set ANDROID_HOME=%ANDROID_HOME%&& set ANDROID_SDK_ROOT=%ANDROID_SDK_ROOT%&& set APPIUM_SKIP_CHROMEDRIVER_INSTALL=1&& ""!APPIUM_BIN!"" --address 127.0.0.1 --port !APPIUM_PORT!"
     ping 127.0.0.1 -n 8 >nul
+  ) else (
+    echo [INFO] Appium already listening on port !APPIUM_PORT!
   )
+) else (
+  echo ERROR: Appium not found ^(expected %NPM_GLOBAL%\appium.cmd^). Run scripts\windows_agent\install_node_appium_for_jenkins.bat as Administrator.
+  exit /b 2
 )
 
 echo [INFO] %CASE_ID%: Maestro pre-pinch ^(!FLOW_A!^)
@@ -119,8 +133,7 @@ if "!PINCH_MODE!"=="appium" (
     call "%MODULE_DIR%\examples\scripts\run_pinch_zoom_w3c.bat" %GESTURE% %DEVICE%
   )
 ) else (
-  echo ERROR: Appium not on PATH. Parallel adb swipe is NOT real pinch.
-  echo Install: npm install -g appium ^& appium driver install uiautomator2
+  echo ERROR: PINCH_MODE was not appium — cannot run real W3C pinch.
   exit /b 2
 )
 if errorlevel 1 (
@@ -141,6 +154,10 @@ if /I "!CASE_ID!"=="GA_05" (
       exit /b !PINCH_AI_RC!
     )
   ) else (
+    if /I "!ATP_REQUIRE_PINCH_VISION!"=="1" (
+      echo ERROR: py not found but ATP_REQUIRE_PINCH_VISION=1
+      exit /b 3
+    )
     echo WARN: py not found — GA_05 passes without vision verify of zoom change
   )
 )

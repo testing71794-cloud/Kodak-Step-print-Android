@@ -16,6 +16,7 @@ const gesture = (process.argv[2] || 'both').toLowerCase();
 const device = process.argv[3] || process.env.ANDROID_SERIAL || '';
 const appiumUrl = process.env.APPIUM_SERVER_URL || 'http://127.0.0.1:4723';
 const appPackage = process.env.APP_PACKAGE || 'com.kodak.steptouch';
+const galleryPinch = process.env.GALLERY_PINCH === '1';
 const galleryImageId = process.env.GALLERY_IMAGE_RESOURCE_ID || `${appPackage}:id/camera_image`;
 const sdkRoot = process.env.ANDROID_SDK_ROOT || process.env.ANDROID_HOME || join(process.env.LOCALAPPDATA || '', 'Android', 'Sdk');
 const adb = join(sdkRoot, 'platform-tools', process.platform === 'win32' ? 'adb.exe' : 'adb');
@@ -102,18 +103,32 @@ function fingerSequence(id, startX, startY, endX, endY) {
   };
 }
 
+async function logForegroundActivity() {
+  try {
+    const out = execSync(`"${adb}" -s ${device} shell dumpsys window | findstr /i mCurrentFocus`, {
+      encoding: 'utf8',
+      shell: true,
+    }).trim();
+    if (out) console.log(`[INFO] Foreground window: ${out.split('\n')[0]}`);
+  } catch {
+    /* ignore */
+  }
+}
+
 async function resolvePinchCenter(driver, width, height) {
   const shortId = galleryImageId.includes(':id/')
     ? galleryImageId.split(':id/')[1]
     : galleryImageId.replace(/^id[=/]/, '');
   const el = await driver.$(`id=${shortId}`);
-  const skipActivate = process.env.GALLERY_PINCH === '1' || process.env.SKIP_ACTIVATE_APP === '1';
+  const skipActivate = galleryPinch || process.env.SKIP_ACTIVATE_APP === '1';
   try {
     if (!skipActivate) {
       await driver.activateApp(appPackage);
       await driver.pause(800);
+    } else {
+      await driver.pause(1200);
     }
-    await el.waitForExist({ timeout: skipActivate ? 5000 : 8000 });
+    await el.waitForExist({ timeout: skipActivate ? 10000 : 8000 });
     const rect = await el.getElementRect();
     const cx = Math.round(rect.x + rect.width / 2);
     const cy = Math.round(rect.y + rect.height / 2);
@@ -121,7 +136,11 @@ async function resolvePinchCenter(driver, width, height) {
     console.log(`[INFO] Pinch center from ${galleryImageId} bounds [${rect.x},${rect.y}][${rect.x + rect.width},${rect.y + rect.height}] -> ${cx},${cy} span=${span}`);
     return { cx, cy, inner: Math.round(span * 0.35), outer: span };
   } catch (err) {
-    console.log(`[INFO] Pinch center element lookup failed: ${err.message}`);
+    const msg = `Pinch center element lookup failed for ${galleryImageId}: ${err.message}`;
+    if (galleryPinch) {
+      throw new Error(`${msg} (gallery detail must stay open after Maestro GA_05a)`);
+    }
+    console.log(`[INFO] ${msg}`);
   }
   const cx = Math.round((width * centerXPercent) / 100);
   const cy = Math.round((height * centerYPercent) / 100);
@@ -183,29 +202,39 @@ try {
   console.log(`[INFO] Appium W3C pinch gesture=${gesture} device=${device} server=${appiumUrl}`);
 
   prepareDeviceForAppium();
+  await logForegroundActivity();
+
+  const capabilities = {
+    platformName: 'Android',
+    'appium:automationName': 'UiAutomator2',
+    'appium:udid': device,
+    'appium:noReset': true,
+    'appium:dontStopAppOnReset': true,
+    'appium:disableWindowAnimation': true,
+    'appium:newCommandTimeout': 120,
+    'appium:skipServerInstallation': false,
+    'appium:settings[waitForIdleTimeout]': 0,
+  };
+  if (galleryPinch) {
+    // Maestro GA_05a leaves photo detail open — attach without relaunching main activity.
+    capabilities['appium:autoLaunch'] = false;
+    console.log('[INFO] Gallery pinch: autoLaunch=false (keep Maestro photo detail screen)');
+  } else {
+    capabilities['appium:appPackage'] = appPackage;
+  }
 
   driver = await remote({
     hostname: new URL(appiumUrl).hostname,
     port: Number(new URL(appiumUrl).port || 4723),
     path: new URL(appiumUrl).pathname === '/' ? '/' : new URL(appiumUrl).pathname,
-    capabilities: {
-      platformName: 'Android',
-      'appium:automationName': 'UiAutomator2',
-      'appium:udid': device,
-      'appium:appPackage': appPackage,
-      'appium:noReset': true,
-      'appium:dontStopAppOnReset': true,
-      'appium:disableWindowAnimation': true,
-      'appium:newCommandTimeout': 120,
-      'appium:skipServerInstallation': false,
-      'appium:settings[waitForIdleTimeout]': 0,
-    },
+    capabilities,
     connectionRetryCount: 2,
     logLevel: 'warn',
   });
 
   const size = await driver.getWindowSize();
   console.log(`[INFO] viewport=${size.width}x${size.height}`);
+  await logForegroundActivity();
 
   await saveScreenshot(driver, 'before_pinch');
 

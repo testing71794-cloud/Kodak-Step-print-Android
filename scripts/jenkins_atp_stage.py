@@ -185,8 +185,11 @@ def _prepare_gallery_appium(folder: str) -> None:
         return
 
     os.environ.setdefault("ATP_GALLERY_APPIUM_PINCH", "1")
+    os.environ.setdefault("ATP_REQUIRE_PINCH_VISION", "1")
     os.environ.setdefault("GALLERY_PINCH", "1")
     os.environ.setdefault("PINCH_STYLE", "diagonal")
+    os.environ.setdefault("NPM_GLOBAL", r"C:\Tools\npm-global")
+    os.environ.setdefault("APPIUM_BIN", r"C:\Tools\npm-global\appium.cmd")
 
     _prepend_path(
         Path(r"C:\Program Files\nodejs"),

@@ -87,10 +87,12 @@ def galleryOpenRouterEnvList() {
 def galleryAppiumPinchEnvList() {
     return [
         'ATP_GALLERY_APPIUM_PINCH=1',
+        'ATP_REQUIRE_PINCH_VISION=1',
         'GALLERY_PINCH=1',
         'PINCH_STYLE=diagonal',
         'NODE_HOME=C:\\Program Files\\nodejs',
         'NPM_GLOBAL=C:\\Tools\\npm-global',
+        'APPIUM_BIN=C:\\Tools\\npm-global\\appium.cmd',
         'MAESTRO_HOME=C:\\Tools\\maestro-parallel\\bin',
         'ATP_MAESTRO_PARALLEL_HOME=C:\\Tools\\maestro-parallel\\bin',
         'PATH+NODEJS=C:\\Program Files\\nodejs',

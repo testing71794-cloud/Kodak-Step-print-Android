@@ -6,10 +6,18 @@ set "GESTURE=%~1"
 set "DEVICE=%~2"
 if "%GESTURE%"=="" set "GESTURE=both"
 
-if not defined NODE_HOME if exist "C:\Program Files\nodejs\node.exe" set "PATH=C:\Program Files\nodejs;C:\Tools\npm-global;%PATH%"
-if exist "C:\Tools\npm-global" set "PATH=C:\Tools\npm-global;%PATH%"
+if not defined NPM_GLOBAL set "NPM_GLOBAL=C:\Tools\npm-global"
+if not defined NODE_HOME if exist "C:\Program Files\nodejs\node.exe" set "NODE_HOME=C:\Program Files\nodejs"
+if defined NODE_HOME set "PATH=%NODE_HOME%;%PATH%"
+if exist "%NPM_GLOBAL%" set "PATH=%NPM_GLOBAL%;%PATH%"
 if not defined ANDROID_HOME set "ANDROID_HOME=%LOCALAPPDATA%\Android\Sdk"
 if not defined ANDROID_SDK_ROOT set "ANDROID_SDK_ROOT=%ANDROID_HOME%"
+if defined ADB_HOME for %%I in ("%ADB_HOME%") do if not defined ANDROID_HOME set "ANDROID_HOME=%%~dpI.."
+
+set "NODE_EXE=node"
+if defined NODE_HOME if exist "%NODE_HOME%\node.exe" set "NODE_EXE=%NODE_HOME%\node.exe"
+if not exist "%NODE_EXE%" if exist "C:\Program Files\nodejs\node.exe" set "NODE_EXE=C:\Program Files\nodejs\node.exe"
+
 cd /d "%MODULE_DIR%"
 if not exist "node_modules\webdriverio" (
   echo [INFO] Installing webdriverio...
@@ -18,5 +26,6 @@ if not exist "node_modules\webdriverio" (
 )
 
 set "ANDROID_SERIAL=%DEVICE%"
-node scripts\pinch_w3c.mjs %GESTURE% %DEVICE%
+echo [INFO] W3C pinch: gesture=%GESTURE% device=%DEVICE% node=%NODE_EXE% GALLERY_PINCH=%GALLERY_PINCH%
+"%NODE_EXE%" scripts\pinch_w3c.mjs %GESTURE% %DEVICE%
 exit /b %ERRORLEVEL%
