@@ -89,8 +89,11 @@ def galleryAppiumPinchEnvList() {
         'ATP_GALLERY_APPIUM_PINCH=1',
         'GALLERY_PINCH=1',
         'PINCH_STYLE=diagonal',
+        'NODE_HOME=C:\\Program Files\\nodejs',
+        'NPM_GLOBAL=C:\\Tools\\npm-global',
         'PATH+NODEJS=C:\\Program Files\\nodejs',
-        'PATH+NPM=C:\\Users\\HP\\AppData\\Roaming\\npm',
+        'PATH+APPIUM=C:\\Tools\\npm-global',
+        'PATH+NPM=C:\\Tools\\npm-global',
     ]
 }
 

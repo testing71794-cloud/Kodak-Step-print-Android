@@ -37,7 +37,9 @@ if /I "%GESTURE%"=="pinch-out" (
 set "JAVA_HOME_FALLBACK=C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot"
 if not defined JAVA_HOME if exist "%JAVA_HOME_FALLBACK%\bin\java.exe" set "JAVA_HOME=%JAVA_HOME_FALLBACK%"
 
-if exist "C:\Program Files\nodejs\node.exe" set "PATH=C:\Program Files\nodejs;C:\Users\%USERNAME%\AppData\Roaming\npm;%PATH%"
+if exist "C:\Program Files\nodejs\node.exe" set "PATH=C:\Program Files\nodejs;C:\Tools\npm-global;%PATH%"
+if exist "C:\Tools\npm-global" set "PATH=C:\Tools\npm-global;%PATH%"
+if not defined NODE_HOME if exist "C:\Program Files\nodejs\node.exe" set "NODE_HOME=C:\Program Files\nodejs"
 
 set "MAESTRO_BIN=C:\Tools\maestro-parallel\bin\maestro.bat"
 if not exist "%MAESTRO_BIN%" set "MAESTRO_BIN=C:\Users\HP\maestro\maestro\bin\maestro.bat"

@@ -188,7 +188,11 @@ def _prepare_gallery_appium(folder: str) -> None:
     os.environ.setdefault("GALLERY_PINCH", "1")
     os.environ.setdefault("PINCH_STYLE", "diagonal")
 
-    _prepend_path(Path(r"C:\Program Files\nodejs"), Path.home() / "AppData" / "Roaming" / "npm")
+    _prepend_path(
+        Path(r"C:\Program Files\nodejs"),
+        Path(r"C:\Tools\npm-global"),
+        Path.home() / "AppData" / "Roaming" / "npm",
+    )
 
     mod = REPO / "automation" / "appium-gestures"
     pkg = mod / "package.json"

@@ -13,7 +13,7 @@ set "DEVICE=%~1"
 set "JAVA_HOME_FALLBACK=C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot"
 if not defined JAVA_HOME if exist "%JAVA_HOME_FALLBACK%\bin\java.exe" set "JAVA_HOME=%JAVA_HOME_FALLBACK%"
 
-if exist "C:\Program Files\nodejs\node.exe" set "PATH=C:\Program Files\nodejs;C:\Users\%USERNAME%\AppData\Roaming\npm;%PATH%"
+if exist "C:\Program Files\nodejs\node.exe" set "PATH=C:\Program Files\nodejs;C:\Tools\npm-global;C:\Users\%USERNAME%\AppData\Roaming\npm;%PATH%"
 
 set "MAESTRO_BIN=C:\Tools\maestro-parallel\bin\maestro.bat"
 set "ADB=%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe"
