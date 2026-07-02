@@ -1,20 +1,52 @@
 # TC_ID: GA_07 - Refresh gallery (pull down)
+# ATP Steps: 1. Launch app → 2. No Thanks → 3. MY GALLERY → 4. Minimize app →
+#   5. Native camera capture → 6. Reopen app → 7. Pull to refresh → 8. Verify new photo
+# ATP Expected: After pull-to-refresh, the newly captured photo appears in MY GALLERY
 appId: com.kodak.steptouch
 name: GA_07 - Refresh gallery (pull down)
 ---
-- launchApp:
-    clearState: false
+- launchApp
 - runFlow:
     when:
-      visible: "Create an account"
+      visible: "No Thanks"
     commands:
-      - runFlow: subflows/reach_gallery_for_collage.yaml
-- runFlow: subflows/reach_gallery_fast.yaml
+      - tapOn: "No Thanks"
+- waitForAnimationToEnd:
+    timeout: 2000
+- extendedWaitUntil:
+    visible: "MY GALLERY"
+    timeout: 10000
+- tapOn: "MY GALLERY"
 - runFlow: subflows/wait_for_gallery_grid.yaml
+- extendedWaitUntil:
+    visible:
+      id: "ivItemGridImage"
+    timeout: 10000
+- assertVisible:
+    id: "ivItemGridImage"
+- runScript:
+    file: scripts/ga07_adb.js
+    env:
+      GA07_ACTION: baseline
+- takeScreenshot: GA_07_gallery_before
+- pressKey: home
+- runScript:
+    file: scripts/ga07_adb.js
+    env:
+      GA07_ACTION: launch
+- runFlow: subflows/native_camera_capture.yaml
+- runFlow: subflows/return_to_my_gallery.yaml
 - swipe:
     start: "50%, 20%"
     end: "50%, 75%"
     label: Pull to refresh
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: GA_07_gallery_after_refresh
+- runScript:
+    file: scripts/ga07_adb.js
+    env:
+      GA07_ACTION: verify
+- assertTrue: ${output.new_photo_in_gallery}
 - assertVisible:
     id: "ivItemGridImage"
-    index: 2

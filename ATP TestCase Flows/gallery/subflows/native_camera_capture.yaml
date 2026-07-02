@@ -1,0 +1,48 @@
+appId: com.kodak.steptouch
+---
+# Native camera UI varies by OEM — tap shutter + optional confirm/save.
+- runFlow:
+    when:
+      visible: ".*(?i)(allow|while using the app|only this time).*"
+    commands:
+      - tapOn:
+          text: "Allow"
+          optional: true
+      - tapOn:
+          text: "While using the app"
+          optional: true
+      - tapOn:
+          text: "Only this time"
+          optional: true
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn:
+    point: "50%, 88%"
+    label: Native camera shutter
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn:
+    point: "50%, 88%"
+    label: Native camera shutter retry
+    optional: true
+- runFlow:
+    when:
+      visible: ".*(?i)(done|ok|save|accept|check).*"
+    commands:
+      - tapOn:
+          text: "Done"
+          optional: true
+      - tapOn:
+          text: "OK"
+          optional: true
+      - tapOn:
+          text: "Save"
+          optional: true
+      - tapOn:
+          point: "88%, 88%"
+          label: Confirm/save corner
+          optional: true
+- waitForAnimationToEnd:
+    timeout: 2000
+- pressKey: back
+- pressKey: back

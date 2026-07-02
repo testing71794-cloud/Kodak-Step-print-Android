@@ -1,0 +1,27 @@
+appId: com.kodak.steptouch
+---
+# Reopen Kodak Step Print and return to MY GALLERY grid after native camera capture.
+- launchApp:
+    clearState: false
+    stopApp: false
+- waitForAnimationToEnd:
+    timeout: 3000
+- runFlow:
+    when:
+      visible: "No Thanks"
+    commands:
+      - tapOn: "No Thanks"
+- runFlow:
+    when:
+      visible: ".*(?i)(create an account|start a quick tour|agree terms).*"
+    commands:
+      - runFlow: ../../collage/subflows/reach_gallery_for_collage.yaml
+- extendedWaitUntil:
+    visible: "MY GALLERY"
+    timeout: 15000
+- tapOn: "MY GALLERY"
+- runFlow: wait_for_gallery_grid.yaml
+- extendedWaitUntil:
+    visible:
+      id: "ivItemGridImage"
+    timeout: 10000

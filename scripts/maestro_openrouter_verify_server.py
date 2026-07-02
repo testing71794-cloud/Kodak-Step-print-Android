@@ -16,6 +16,7 @@ if str(_REPO) not in sys.path:
     sys.path.insert(0, str(_REPO))
 
 from verify_ga02_3x3_grid_ai import verify_basename  # noqa: E402
+from ga07_gallery_refresh_adb import handle_action as ga07_handle_action  # noqa: E402
 
 _HOST = "127.0.0.1"
 _PORT = 8765
@@ -26,6 +27,31 @@ class _Handler(BaseHTTPRequestHandler):
         sys.stderr.write("%s - %s\n" % (self.address_string(), fmt % args))
 
     def do_POST(self) -> None:
+        if self.path.startswith("/verify/ga07/"):
+            action = self.path.rsplit("/", 1)[-1]
+            length = int(self.headers.get("Content-Length", "0") or "0")
+            if length:
+                self.rfile.read(length)
+            try:
+                result = ga07_handle_action(action)
+            except ValueError as exc:
+                self.send_error(400, str(exc))
+                return
+            except RuntimeError as exc:
+                payload = json.dumps({"error": str(exc)}).encode("utf-8")
+                self.send_response(500)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(payload)))
+                self.end_headers()
+                self.wfile.write(payload)
+                return
+            payload = json.dumps(result).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+            return
         if self.path != "/verify/ga02_3x3":
             self.send_error(404, "Use POST /verify/ga02_3x3")
             return

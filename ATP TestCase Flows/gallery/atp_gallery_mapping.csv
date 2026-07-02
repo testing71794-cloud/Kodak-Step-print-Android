@@ -5,7 +5,7 @@ GA_03,GA_03 - Gallery select album.yaml,Gallery,Select album
 GA_04,GA_04 - Gallery open Facebook album.yaml,Gallery,Open Facebook album
 GA_05,GA_05 - Pinch to zoom out.yaml,Gallery,Pinch zoom out
 GA_06,GA_06 - Pinch to zoom in.yaml,Gallery,Pinch zoom in
-GA_07,GA_07 - Refresh gallery (pull down).yaml,Gallery,Refresh gallery
+GA_07,GA_07 - Refresh gallery (pull down).yaml,Gallery,Refresh gallery after native camera capture
 GA_08,GA_08 - Thumbnail more menu edit image.yaml,Gallery,Thumbnail more menu edit
 GA_09,GA_09 - Thumbnail more menu print.yaml,Gallery,Thumbnail more menu print (not connected)
 GA_10,GA_10 - Share photo.yaml,Gallery,Share photo
