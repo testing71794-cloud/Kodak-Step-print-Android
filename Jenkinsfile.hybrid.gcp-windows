@@ -86,6 +86,17 @@ def galleryOpenRouterEnvList() {
     ]
 }
 
+/** Appium W3C pinch for GA_05 / GA_06 (real multitouch on gallery photo detail). */
+def galleryAppiumPinchEnvList() {
+    return [
+        'ATP_GALLERY_APPIUM_PINCH=1',
+        'GALLERY_PINCH=1',
+        'PINCH_STYLE=diagonal',
+        'PATH+NODEJS=C:\\Program Files\\nodejs',
+        'PATH+NPM=C:\\Users\\HP\\AppData\\Roaming\\npm',
+    ]
+}
+
 pipeline {
     agent none
 
@@ -291,7 +302,7 @@ pipeline {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     script {
                         withOpenRouterCredentials(params.OPENROUTER_CREDENTIALS_ID) {
-                            withEnv(maestroEnvList() + galleryOpenRouterEnvList() + [
+                            withEnv(maestroEnvList() + galleryOpenRouterEnvList() + galleryAppiumPinchEnvList() + [
                                 "ATP_FLOW_INCLUDE=${params.ATP_FLOW_INCLUDE}",
                                 "OPENROUTER_MODEL_VISION=${params.OPENROUTER_MODEL_VISION}",
                                 "OpenRouterAPI=${env.OPENROUTER_API_KEY ?: ''}",

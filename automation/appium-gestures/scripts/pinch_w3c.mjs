@@ -16,6 +16,7 @@ const gesture = (process.argv[2] || 'both').toLowerCase();
 const device = process.argv[3] || process.env.ANDROID_SERIAL || '';
 const appiumUrl = process.env.APPIUM_SERVER_URL || 'http://127.0.0.1:4723';
 const appPackage = process.env.APP_PACKAGE || 'com.kodak.steptouch';
+const galleryImageId = process.env.GALLERY_IMAGE_RESOURCE_ID || `${appPackage}:id/camera_image`;
 const sdkRoot = process.env.ANDROID_SDK_ROOT || process.env.ANDROID_HOME || join(process.env.LOCALAPPDATA || '', 'Android', 'Sdk');
 const adb = join(sdkRoot, 'platform-tools', process.platform === 'win32' ? 'adb.exe' : 'adb');
 
@@ -63,7 +64,8 @@ function prepareDeviceForMaestro() {
 }
 
 const centerXPercent = 50;
-const centerYPercent = 42;
+const centerYPercent = parseInt(process.env.PINCH_CENTER_Y_PERCENT || '45', 10);
+const pinchStyle = (process.env.PINCH_STYLE || (process.env.GALLERY_PINCH === '1' ? 'diagonal' : 'horizontal')).toLowerCase();
 const inner = 60;
 const outer = 140;
 const durationMs = 650;
@@ -100,29 +102,73 @@ function fingerSequence(id, startX, startY, endX, endY) {
   };
 }
 
-async function performPinch(driver, spread) {
-  const { width, height } = await driver.getWindowSize();
+async function resolvePinchCenter(driver, width, height) {
+  try {
+    await driver.activateApp(appPackage);
+    await driver.pause(800);
+    const shortId = galleryImageId.includes(':id/')
+      ? galleryImageId.split(':id/')[1]
+      : galleryImageId.replace(/^id[=/]/, '');
+    const el = await driver.$(`id=${shortId}`);
+    await el.waitForExist({ timeout: 8000 });
+    const rect = await el.getElementRect();
+    const cx = Math.round(rect.x + rect.width / 2);
+    const cy = Math.round(rect.y + rect.height / 2);
+    const span = Math.round(Math.min(rect.width, rect.height) * 0.22);
+    console.log(`[INFO] Pinch center from ${galleryImageId} bounds [${rect.x},${rect.y}][${rect.x + rect.width},${rect.y + rect.height}] -> ${cx},${cy} span=${span}`);
+    return { cx, cy, inner: Math.round(span * 0.35), outer: span };
+  } catch (err) {
+    console.log(`[INFO] Pinch center element lookup failed: ${err.message}`);
+  }
   const cx = Math.round((width * centerXPercent) / 100);
   const cy = Math.round((height * centerYPercent) / 100);
+  console.log(`[INFO] Pinch center fallback ${centerXPercent}%,${centerYPercent}% -> ${cx},${cy}`);
+  return { cx, cy, inner, outer };
+}
 
-  let leftStart, leftEnd, rightStart, rightEnd;
-  if (spread) {
-    leftStart = cx - inner;
-    leftEnd = cx - outer;
-    rightStart = cx + inner;
-    rightEnd = cx + outer;
-    console.log(`[INFO] pinch-out L ${leftStart},${cy}->${leftEnd},${cy}  R ${rightStart},${cy}->${rightEnd},${cy}`);
+async function performPinch(driver, spread) {
+  const { width, height } = await driver.getWindowSize();
+  const center = await resolvePinchCenter(driver, width, height);
+  const { cx, cy } = center;
+  const innerRadius = center.inner ?? inner;
+  const outerRadius = center.outer ?? outer;
+
+  let finger1Start;
+  let finger1End;
+  let finger2Start;
+  let finger2End;
+
+  if (pinchStyle === 'diagonal') {
+    if (spread) {
+      finger1Start = [cx + innerRadius, cy + innerRadius];
+      finger1End = [cx + outerRadius, cy + outerRadius];
+      finger2Start = [cx - innerRadius, cy - innerRadius];
+      finger2End = [cx - outerRadius, cy - outerRadius];
+      console.log(`[INFO] diagonal pinch-out F1 ${finger1Start}->${finger1End} F2 ${finger2Start}->${finger2End}`);
+    } else {
+      finger1Start = [cx + outerRadius, cy + outerRadius];
+      finger1End = [cx + innerRadius, cy + innerRadius];
+      finger2Start = [cx - outerRadius, cy - outerRadius];
+      finger2End = [cx - innerRadius, cy - innerRadius];
+      console.log(`[INFO] diagonal pinch-in F1 ${finger1Start}->${finger1End} F2 ${finger2Start}->${finger2End}`);
+    }
+  } else if (spread) {
+    finger1Start = [cx - innerRadius, cy];
+    finger1End = [cx - outerRadius, cy];
+    finger2Start = [cx + innerRadius, cy];
+    finger2End = [cx + outerRadius, cy];
+    console.log(`[INFO] horizontal pinch-out F1 ${finger1Start}->${finger1End} F2 ${finger2Start}->${finger2End}`);
   } else {
-    leftStart = cx - outer;
-    leftEnd = cx - inner;
-    rightStart = cx + outer;
-    rightEnd = cx + inner;
-    console.log(`[INFO] pinch-in L ${leftStart},${cy}->${leftEnd},${cy}  R ${rightStart},${cy}->${rightEnd},${cy}`);
+    finger1Start = [cx - outerRadius, cy];
+    finger1End = [cx - innerRadius, cy];
+    finger2Start = [cx + outerRadius, cy];
+    finger2End = [cx + innerRadius, cy];
+    console.log(`[INFO] horizontal pinch-in F1 ${finger1Start}->${finger1End} F2 ${finger2Start}->${finger2End}`);
   }
 
   await driver.performActions([
-    fingerSequence('finger1', leftStart, cy, leftEnd, cy),
-    fingerSequence('finger2', rightStart, cy, rightEnd, cy),
+    fingerSequence('finger1', finger1Start[0], finger1Start[1], finger1End[0], finger1End[1]),
+    fingerSequence('finger2', finger2Start[0], finger2Start[1], finger2End[0], finger2End[1]),
   ]);
   await driver.releaseActions();
   await driver.pause(durationMs + 200);

@@ -1,0 +1,40 @@
+appId: com.kodak.steptouch
+---
+# Zoom OUT — pinch fingers toward center on gallery photo (camera_image).
+# Setup spread first so zoom-out is visible. Maestro swipes are NOT real multitouch.
+# Real pinch: scripts\run_ga05_real_pinch.bat [DEVICE]
+- tapOn:
+    id: "camera_image"
+    optional: true
+- tapOn:
+    point: "50%, 46%"
+    label: Focus gallery photo preview
+- waitForAnimationToEnd:
+    timeout: 500
+- takeScreenshot: GA_05_before_zoom_out
+- swipe:
+    start: "50%, 46%"
+    end: "72%, 58%"
+    duration: 300
+    label: Zoom-in setup finger 1 (spread)
+- swipe:
+    start: "50%, 46%"
+    end: "28%, 34%"
+    duration: 300
+    label: Zoom-in setup finger 2 (spread)
+- waitForAnimationToEnd:
+    timeout: 1000
+- takeScreenshot: GA_05_zoomed_before_pinch_out
+- swipe:
+    start: "72%, 58%"
+    end: "50%, 46%"
+    duration: 300
+    label: Zoom-out finger 1 (toward center)
+- swipe:
+    start: "28%, 34%"
+    end: "50%, 46%"
+    duration: 300
+    label: Zoom-out finger 2 (toward center)
+- waitForAnimationToEnd:
+    timeout: 2000
+- takeScreenshot: GA_05_after_zoom_out

@@ -1,0 +1,26 @@
+appId: com.kodak.steptouch
+---
+# Open MY GALLERY photo detail (Edit / Print / Collage bar) for Appium W3C pinch.
+- extendedWaitUntil:
+    visible:
+      id: "ivItemGridImage"
+    timeout: 10000
+- tapOn:
+    id: "ivItemGridImage"
+    index: 4
+- tapOn:
+    id: "relativeLayoutItem"
+    index: 4
+    optional: true
+- tapOn:
+    point: "50%, 45%"
+    label: Gallery photo open fallback
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 2000
+- extendedWaitUntil:
+    visible: "Edit"
+    timeout: 15000
+- assertVisible: "Edit"
+- assertVisible: "Print"
+- assertVisible: "Collage"

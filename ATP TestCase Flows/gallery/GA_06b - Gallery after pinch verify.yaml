@@ -1,0 +1,11 @@
+# TC_ID: GA_06b - Verify gallery photo detail after Appium W3C pinch-out (zoom in)
+# Run after pinch-out in scripts\run_ga06_real_pinch.bat
+appId: com.kodak.steptouch
+name: GA_06b - Gallery after pinch verify
+---
+- waitForAnimationToEnd:
+    timeout: 2000
+- takeScreenshot: GA_06_after_pinch
+- assertVisible: "Edit"
+- assertVisible: "Print"
+- assertVisible: "Collage"

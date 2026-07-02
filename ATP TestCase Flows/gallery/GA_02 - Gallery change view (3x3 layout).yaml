@@ -1,11 +1,6 @@
 # TC_ID: GA_02 - Gallery change view (3x3 layout)
 appId: com.kodak.steptouch
 name: GA_02 - Gallery change view (3x3 layout)
-env:
-  OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
-  OpenRouterAPI: ${OpenRouterAPI}
-  OPENROUTER_KEY: ${OPENROUTER_KEY}
-  OPENROUTER_MODEL_VISION: ${OPENROUTER_MODEL_VISION}
 ---
 - launchApp:
     clearState: true
@@ -19,5 +14,5 @@ env:
 - tapOn: "MY GALLERY"
 - tapOn:
     id: "imageViewSecondLevelGridView"
-- runFlow: subflows/verify_gallery_3x3_grid_ai.yaml
+- runFlow: subflows/verify_gallery_3x3_grid.yaml
 

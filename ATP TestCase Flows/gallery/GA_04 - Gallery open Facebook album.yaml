@@ -2,28 +2,37 @@
 appId: com.kodak.steptouch
 name: GA_04 - Gallery open Facebook album
 ---
-- launchApp:
-    clearState: false
+- launchApp
+- waitForAnimationToEnd
 - runFlow:
     when:
-      visible: "Create an account"
+      visible: "No Thanks"
     commands:
-      - runFlow: subflows/reach_gallery_for_collage.yaml
-- runFlow: subflows/reach_gallery_fast.yaml
-- runFlow: subflows/wait_for_gallery_grid.yaml
-- runFlow: subflows/open_gallery_dropdown.yaml
-- tapOn:
-    text: "Facebook"
-    optional: true
+      - tapOn: "No Thanks"
+- tapOn: "MY GALLERY"
+- scrollUntilVisible:
+    element:
+      text: "Facebook"
+- tapOn: "Facebook"
 - tapOn:
     text: "Continue"
     optional: true
 - tapOn:
     text: "Log in"
     optional: true
+- tapOn:
+    text: "CONNECT"
+    optional: true       
 - extendedWaitUntil:
     visible:
       text: ".*(?i)facebook.*"
     timeout: 2000
     optional: true
-- tapOn: "CONNECT"
+- tapOn:
+    point: 23%,15%
+- tapOn:
+    id: "ivItemGridImage"   
+- assertVisible: "Edit"
+- assertVisible: "Collage"
+- assertVisible: "Print"
+    

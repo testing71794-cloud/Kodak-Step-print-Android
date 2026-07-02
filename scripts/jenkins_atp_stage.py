@@ -138,6 +138,53 @@ def _is_gallery_folder(folder: str) -> bool:
     return key == "gallery"
 
 
+def _prepare_gallery_appium(folder: str) -> None:
+    """Node/Appium deps for GA_05/GA_06 real W3C pinch when Jenkins runs gallery suite."""
+    if not _is_gallery_folder(folder):
+        return
+    if os.environ.get("ATP_GALLERY_APPIUM_PINCH", "1").strip().lower() in (
+        "0",
+        "false",
+        "no",
+        "off",
+    ):
+        print("[jenkins_atp_stage] ATP_GALLERY_APPIUM_PINCH=0 — GA_05/GA_06 use Maestro-only yaml", flush=True)
+        return
+
+    os.environ.setdefault("ATP_GALLERY_APPIUM_PINCH", "1")
+    os.environ.setdefault("GALLERY_PINCH", "1")
+    os.environ.setdefault("PINCH_STYLE", "diagonal")
+
+    node_dir = Path(r"C:\Program Files\nodejs")
+    if node_dir.is_dir():
+        node_path = str(node_dir)
+        npm_roaming = Path.home() / "AppData" / "Roaming" / "npm"
+        extra = node_path
+        if npm_roaming.is_dir():
+            extra = node_path + os.pathsep + str(npm_roaming)
+        cur = os.environ.get("PATH", "")
+        if node_path.lower() not in cur.lower():
+            os.environ["PATH"] = extra + os.pathsep + cur
+
+    mod = REPO / "automation" / "appium-gestures"
+    pkg = mod / "package.json"
+    wdio = mod / "node_modules" / "webdriverio"
+    if pkg.is_file() and not wdio.is_dir():
+        print(f"[jenkins_atp_stage] gallery Appium: npm install in {mod}", flush=True)
+        subprocess.run(
+            ["npm", "install", "--no-fund", "--no-audit"],
+            cwd=str(mod),
+            check=False,
+        )
+    print(
+        "[jenkins_atp_stage] gallery Appium pinch: "
+        f"ATP_GALLERY_APPIUM_PINCH={os.environ.get('ATP_GALLERY_APPIUM_PINCH', '')} "
+        f"GALLERY_PINCH={os.environ.get('GALLERY_PINCH', '')} "
+        f"PINCH_STYLE={os.environ.get('PINCH_STYLE', '')}",
+        flush=True,
+    )
+
+
 def _prepare_gallery_openrouter(folder: str) -> None:
     """GraalJS host access + local verify server for GA_02 OpenRouter vision verify."""
     if not _is_gallery_folder(folder):
@@ -183,6 +230,7 @@ def cmd_run(folder: str, app: str, clear_state: str, maestro_cmd: str) -> int:
         touch_flag(f"{sid}_failed.flag")
         return yaml_rc
     _prepare_gallery_openrouter(folder)
+    _prepare_gallery_appium(folder)
     _refresh_devices_on_this_agent(REPO)
     _log_orchestrator_fingerprint(REPO)
     maestro_argv = [

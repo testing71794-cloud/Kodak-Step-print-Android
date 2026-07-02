@@ -39,6 +39,13 @@ def is_subflow_helper(path: Path) -> bool:
     return any(part.lower() == "subflows" for part in path.parts)
 
 
+def is_excluded_top_level_flow(path: Path) -> bool:
+    """Appium split flows (GA_05a/b, GA_06a/b) are not standalone Jenkins tests."""
+    from .flow_appium_runners import is_appium_helper_flow
+
+    return is_appium_helper_flow(path)
+
+
 def safe_flow_stem(name: str) -> str:
     """Filesystem-safe flow stem for Windows cmd/batch (parentheses break grouped blocks)."""
     slug = re.sub(r"[^\w\-.]+", "_", (name or "").strip())
@@ -65,6 +72,8 @@ def discover_atp_yaml_files(repo: Path, atp_subfolder: str, *, exclude_subflows:
             if not p.is_file() or p.suffix.lower() not in (".yaml", ".yml"):
                 continue
             if exclude_subflows and is_subflow_helper(p):
+                continue
+            if exclude_subflows and is_excluded_top_level_flow(p):
                 continue
             if include and include.lower() not in p.name.lower():
                 continue

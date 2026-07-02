@@ -1,8 +1,7 @@
-# TC_ID: GA_05 - Pinch to zoom out
-# Maestro paired swipes are NOT real multitouch — zoom may not change visually in Studio.
-# Real W3C pinch (spread setup + pinch-in on camera_image): scripts\run_ga05_real_pinch.bat [DEVICE]
+# TC_ID: GA_05a - Gallery photo detail ready for Appium W3C pinch (zoom out)
+# Full GA_05: scripts\run_ga05_real_pinch.bat [DEVICE]
 appId: com.kodak.steptouch
-name: GA_05 - Pinch to zoom out
+name: GA_05a - Gallery photo ready for Appium pinch
 ---
 - launchApp
 - runFlow:
@@ -18,4 +17,7 @@ name: GA_05 - Pinch to zoom out
 - tapOn: "MY GALLERY"
 - runFlow: subflows/wait_for_gallery_grid.yaml
 - runFlow: subflows/gallery_photo_detail_for_pinch.yaml
-- runFlow: subflows/pinch_gallery_zoom_out_maestro_approx.yaml
+- tapOn:
+    id: "camera_image"
+    optional: true
+- takeScreenshot: GA_05_before_pinch

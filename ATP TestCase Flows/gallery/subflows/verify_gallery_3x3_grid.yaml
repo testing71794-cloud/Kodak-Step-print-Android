@@ -1,0 +1,21 @@
+appId: com.kodak.steptouch
+---
+# Non-AI verify: 3x3 grid shows multiple thumbnail cells (ivItemGridImage indices 0,2,6).
+# Requires enough photos in MY GALLERY for a third row (7+ thumbnails).
+- waitForAnimationToEnd:
+    timeout: 2000
+- assertVisible: "MY GALLERY"
+- extendedWaitUntil:
+    visible:
+      id: "ivItemGridImage"
+    timeout: 10000
+- assertVisible:
+    id: "ivItemGridImage"
+    index: 0
+- assertVisible:
+    id: "ivItemGridImage"
+    index: 2
+- assertVisible:
+    id: "ivItemGridImage"
+    index: 6
+

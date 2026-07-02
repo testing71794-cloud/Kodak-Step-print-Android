@@ -1,0 +1,26 @@
+appId: com.kodak.steptouch
+---
+# Zoom IN — spread fingers from center on gallery photo (camera_image).
+# Maestro swipes are NOT real multitouch. Real pinch: scripts\run_ga06_real_pinch.bat [DEVICE]
+- tapOn:
+    id: "camera_image"
+    optional: true
+- tapOn:
+    point: "50%, 46%"
+    label: Focus gallery photo preview
+- waitForAnimationToEnd:
+    timeout: 500
+- takeScreenshot: GA_06_before_zoom_in
+- swipe:
+    start: "50%, 46%"
+    end: "72%, 58%"
+    duration: 300
+    label: Zoom-in finger 1 (spread from center)
+- swipe:
+    start: "50%, 46%"
+    end: "28%, 34%"
+    duration: 300
+    label: Zoom-in finger 2 (spread from center)
+- waitForAnimationToEnd:
+    timeout: 2000
+- takeScreenshot: GA_06_after_zoom_in
