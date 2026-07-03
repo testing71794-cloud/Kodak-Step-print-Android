@@ -1,0 +1,34 @@
+appId: com.kodak.steptouch
+---
+# Pre-cut requires 2 gallery photos; cold install may start with an empty grid.
+- runFlow:
+    when:
+      notVisible:
+        id: ivItemGridImage
+    commands:
+      - runFlow: capture_photo_to_gallery.yaml
+      - extendedWaitUntil:
+          visible:
+            id: ivItemGridImage
+          timeout: 15000
+- runFlow:
+    when:
+      notVisible:
+        id: ivItemGridImage
+        index: 1
+    commands:
+      - runFlow: capture_photo_to_gallery.yaml
+      - extendedWaitUntil:
+          visible:
+            id: ivItemGridImage
+            index: 1
+          timeout: 15000
+- extendedWaitUntil:
+    visible:
+      id: ivItemGridImage
+    timeout: 10000
+- extendedWaitUntil:
+    visible:
+      id: ivItemGridImage
+      index: 1
+    timeout: 10000

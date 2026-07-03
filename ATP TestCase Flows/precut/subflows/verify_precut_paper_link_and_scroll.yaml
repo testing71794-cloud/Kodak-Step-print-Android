@@ -1,0 +1,22 @@
+appId: com.kodak.steptouch
+---
+# PC_01a: assert reminder → tap link → verify store page → scroll to end → back → OK → create screen.
+- runFlow: assert_precut_paper_reminder_dialog.yaml
+- tapOn:
+    text: ".*(?i)kodak 2x3 pre-cut sticker paper.*"
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible:
+      text: ".*(?i)(kodak|pre-cut|zink|sticker paper|photo paper|amazon|shop|buy).*"
+    timeout: 15000
+- runFlow: scroll_paper_store_page_to_end.yaml
+- runFlow: return_from_paper_store_page.yaml
+- runFlow: dismiss_precut_paper_reminder.yaml
+- extendedWaitUntil:
+    visible:
+      text: ".*(?i)create pre-cut.*"
+    timeout: 8000
+- assertVisible:
+    text: ".*(?i)create pre-cut.*"
+- assertVisible: "Next"

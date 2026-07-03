@@ -1,0 +1,16 @@
+# TC_ID: PC_01a - Pre-cut paper link scroll verify
+# ATP Steps: Gallery → select 2 photos → Pre-Cut Stickers → assert reminder
+#   → tap paper link → verify store page → scroll to bottom → back → OK → create pre-cut screen
+appId: com.kodak.steptouch
+name: PC_01a - Pre-cut paper link scroll verify
+---
+- launchApp
+- waitForAnimationToEnd
+- runFlow:
+    when:
+      visible: "No Thanks"
+    commands:
+      - tapOn: "No Thanks"
+- runFlow: subflows/reach_gallery_like_ga10.yaml
+- runFlow: subflows/open_precut_paper_reminder_dialog.yaml
+- runFlow: subflows/verify_precut_paper_link_and_scroll.yaml

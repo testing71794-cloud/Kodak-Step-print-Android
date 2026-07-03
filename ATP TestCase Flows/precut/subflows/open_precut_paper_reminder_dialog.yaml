@@ -1,0 +1,11 @@
+appId: com.kodak.steptouch
+---
+# Gallery select 2 photos → Pre-Cut Stickers → paper reminder dialog.
+- runFlow: select_two_photos_for_precut.yaml
+- extendedWaitUntil:
+    visible: "Pre-Cut \nStickers"
+    timeout: 8000
+- tapOn: "Pre-Cut \nStickers"
+- extendedWaitUntil:
+    visible: "OK"
+    timeout: 8000

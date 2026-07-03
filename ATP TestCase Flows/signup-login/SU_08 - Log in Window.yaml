@@ -44,6 +44,5 @@ name: SU_08 - Log in Window
 - waitForAnimationToEnd:
     timeout: 2000
 - runFlow: subflows/accept_terms_if_visible.yaml
-- assertVisible:
-    text: "Agree Terms and Conditions"
-    optional: true
+- assertVisible: "Start a quick tour"
+

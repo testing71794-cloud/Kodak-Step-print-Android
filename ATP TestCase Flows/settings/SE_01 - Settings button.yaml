@@ -4,6 +4,23 @@
 appId: com.kodak.steptouch
 name: SE_01 - Settings button
 ---
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+- runFlow:
+    when:
+      visible: "No Thanks"
+    commands:
+      - tapOn: "No Thanks"
 - runFlow: subflows/open_app_to_gallery.yaml
+- runFlow:
+    when:
+      visible: "No Thanks"
+    commands:
+      - tapOn: "No Thanks"
+# Reach settings menu from gallery (same sequence as working SE_01).
+- tapOn:
+    id: "ivItemGridImage"
+    index: 1      
 # Step 2: tap settings (gear) icon located on the top-left corner of the screen.
 - runFlow: subflows/open_settings_from_gallery.yaml

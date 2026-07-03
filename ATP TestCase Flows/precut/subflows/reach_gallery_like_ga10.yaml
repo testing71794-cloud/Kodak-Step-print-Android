@@ -1,0 +1,29 @@
+appId: com.kodak.steptouch
+---
+# Same gallery entry as GA_10 - Share photo (launch through MY GALLERY grid).
+- launchApp:
+    clearState: false
+- runFlow:
+    when:
+      visible: "Share with"
+    commands:
+      - pressKey: back
+      - waitForAnimationToEnd:
+          timeout: 2000
+- runFlow:
+    when:
+      visible: "No Thanks"
+    commands:
+      - tapOn: "No Thanks"
+- waitForAnimationToEnd:
+    timeout: 2000
+- runFlow:
+    when:
+      visible: "Create an account"
+    commands:
+      - runFlow: reach_gallery_for_collage.yaml
+- runFlow: reach_gallery_fast.yaml
+- tapOn: "MY GALLERY"
+- runFlow: wait_for_gallery_grid.yaml
+- assertVisible:
+    id: "ivItemGridImage"

@@ -1,0 +1,39 @@
+appId: com.kodak.steptouch
+---
+# Leave Chrome / store page and return to the Kodak app reminder dialog.
+- runFlow:
+    when:
+      notVisible: "OK"
+    commands:
+      - pressKey: back
+      - waitForAnimationToEnd:
+          timeout: 2000
+- runFlow:
+    when:
+      notVisible: "OK"
+    commands:
+      - tapOn:
+          text: "Navigate up"
+          optional: true
+      - tapOn:
+          id: back_button
+          optional: true
+      - pressKey: back
+      - waitForAnimationToEnd:
+          timeout: 2000
+- runFlow:
+    when:
+      notVisible: "OK"
+    commands:
+      - swipe:
+          start: "5%, 50%"
+          end: "75%, 50%"
+          label: Edge swipe back from store page
+      - waitForAnimationToEnd:
+          timeout: 2000
+      - pressKey: back
+      - waitForAnimationToEnd:
+          timeout: 2000
+- extendedWaitUntil:
+    visible: "OK"
+    timeout: 10000

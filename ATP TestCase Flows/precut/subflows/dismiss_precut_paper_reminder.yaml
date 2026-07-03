@@ -1,0 +1,15 @@
+appId: com.kodak.steptouch
+---
+# Dismiss Pre-Cut Stickers paper reminder after step 1a (skip if already on create screen).
+- runFlow:
+    when:
+      visible: "OK"
+    commands:
+      - tapOn: "OK"
+      - runFlow:
+          when:
+            visible: "Ok"
+          commands:
+            - tapOn: "Ok"
+- waitForAnimationToEnd:
+    timeout: 2000

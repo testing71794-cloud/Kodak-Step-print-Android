@@ -1,0 +1,16 @@
+appId: com.kodak.steptouch
+---
+# Minimize app → native camera capture → MY GALLERY → pull to refresh.
+- pressKey: home
+- runScript:
+    file: ../../gallery/scripts/ga07_adb.js
+    env:
+      GA07_ACTION: launch
+- runFlow: ../../gallery/subflows/native_camera_capture.yaml
+- runFlow: ../../gallery/subflows/return_to_my_gallery.yaml
+- swipe:
+    start: "50%, 20%"
+    end: "50%, 75%"
+    label: Pull to refresh after capture
+- waitForAnimationToEnd:
+    timeout: 3000

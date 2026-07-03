@@ -4,7 +4,13 @@
 appId: com.kodak.steptouch
 name: SE_09 - Legal
 ---
-- runFlow: subflows/open_app_to_gallery.yaml
+- launchApp
+- waitForAnimationToEnd
+- runFlow:
+    when:
+      visible: "No Thanks"
+    commands:
+      - tapOn: "No Thanks"
 - runFlow: subflows/open_settings_from_gallery.yaml
 # Step 3: tap "legal".
 - tapOn:

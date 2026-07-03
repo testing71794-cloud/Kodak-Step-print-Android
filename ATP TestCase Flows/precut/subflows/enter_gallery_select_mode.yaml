@@ -1,0 +1,3 @@
+appId: com.kodak.steptouch
+---
+- runFlow: ../../collage/subflows/enter_gallery_select_mode.yaml

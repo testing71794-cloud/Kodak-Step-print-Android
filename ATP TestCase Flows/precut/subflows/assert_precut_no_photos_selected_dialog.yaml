@@ -1,0 +1,12 @@
+appId: com.kodak.steptouch
+---
+# Popup when Pre-Cut Stickers is tapped with no gallery photos selected.
+- extendedWaitUntil:
+    visible: "OK"
+    timeout: 8000
+- assertVisible: "Please select at least one photo"
+- waitForAnimationToEnd
+- assertVisible: "OK"
+- tapOn: "OK"
+- waitForAnimationToEnd:
+    timeout: 2000

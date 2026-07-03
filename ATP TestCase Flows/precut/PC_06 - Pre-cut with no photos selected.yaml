@@ -1,0 +1,29 @@
+# TC_ID: PC_06 - Pre-cut with no photos selected
+# ATP Steps: Gallery → Select (no photos) → Pre-Cut Stickers → verify popup → OK
+# ATP Expected: User sees a prompt to select photos before pre-cut; dismiss with OK
+appId: com.kodak.steptouch
+name: PC_06 - Pre-cut with no photos selected
+---
+- launchApp
+- waitForAnimationToEnd:
+    timeout: 2000
+- runFlow:
+    when:
+      visible: "No Thanks"
+    commands:
+      - tapOn: "No Thanks"
+- extendedWaitUntil:
+    visible: "MY GALLERY"
+    timeout: 8000
+- runFlow: subflows/enter_gallery_select_mode.yaml
+- extendedWaitUntil:
+    visible: "Pre-Cut \nStickers"
+    timeout: 8000
+- tapOn: "Pre-Cut \nStickers"
+- runFlow: subflows/assert_precut_no_photos_selected_dialog.yaml
+- assertVisible:
+    text: "NO PHOTOS SELECTED"
+- assertVisible: "Cancel"
+- assertVisible: "Pre-Cut \nStickers"
+- assertVisible:
+    id: "ivItemGridImage"

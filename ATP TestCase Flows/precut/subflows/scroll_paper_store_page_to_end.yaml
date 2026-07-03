@@ -1,0 +1,15 @@
+appId: com.kodak.steptouch
+---
+# Scroll the opened paper product page down to the bottom (Chrome / store WebView).
+- repeat:
+    times: 8
+    commands:
+      - scroll
+      - waitForAnimationToEnd:
+          timeout: 600
+- scrollUntilVisible:
+    element:
+      text: ".*(?i)(customer review|copyright|related|add to cart|buy now|paper.*perfection|footer).*"
+    direction: DOWN
+    timeout: 15000
+    optional: true

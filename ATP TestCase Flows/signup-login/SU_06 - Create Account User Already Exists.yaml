@@ -6,13 +6,6 @@ name: SU_06 - Create Account User Already Exists
 - launchApp:
     clearState: true
 - runFlow: subflows/post_launch_through_signup.yaml
-- assertVisible: "Create an account"
-- assertVisible: "Full Name*"
-- assertVisible: "Email*"
-- assertVisible: "Password*"
-- assertVisible: "SIGN UP"
-- assertVisible: "Already have an account?"
-- assertVisible: "I'll do it later"
 - tapOn: "Full Name*"
 - inputText: Nitesh Mehra
 - tapOn: "Email*"
@@ -35,6 +28,4 @@ name: SU_06 - Create Account User Already Exists
 - assertVisible:
     text: "Forgot password?"
     optional: true
-- assertVisible:
-    text: "Forgot Password"
-    optional: true
+

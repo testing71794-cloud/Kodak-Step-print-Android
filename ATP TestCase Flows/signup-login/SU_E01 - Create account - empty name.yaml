@@ -19,5 +19,6 @@ name: SU_E01 - Create account - empty name
     timeout: 2000
 - extendedWaitUntil:
     visible:
-      text: ".*(?i)(name|full name).*"
+      text: "Please enter your full name"
+
     timeout: 2000

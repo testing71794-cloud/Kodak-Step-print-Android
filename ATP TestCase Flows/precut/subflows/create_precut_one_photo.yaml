@@ -1,5 +1,5 @@
 appId: com.kodak.steptouch
 ---
-- runFlow: create_precut_editor_ready.yaml
+- runFlow: create_precut_from_gallery_one_photo.yaml
 - tapOn:
     id: "button_save"

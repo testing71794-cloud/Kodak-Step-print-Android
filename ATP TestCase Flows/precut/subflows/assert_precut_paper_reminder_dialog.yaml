@@ -1,0 +1,12 @@
+appId: com.kodak.steptouch
+---
+# Pre-Cut Stickers reminder popup (paper load prompt).
+- extendedWaitUntil:
+    visible:
+      text: ".*(?i)pre-cut.*stickers.*"
+    timeout: 8000
+- assertVisible:
+    text: ".*(?i)remember to load your printer with kodak 2x3 pre-cut sticker paper.*"
+- assertVisible: "OK"
+- assertVisible:
+    text: ".*(?i)don.*t show again.*"

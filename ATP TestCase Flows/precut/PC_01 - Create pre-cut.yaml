@@ -1,21 +1,22 @@
 # TC_ID: PC_01 - Create pre-cut
+# ATP Steps: Gallery → select 2 photos → Pre-Cut Stickers → OK → Next → save
+# Note: Run PC_01a separately for paper-link scroll verify (PC_01 is independent).
 appId: com.kodak.steptouch
 name: PC_01 - Create pre-cut
 ---
 - launchApp:
-    clearState: false
-- runFlow:
-    when:
-      visible: "No Thanks"
-    commands:
-      - tapOn: "No Thanks"
-- waitForAnimationToEnd:
-    timeout: 2000
-- assertVisible: "MY GALLERY"
-- runFlow: subflows/reach_gallery_for_precut.yaml
+    clearState: true
+- tapOn: "I'll do it later"
+- tapOn: "Agree Terms and Conditions"
+- tapOn:
+    id: "screen2"
+- tapOn: "Skip"
+- tapOn:
+    id: "ivItemGridImage"
 - runFlow: subflows/create_precut_one_photo.yaml
 - extendedWaitUntil:
     visible:
       text: "Done"
     timeout: 2000
     optional: true
+- assertVisible: "Print Your Photos"

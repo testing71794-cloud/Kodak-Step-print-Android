@@ -1,0 +1,10 @@
+appId: com.kodak.steptouch
+---
+- runFlow: enter_gallery_select_mode.yaml
+- tapOn:
+    id: "ivItemGridImage"
+- tapOn:
+    id: "ivItemGridImage"
+    index: 1
+- waitForAnimationToEnd:
+    timeout: 2000

@@ -8,6 +8,9 @@ name: SE_12 - Log in from (JoinStepprint) and log out
 - launchApp:
     clearState: true
 - runFlow: subflows/reach_gallery_for_settings.yaml
+- tapOn:
+    id: "ivItemGridImage"
+    index: 1 
 - runFlow: subflows/open_settings_from_gallery.yaml
 - extendedWaitUntil:
     visible:

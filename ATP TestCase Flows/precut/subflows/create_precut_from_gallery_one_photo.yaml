@@ -1,0 +1,24 @@
+appId: com.kodak.steptouch
+---
+# Gallery: select 2 photos → Pre-Cut Stickers → dismiss reminder → layout editor → save ready.
+- runFlow: select_two_photos_for_precut.yaml
+- extendedWaitUntil:
+    visible: "Pre-Cut \nStickers"
+    timeout: 8000
+- tapOn: "Pre-Cut \nStickers"
+- runFlow: dismiss_precut_paper_reminder.yaml
+- extendedWaitUntil:
+    visible:
+      text: ".*(?i)create pre-cut.*"
+    timeout: 8000
+    optional: true
+- extendedWaitUntil:
+    visible: "Next"
+    timeout: 8000
+- tapOn: "Next"
+- waitForAnimationToEnd:
+    timeout: 2000
+- extendedWaitUntil:
+    visible:
+      id: "button_save"
+    timeout: 8000

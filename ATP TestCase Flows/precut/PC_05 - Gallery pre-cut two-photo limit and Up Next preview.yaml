@@ -5,15 +5,13 @@
 appId: com.kodak.steptouch
 name: PC_05 - Gallery pre-cut two-photo limit and Up Next preview
 ---
-- launchApp:
-    clearState: false
+- launchApp
+- waitForAnimationToEnd
 - runFlow:
     when:
       visible: "No Thanks"
     commands:
       - tapOn: "No Thanks"
-- waitForAnimationToEnd:
-    timeout: 2000
 - extendedWaitUntil:
     visible: "MY GALLERY"
     timeout: 2000
@@ -53,19 +51,15 @@ name: PC_05 - Gallery pre-cut two-photo limit and Up Next preview
 - waitForAnimationToEnd:
     timeout: 2000
 - tapOn: "Pre-Cut \nStickers"
-- runFlow:
-    when:
-      visible: "Remember to load your printer with Kodak 2x3 Pre-Cut Sticker Paper before using this feature!"
-    commands:
-      - tapOn: "OK"
-- runFlow:
-    when:
-      visible: "Ok"
-    commands:
-      - tapOn: "Ok"
+- runFlow: subflows/dismiss_precut_paper_reminder.yaml
+- extendedWaitUntil:
+    visible:
+      text: ".*(?i)create pre-cut.*"
+    timeout: 8000
+    optional: true
 - extendedWaitUntil:
     visible: "Next"
-    timeout: 2000
+    timeout: 8000
 - tapOn: "Next"
 - waitForAnimationToEnd:
     timeout: 2000

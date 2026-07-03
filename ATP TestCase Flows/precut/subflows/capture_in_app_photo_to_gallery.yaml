@@ -1,0 +1,63 @@
+appId: com.kodak.steptouch
+---
+# MY GALLERY → in-app camera → capture → back → pull to refresh.
+- runFlow:
+    when:
+      visible:
+        id: camerIV
+    commands:
+      - tapOn:
+          id: camerIV
+- runFlow:
+    when:
+      notVisible:
+        id: capture_img
+    commands:
+      - swipe:
+          start: "12%, 55%"
+          end: "82%, 55%"
+- runFlow:
+    when:
+      notVisible:
+        id: capture_img
+    commands:
+      - tapOn:
+          point: "88%, 92%"
+          label: Camera FAB fallback
+- repeat:
+    times: 8
+    commands:
+      - runFlow:
+          when:
+            visible: ".*(?i)(allow|while using|only this time|take pictures|photos and videos).*"
+          commands:
+            - runFlow: ../../permission/subflows/tap_permission_allow.yaml
+            - runFlow: ../../permission/subflows/tap_permission_allow_all_photos.yaml
+      - waitForAnimationToEnd:
+          timeout: 1000
+- runFlow:
+    when:
+      visible: "Swipe left to apply live filters"
+    commands:
+      - tapOn:
+          text: "Ok"
+          optional: true
+      - tapOn:
+          text: "OK"
+          optional: true
+- extendedWaitUntil:
+    visible:
+      id: capture_img
+    timeout: 15000
+- runFlow: ../../camera/subflows/capture_photo.yaml
+- runFlow: ../../camera/subflows/close_camera_to_gallery.yaml
+- extendedWaitUntil:
+    visible:
+      text: ".*(?i)my gallery.*"
+    timeout: 8000
+- swipe:
+    start: "50%, 20%"
+    end: "50%, 75%"
+    label: Pull to refresh after capture
+- waitForAnimationToEnd:
+    timeout: 2000

@@ -19,5 +19,6 @@ name: SU_E02 - Create account - empty email
     timeout: 2000
 - extendedWaitUntil:
     visible:
-      text: ".*(?i)(email|valid email).*"
+      text: "Please provide your email"
+
     timeout: 2000

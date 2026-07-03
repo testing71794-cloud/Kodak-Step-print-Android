@@ -1,0 +1,10 @@
+appId: com.kodak.steptouch
+---
+# Seed gallery via native camera (GA_07 ADB path); falls back to in-app camera if grid still empty.
+- runFlow: capture_native_photo_to_gallery.yaml
+- runFlow:
+    when:
+      notVisible:
+        id: ivItemGridImage
+    commands:
+      - runFlow: capture_in_app_photo_to_gallery.yaml
