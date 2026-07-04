@@ -1,0 +1,12 @@
+appId: com.kodak.steptouch
+---
+# Open the Filter carousel from the edit toolbar.
+- tapOn:
+    id: "filterEditingOptionsImageView"
+    index: 4
+- extendedWaitUntil:
+    visible:
+      id: "subEffectEditingOptionsRecyclerView"
+    timeout: 10000
+- tapOn:
+    id: "subEffectEditingOptionsRecyclerView"

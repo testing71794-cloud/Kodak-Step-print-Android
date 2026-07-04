@@ -18,16 +18,12 @@ name: GA_10 - Share photo
       visible: "No Thanks"
     commands:
       - tapOn: "No Thanks"
-- waitForAnimationToEnd:
-    timeout: 2000
 - runFlow:
     when:
       visible: "Create an account"
     commands:
       - runFlow: subflows/reach_gallery_for_collage.yaml
 - runFlow: subflows/reach_gallery_fast.yaml
-- tapOn: "MY GALLERY"
-- runFlow: subflows/wait_for_gallery_grid.yaml
 - assertVisible:
     id: "ivItemGridImage"
 - runFlow: subflows/enter_gallery_select_mode.yaml

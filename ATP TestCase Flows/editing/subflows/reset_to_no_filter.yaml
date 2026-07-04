@@ -1,0 +1,7 @@
+appId: com.kodak.steptouch
+---
+# Reset the current edit back to No Filter before the next AI comparison.
+- runFlow:
+    file: apply_filter_by_index.yaml
+    env:
+      FILTER_INDEX: 0

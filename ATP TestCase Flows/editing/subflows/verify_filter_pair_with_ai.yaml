@@ -1,0 +1,10 @@
+appId: com.kodak.steptouch
+---
+# Compare one before/after filter screenshot pair with OpenRouter vision.
+- runScript:
+    file: ../scripts/verify_filter_pair_openrouter.js
+    env:
+      BEFORE_BASENAME: ${BEFORE_BASENAME}
+      AFTER_BASENAME: ${AFTER_BASENAME}
+      FILTER_LABEL: ${FILTER_LABEL}
+- assertTrue: ${output.filter_pair_verified}

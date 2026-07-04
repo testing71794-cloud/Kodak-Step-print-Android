@@ -18,6 +18,7 @@ name: CA_10 - Open captured image
 # Step 3: tap on capture thumbnail located at the bottom-left of the screen.
 - runFlow: subflows/open_captured_thumbnail.yaml
 - assertVisible: "Print"
+- tapOn: "Print"
 - assertVisible: "Number of Copies"
 - assertVisible: "1"
 - assertVisible: "+"

@@ -1,0 +1,38 @@
+appId: com.kodak.steptouch
+---
+# Apply one specific filter thumbnail by index (0 = No Filter).
+- runFlow: open_filter_carousel.yaml
+- scrollUntilVisible:
+    element:
+      id: "filterLayout"
+      index: 0
+    direction: RIGHT
+    timeout: 10000
+    speed: 60
+- scrollUntilVisible:
+    element:
+      id: "filterLayout"
+      index: ${FILTER_INDEX}
+    direction: LEFT
+    timeout: 25000
+    speed: 40
+    visibilityPercentage: 100
+- assertVisible:
+    id: "filterLayout"
+    index: ${FILTER_INDEX}
+- tapOn:
+    id: "filterEditingOptionsLinearLayout"
+    index: ${FILTER_INDEX}
+- assertVisible:
+    id: "radious_border"
+- runFlow:
+    when:
+      visible:
+        id: "saveRecentEditImageView"
+    commands:
+      - tapOn:
+          id: "saveRecentEditImageView"
+      - extendedWaitUntil:
+          visible:
+            id: "filterEditingOptionsImageView"
+          timeout: 10000
