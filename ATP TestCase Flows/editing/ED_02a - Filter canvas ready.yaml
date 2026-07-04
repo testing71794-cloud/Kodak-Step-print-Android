@@ -4,6 +4,11 @@ name: ED_02a - Filter canvas ready
 ---
 - launchApp:
     clearState: false
+- runFlow:
+    when:
+      visible: "No Thanks"
+    commands:
+      - tapOn: "No Thanks"    
 - assertVisible:
     text: ".*(?i)my gallery.*"
 - runFlow: subflows/enter_edit_mode.yaml

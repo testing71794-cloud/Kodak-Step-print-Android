@@ -3,6 +3,7 @@
 appId: com.kodak.steptouch
 name: ED_04b - Rotate apply and verify
 ---
+
 - extendedWaitUntil:
     visible:
       id: "adjustrotateImageView"

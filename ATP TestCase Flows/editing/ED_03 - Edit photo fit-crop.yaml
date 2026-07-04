@@ -5,7 +5,7 @@
 # REAL two-finger pinch: scripts\run_ed03_real_pinch.bat [DEVICE]
 appId: com.kodak.steptouch
 name: ED_03 - Edit photo fit-crop
----
+---  
 - startRecording:
     path: ED_03_fit_crop
     optional: true

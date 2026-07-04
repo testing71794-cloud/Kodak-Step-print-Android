@@ -11,6 +11,11 @@ name: ED_02 - Apply filter to photo
 # Steps 1–5: Reach gallery and enter edit mode
 - launchApp:
     clearState: false
+- runFlow:
+    when:
+      visible: "No Thanks"
+    commands:
+      - tapOn: "No Thanks"    
 - assertVisible:
     text: ".*(?i)my gallery.*"
 - runFlow: subflows/enter_edit_mode.yaml

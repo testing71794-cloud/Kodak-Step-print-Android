@@ -8,6 +8,11 @@ name: ED_01 - Enter edit photo mode
 - launchApp:
     clearState: true
 - runFlow: ../signup-login/subflows/reach_gallery_after_onboarding_skip.yaml
+- runFlow:
+    when:
+      visible: "No Thanks"
+    commands:
+      - tapOn: "No Thanks"
 - assertVisible:
     text: ".*(?i)my gallery.*"
 # Steps 2–5: Open photo and validate edit mode

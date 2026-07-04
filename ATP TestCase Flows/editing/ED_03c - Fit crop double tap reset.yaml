@@ -2,5 +2,5 @@
 # Run after Appium W3C pinch in run_ed03_verify.bat (before ED_03b pan/exit).
 appId: com.kodak.steptouch
 name: ED_03c - Fit crop double tap reset
----
+---  
 - runFlow: subflows/fit_crop_double_tap_reset.yaml

@@ -1,7 +1,7 @@
 # TC_ID: ED_02b - Apply last filter and verify
 appId: com.kodak.steptouch
 name: ED_02b - Filter apply and verify
----
+---  
 - runFlow: subflows/apply_filter.yaml
 - takeScreenshot: ED_02_after_filter
 - extendedWaitUntil:
