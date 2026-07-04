@@ -1,0 +1,538 @@
+// OPT-IN hybrid pipeline: GCP orchestration + post-processing, Windows USB Maestro only.
+// Default production job must keep Script Path: Jenkinsfile (unchanged).
+// See docs/DISTRIBUTED_GCP_WINDOWS_ARCHITECTURE.md
+//
+// Strip common mistake: parameter value "OPENROUTER_CREDENTIALS_ID = OPENROUTER_API_KEY" (Jenkins would look up that full string as credential ID).
+def normalizeOpenRouterCredsId = { Object raw ->
+    if (raw == null) {
+        return ''
+    }
+    def s = raw.toString().trim()
+    if (!s) {
+        return ''
+    }
+    if (s.contains('=')) {
+        def parts = s.split('=', 2)
+        if (parts.length == 2) {
+            s = parts[1].trim()
+        }
+    }
+    s = s.replaceAll('(?i)^OPENROUTER_CREDENTIALS_ID\\s*', '').trim()
+    return s
+}
+
+// Bind Jenkins Secret text → OPENROUTER_API_KEY for Python / Maestro (optional).
+def withOpenRouterCredentials = { Object credsId, Closure action ->
+    def id = normalizeOpenRouterCredsId(credsId)
+    if (!id) {
+        action()
+        return
+    }
+    try {
+        withCredentials([string(credentialsId: id, variable: 'OPENROUTER_API_KEY')]) {
+            action()
+        }
+    } catch (hudson.AbortException ex) {
+        throw ex
+    } catch (org.jenkinsci.plugins.workflow.steps.FlowInterruptedException ex) {
+        throw ex
+    } catch (Exception ex) {
+        def msg = ex.message ?: ex.getClass().name
+        if (msg.contains('Could not find credentials') || msg.toLowerCase().contains('credential') && msg.toLowerCase().contains('not found')) {
+            echo "[WARN] OpenRouter credential '${id}' not found in Jenkins. Continuing without AI key: ${msg}"
+            action()
+        } else {
+            throw ex
+        }
+    }
+}
+
+/** True when any ATP TestCase Flows module checkbox is enabled (Jenkins parameters). */
+def anyAtpModuleEnabled = {
+    return params.RUN_ATP_ONBOARDING || params.RUN_ATP_SIGNUP_LOGIN ||
+        params.RUN_ATP_CAMERA || params.RUN_ATP_COLLAGE ||
+        params.RUN_ATP_GALLERY || params.RUN_ATP_PRECUT || params.RUN_ATP_EDITING || params.RUN_ATP_SETTINGS
+}
+
+/** Suite ids for finalize flag checks (must match jenkins_atp_stage.py folder_to_suite_id). */
+def atpSuiteIdsList = {
+    return [
+        'atp_onboarding', 'atp_signup_login',
+        'atp_camera', 'atp_collage', 'atp_gallery', 'atp_precut', 'atp_editing', 'atp_settings',
+    ]
+}
+
+/** Shared Maestro/Java/ADB env list — deduped to avoid Jenkins CPS MethodTooLargeException on large pipelines. */
+def maestroEnvList() {
+    def maestroJava = (params.JAVA_HOME_OVERRIDE?.trim()) ?: 'C:\\Users\\HP\\.jdks\\jbr-17.0.8'
+    def envList = []
+    envList << "MAESTRO_JAVA_HOME=${maestroJava}"
+    envList << "JAVA_HOME=${maestroJava}"
+    envList << "PATH+JAVA=${maestroJava}\\bin"
+    if (params.MAESTRO_HOME?.trim()) { envList << "MAESTRO_HOME=${params.MAESTRO_HOME}" }
+    if (params.ANDROID_HOME?.trim()) {
+        envList << "ANDROID_HOME=${params.ANDROID_HOME}"
+        envList << "ADB_HOME=${params.ANDROID_HOME}\\platform-tools"
+        envList << "PATH+ADB=${params.ANDROID_HOME}\\platform-tools"
+    }
+    return envList
+}
+
+/** GraalJS host access for in-flow adb capture (GA_02 OpenRouter verify). */
+def galleryOpenRouterEnvList() {
+    return [
+        'MAESTRO_CLI_DANGEROUS_GRAALJS_ALLOW_HOST_ACCESS=1',
+        'MAESTRO_CLI_DANGEROUS_GRAALJS_ALLOW_HOST_CLASS_LOOKUP=1',
+    ]
+}
+
+/** Appium W3C pinch for GA_05 / GA_06 (real multitouch on gallery photo detail). */
+def galleryAppiumPinchEnvList() {
+    return [
+        'ATP_GALLERY_APPIUM_PINCH=1',
+        'ATP_REQUIRE_PINCH_VISION=1',
+        'GALLERY_PINCH=1',
+        'PINCH_STYLE=diagonal',
+        'NODE_HOME=C:\\Program Files\\nodejs',
+        'NPM_GLOBAL=C:\\Tools\\npm-global',
+        'APPIUM_BIN=C:\\Tools\\npm-global\\appium.cmd',
+        'MAESTRO_HOME=C:\\Tools\\maestro-parallel\\bin',
+        'ATP_MAESTRO_PARALLEL_HOME=C:\\Tools\\maestro-parallel\\bin',
+        'PATH+NODEJS=C:\\Program Files\\nodejs',
+        'PATH+APPIUM=C:\\Tools\\npm-global',
+        'PATH+NPM=C:\\Tools\\npm-global',
+    ]
+}
+
+pipeline {
+    agent none
+
+    parameters {
+        string(
+            name: 'GCP_ORCHESTRATOR_AGENT',
+            defaultValue: 'built-in',
+            description: 'Linux GCP/controller label for checkout, pip deps, reports, archive (not USB Maestro).'
+        )
+        choice(
+            name: 'DEVICES_AGENT',
+            choices: ['devices', 'my-pc-devices'],
+            description: 'Label of the Jenkins agent connected to real USB phones. Default: devices'
+        )
+        string(name: 'APP_PACKAGE', defaultValue: 'com.kodak.steptouch', description: 'App package id for Maestro/app launch checks')
+        string(name: 'MAESTRO_CMD', defaultValue: 'maestro.bat', description: 'Maestro launcher (e.g. maestro.bat).')
+        string(name: 'MAESTRO_HOME', defaultValue: 'C:\\Users\\HP\\maestro\\maestro\\bin', description: 'Folder containing maestro.bat.')
+        string(name: 'ANDROID_HOME', defaultValue: 'C:\\Users\\HP\\AppData\\Local\\Android\\Sdk', description: 'Android SDK root.')
+        string(name: 'JAVA_HOME_OVERRIDE', defaultValue: 'C:\\Users\\HP\\.jdks\\jbr-17.0.8', description: 'JDK for Maestro (MAESTRO_JAVA_HOME/JAVA_HOME). Default is jbr-17.0.8.')
+        booleanParam(name: 'RUN_ATP_ONBOARDING', defaultValue: false, description: 'ATP TestCase Flows/onboarding')
+        booleanParam(name: 'RUN_ATP_SIGNUP_LOGIN', defaultValue: false, description: 'ATP TestCase Flows/signup-login')
+        booleanParam(name: 'RUN_ATP_CAMERA', defaultValue: false, description: 'ATP TestCase Flows/camera')
+        booleanParam(name: 'RUN_ATP_COLLAGE', defaultValue: false, description: 'ATP TestCase Flows/collage')
+        booleanParam(name: 'RUN_ATP_GALLERY', defaultValue: false, description: 'ATP TestCase Flows/gallery')
+        booleanParam(name: 'RUN_ATP_PRECUT', defaultValue: false, description: 'ATP TestCase Flows/precut')
+        booleanParam(name: 'RUN_ATP_EDITING', defaultValue: false, description: 'ATP TestCase Flows/editing')
+        booleanParam(name: 'RUN_ATP_SETTINGS', defaultValue: false, description: 'ATP TestCase Flows/settings')
+        booleanParam(name: 'RUN_AI_AGENT', defaultValue: false, description: 'Optional AI Step Print Agent module (ai-agent/) — independent from Maestro ATP stages')
+        choice(name: 'AI_AGENT_MODE', choices: ['assist', 'observe', 'autonomous'], description: 'AI Step Print Agent execution mode (when RUN_AI_AGENT=true)')
+        booleanParam(name: 'RUN_AI_ANALYSIS', defaultValue: false, description: 'Post-run OpenRouter failure analysis (intelligent_platform)')
+        booleanParam(name: 'SEND_FINAL_EMAIL', defaultValue: false, description: 'Send final summary email')
+        booleanParam(name: 'CLEAR_STATE', defaultValue: false, description: 'Clear app state in suite runners (adb pm clear + Maestro runner)')
+        booleanParam(name: 'RETRY_FAILED', defaultValue: false, description: 'Reserved for future retry logic')
+        string(
+            name: 'OPENROUTER_CREDENTIALS_ID',
+            defaultValue: 'OPENROUTER_API_KEY',
+            description: 'Jenkins "Secret text" credential ID only (e.g. OPENROUTER_API_KEY). Injects as OPENROUTER_API_KEY. Do not paste the whole parameter line. Leave empty to use env already set on the agent.'
+        )
+        string(
+            name: 'ATP_FLOW_INCLUDE',
+            defaultValue: '',
+            description: 'Optional: run only flows whose filename contains this text (e.g. GA_02). Applies within each enabled ATP module. Leave empty to run all flows in that module.'
+        )
+        string(
+            name: 'OPENROUTER_MODEL_VISION',
+            defaultValue: 'openai/gpt-4.1-mini',
+            description: 'OpenRouter vision model for in-flow AI verify (GA_02 3x3 grid, ED_03, etc.).'
+        )
+    }
+
+    options {
+        disableConcurrentBuilds()
+        skipDefaultCheckout(true)
+        // Keep stash copies low: full repo stashes are large; excludes shrink controller disk use.
+        preserveStashes(buildCount: 2)
+        buildDiscarder(
+            logRotator(
+                numToKeepStr: '10',
+                // Fewer archived copies of execution_logs.zip / screenshots / Excel on Jenkins home disk.
+                artifactNumToKeepStr: '3',
+            )
+        )
+        timeout(time: 180, unit: 'MINUTES')
+    }
+
+    triggers {
+        cron('H 9 * * *')
+    }
+
+    stages {
+        stage('Fetch Code from GitHub') {
+            agent { label params.GCP_ORCHESTRATOR_AGENT }
+            steps {
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    deleteDir()
+                    checkout scm
+                    // Stash sources only: exclude .git, deps, workspace screenshots (.maestro), generated dirs (docs/disk_cleanup_guide.md).
+                    stash name: 'repo', includes: '**/*', excludes: '**/.git/**,**/node_modules/**,**/.maestro/**,**/reports/**,**/build-summary/**,**/status/**,**/logs/**,**/collected-artifacts/**,**/test-results/**,**/maestro-report/**,**/*.zip', useDefaultExcludes: false
+                }
+            }
+        }
+
+        stage('Install GCP orchestrator dependencies') {
+            agent { label params.GCP_ORCHESTRATOR_AGENT }
+            steps {
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    unstash 'repo'
+                    sh """
+                        chmod +x scripts/gcp/*.sh 2>/dev/null || true
+                        bash scripts/gcp/jenkins_ci_install.sh "${env.WORKSPACE}"
+                    """
+                }
+            }
+        }
+
+        stage('Install Windows device dependencies (light)') {
+            agent { label params.DEVICES_AGENT }
+            steps {
+                deleteDir()
+                unstash 'repo'
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    bat """call scripts\\jenkins_ci_install_windows_device.bat "${env.WORKSPACE}" """
+                }
+            }
+        }
+
+        stage('Pre-run Disk Cleanup') {
+            agent { label params.DEVICES_AGENT }
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    bat """call scripts\\jenkins_ci_cleanup_pre.bat "${env.WORKSPACE}" """
+                }
+            }
+        }
+
+        stage('Environment Precheck') {
+            agent { label params.DEVICES_AGENT }
+            steps {
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    script {
+                        withEnv(maestroEnvList()) {
+                            bat """call scripts\\jenkins_ci_precheck.bat "${env.WORKSPACE}" "${params.MAESTRO_CMD}" "${params.APP_PACKAGE}" """
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Detect Connected Devices') {
+            agent { label params.DEVICES_AGENT }
+            steps {
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    script {
+                        echo "[pipeline] ATP stages: Onboarding, SignUp_Login, Camera, Collage, Gallery, PreCut, Editing, Settings | CLEAR_STATE=${params.CLEAR_STATE}"
+                        withEnv(maestroEnvList()) {
+                            bat """call scripts\\jenkins_ci_devices.bat "${env.WORKSPACE}" """
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Onboarding') {
+            when { expression { return params.RUN_ATP_ONBOARDING } }
+            agent { label params.DEVICES_AGENT }
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    script {
+                        withEnv(maestroEnvList()) {
+                            bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all onboarding "${params.APP_PACKAGE}" "${params.CLEAR_STATE.toString()}" "${params.MAESTRO_CMD}" """
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('SignUp_Login') {
+            when { expression { return params.RUN_ATP_SIGNUP_LOGIN } }
+            agent { label params.DEVICES_AGENT }
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    script {
+                        withEnv(maestroEnvList()) {
+                            bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all signup-login "${params.APP_PACKAGE}" "${params.CLEAR_STATE.toString()}" "${params.MAESTRO_CMD}" """
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Camera') {
+            when { expression { return params.RUN_ATP_CAMERA } }
+            agent { label params.DEVICES_AGENT }
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    script {
+                        withEnv(maestroEnvList()) {
+                            bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all camera "${params.APP_PACKAGE}" "${params.CLEAR_STATE.toString()}" "${params.MAESTRO_CMD}" """
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Collage') {
+            when { expression { return params.RUN_ATP_COLLAGE } }
+            agent { label params.DEVICES_AGENT }
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    script {
+                        withEnv(maestroEnvList()) {
+                            bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all collage "${params.APP_PACKAGE}" "${params.CLEAR_STATE.toString()}" "${params.MAESTRO_CMD}" """
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Gallery') {
+            when { expression { return params.RUN_ATP_GALLERY } }
+            agent { label params.DEVICES_AGENT }
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    script {
+                        withOpenRouterCredentials(params.OPENROUTER_CREDENTIALS_ID) {
+                            withEnv(maestroEnvList() + galleryOpenRouterEnvList() + galleryAppiumPinchEnvList() + [
+                                "ATP_FLOW_INCLUDE=${params.ATP_FLOW_INCLUDE}",
+                                "OPENROUTER_MODEL_VISION=${params.OPENROUTER_MODEL_VISION}",
+                                "OpenRouterAPI=${env.OPENROUTER_API_KEY ?: ''}",
+                                'PYTHONIOENCODING=utf-8',
+                            ]) {
+                                bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all gallery "${params.APP_PACKAGE}" "${params.CLEAR_STATE.toString()}" "${params.MAESTRO_CMD}" """
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('PreCut') {
+            when { expression { return params.RUN_ATP_PRECUT } }
+            agent { label params.DEVICES_AGENT }
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    script {
+                        withEnv(maestroEnvList()) {
+                            bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all precut "${params.APP_PACKAGE}" "${params.CLEAR_STATE.toString()}" "${params.MAESTRO_CMD}" """
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Editing') {
+            when { expression { return params.RUN_ATP_EDITING } }
+            agent { label params.DEVICES_AGENT }
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    script {
+                        withEnv(maestroEnvList()) {
+                            bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all editing "${params.APP_PACKAGE}" "${params.CLEAR_STATE.toString()}" "${params.MAESTRO_CMD}" """
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Settings') {
+            when { expression { return params.RUN_ATP_SETTINGS } }
+            agent { label params.DEVICES_AGENT }
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    script {
+                        withEnv(maestroEnvList()) {
+                            bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all settings "${params.APP_PACKAGE}" "${params.CLEAR_STATE.toString()}" "${params.MAESTRO_CMD}" """
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('AI Step Print Agent') {
+            when { expression { return params.RUN_AI_AGENT } }
+            agent { label params.DEVICES_AGENT }
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    script {
+                        withOpenRouterCredentials(params.OPENROUTER_CREDENTIALS_ID) {
+                            withEnv(maestroEnvList() + [
+                                "AI_AGENT_ENABLED=${params.RUN_AI_AGENT.toString()}",
+                                "AI_AGENT_MODE=${params.AI_AGENT_MODE}",
+                                'PYTHONIOENCODING=utf-8',
+                            ]) {
+                                bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_ai_agent_stage.py "${env.WORKSPACE}" "${params.APP_PACKAGE}" "${params.MAESTRO_CMD}" "${params.AI_AGENT_MODE}" """
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Test AI Connection') {
+            when { expression { return params.RUN_AI_ANALYSIS } }
+            agent { label params.DEVICES_AGENT }
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    script {
+                        withOpenRouterCredentials(params.OPENROUTER_CREDENTIALS_ID) {
+                            bat """call scripts\\jenkins_ci_ai_probe.bat "${env.WORKSPACE}" """
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('AI Failure Analysis + Smart Retry') {
+            when { expression { return params.RUN_AI_ANALYSIS } }
+            agent { label params.DEVICES_AGENT }
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    script {
+                        withOpenRouterCredentials(params.OPENROUTER_CREDENTIALS_ID) {
+                            bat """call scripts\\jenkins_ci_ai_analysis.bat "${env.WORKSPACE}" """
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Stash device run outputs for GCP post-processing') {
+            agent { label params.DEVICES_AGENT }
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    stash name: 'run-outputs', includes: 'reports/**,status/**,build-summary/**,.maestro/**,detected_devices.txt,*.flag', allowEmpty: true
+                }
+            }
+        }
+
+        stage('GCP post-processing (Excel, summary, zip)') {
+            agent { label params.GCP_ORCHESTRATOR_AGENT }
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    deleteDir()
+                    unstash 'repo'
+                    unstash 'run-outputs'
+                    sh """
+                        chmod +x scripts/gcp/*.sh 2>/dev/null || true
+                        bash scripts/gcp/jenkins_ci_post_reports.sh "${env.WORKSPACE}"
+                    """
+                }
+            }
+        }
+
+        stage('Collect failed test artifacts') {
+            agent { label params.GCP_ORCHESTRATOR_AGENT }
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    sh """
+                        chmod +x scripts/gcp/*.sh 2>/dev/null || true
+                        bash scripts/gcp/jenkins_ci_collect_failed_artifacts.sh "${env.WORKSPACE}"
+                    """
+                }
+            }
+        }
+
+        // mailout/send_email.py — user/pass from Jenkins credential "gmail-smtp-kodak" (Gmail + App Password). No secrets in this file.
+        stage('Send Final Email') {
+            when { expression { return params.SEND_FINAL_EMAIL } }
+            agent { label params.GCP_ORCHESTRATOR_AGENT }
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    script {
+                        withCredentials([usernamePassword(credentialsId: 'gmail-smtp-kodak', usernameVariable: 'B_SMTP_USER', passwordVariable: 'B_SMTP_PASS')]) {
+                            withEnv([
+                                'SMTP_SERVER=smtp.gmail.com',
+                                'SMTP_HOST=smtp.gmail.com',
+                                'SMTP_PORT=587',
+                                "SMTP_USER=${env.B_SMTP_USER}",
+                                "SMTP_PASS=${env.B_SMTP_PASS}",
+                                "SENDER_EMAIL=${env.B_SMTP_USER}",
+                                "RECEIVER_EMAIL=${env.B_SMTP_USER}",
+                                "MAIL_TO=${env.B_SMTP_USER}",
+                                'PYTHONIOENCODING=utf-8',
+                                'ORCH_EMAIL_STRICT=1',
+                                "FINAL_EXECUTION_REPORT_XLSX=${env.WORKSPACE}/build-summary/final_execution_report.xlsx",
+                                "BRANCH_NAME=${env.BRANCH_NAME}",
+                                "GIT_BRANCH=${env.BRANCH_NAME}",
+                            ]) {
+                                sh """
+                                    chmod +x scripts/gcp/*.sh 2>/dev/null || true
+                                    bash scripts/gcp/jenkins_ci_send_email.sh "${env.WORKSPACE}"
+                                """
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Archive Reports & Artifacts') {
+            agent { label params.GCP_ORCHESTRATOR_AGENT }
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    archiveArtifacts artifacts: 'build-summary/final_execution_report.xlsx, build-summary/suite_execution_summary.txt, build-summary/suite_execution_summary.json, build-summary/suite-failures/**, ai/logs/decisions/**, ai-agent/reports/**, ai-agent/logs/decisions/**, build-summary/failed_tests_artifacts.zip, build-summary/failed_tests_summary.json, build-summary/failed-artifacts/**, build-summary/execution_logs.zip, detected_devices.txt', allowEmptyArchive: true
+                }
+            }
+        }
+
+        stage('Finalize Build Result') {
+            agent { label params.GCP_ORCHESTRATOR_AGENT }
+            steps {
+                script {
+                    def atpSuiteIds = atpSuiteIdsList()
+                    def atpFlags = []
+                    atpSuiteIds.each { s ->
+                        atpFlags.add("${s}_failed.flag")
+                        atpFlags.add("${s}_no_results.flag")
+                        atpFlags.add("${s}_report_failed.flag")
+                    }
+                    def unstableFlags = [
+                        'atp_report_failed.flag',
+                        'summary_failed.flag', 'ai_failed.flag', 'ai_agent_failed.flag', 'email_failed.flag', 'pipeline_failed.flag',
+                        'suite_failed.flag', 'suite_setup_failed.flag',
+                    ] + atpFlags
+                    def u = false
+                    unstableFlags.each { f -> if (fileExists(f)) { u = true } }
+                    if (fileExists('install_failed.flag') || fileExists('precheck_failed.flag') || fileExists('device_detection_failed.flag')) {
+                        currentBuild.result = 'FAILURE'
+                    } else if (u) {
+                        currentBuild.result = 'UNSTABLE'
+                    } else {
+                        currentBuild.result = 'SUCCESS'
+                    }
+                }
+            }
+        }
+
+        // Runs after archiveArtifacts: frees agent workspace only (Jenkins archived builds unchanged).
+        stage('Post-build workspace cleanup (C: agent disk)') {
+            agent { label params.DEVICES_AGENT }
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    bat """call scripts\\jenkins_ci_cleanup_post.bat "${env.WORKSPACE}" """
+                }
+            }
+        }
+    }
+
+    post {
+        always { echo "Build: ${currentBuild.currentResult}" }
+    }
+}
