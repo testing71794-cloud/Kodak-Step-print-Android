@@ -40,6 +40,7 @@ def find_maestro_screenshot(name: str) -> Path | None:
         Path.home() / ".maestro" / "tests",
         Path.home() / ".maestro" / "screenshots",
         REPO / "reports" / "editing",
+        REPO / "reports" / "printing",
     ]
     for root in roots:
         if not root.is_dir():

@@ -145,6 +145,12 @@ def _is_editing_folder(folder: str) -> bool:
     return key == "editing"
 
 
+def _is_printing_folder(folder: str) -> bool:
+    resolved = resolve_atp_subfolder(REPO, folder)
+    key = (resolved or folder or "").strip().lower()
+    return key == "printing"
+
+
 def _prepend_path(*dirs: Path) -> None:
     cur = os.environ.get("PATH", "")
     parts = [str(d) for d in dirs if d.is_dir()]
@@ -305,6 +311,43 @@ def _prepare_editing_openrouter(folder: str) -> None:
         )
 
 
+def _prepare_printing_openrouter(folder: str) -> None:
+    """GraalJS host access + shared verify server for PR_* OpenRouter vision verify."""
+    if not _is_printing_folder(folder):
+        return
+    import importlib.util
+
+    mod_path = REPO / "scripts" / "ensure_editing_verify_server.py"
+    spec = importlib.util.spec_from_file_location("ensure_editing_verify_server", mod_path)
+    if spec is None or spec.loader is None:
+        print(f"[jenkins_atp_stage] WARN: cannot load {mod_path}", flush=True)
+        return
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+
+    mod.apply_editing_openrouter_env()
+    print(
+        "[jenkins_atp_stage] printing OpenRouter: "
+        f"MAESTRO_CLI_DANGEROUS_GRAALJS_ALLOW_HOST_ACCESS={os.environ.get('MAESTRO_CLI_DANGEROUS_GRAALJS_ALLOW_HOST_ACCESS', '')} "
+        f"OPENROUTER_MODEL_VISION={os.environ.get('OPENROUTER_MODEL_VISION', '')} "
+        f"EDITING_VERIFY_PORT={os.environ.get('EDITING_VERIFY_PORT', '8767')}",
+        flush=True,
+    )
+    if os.environ.get("ATP_PRINTING_VERIFY_SERVER", "1").strip().lower() in (
+        "0",
+        "false",
+        "no",
+        "off",
+    ):
+        print("[jenkins_atp_stage] ATP_PRINTING_VERIFY_SERVER=0 — skip printing verify server", flush=True)
+        return
+    if not mod.ensure_editing_verify_server(REPO):
+        print(
+            "[jenkins_atp_stage] WARN: verify server not ready; PR_* may use GraalJS direct OpenRouter",
+            flush=True,
+        )
+
+
 def cmd_run(folder: str, app: str, clear_state: str, maestro_cmd: str) -> int:
     resolved = resolve_atp_subfolder(REPO, folder)
     sid = folder_to_suite_id(resolved or folder)
@@ -316,6 +359,7 @@ def cmd_run(folder: str, app: str, clear_state: str, maestro_cmd: str) -> int:
     _prepare_gallery_openrouter(folder)
     _prepare_gallery_appium(folder)
     _prepare_editing_openrouter(folder)
+    _prepare_printing_openrouter(folder)
     _refresh_devices_on_this_agent(REPO)
     _log_orchestrator_fingerprint(REPO)
     maestro_argv = [

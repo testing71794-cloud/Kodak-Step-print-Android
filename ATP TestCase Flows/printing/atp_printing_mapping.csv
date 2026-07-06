@@ -1,0 +1,6 @@
+TC_ID,Module,Description,YAML_File,Subflows,Validations_Implemented,Status,Notes
+PR_01,Printing,Single print from gallery with AI success verify,"ATP TestCase Flows/printing/PR_01 - Single Print.yaml","pairing_optional; verify_print_screen_with_ai","UI asserts + OpenRouter print success when visible",Implemented,Recorded flow with connect/pair path
+PR_02,Printing,Multiple copies print,"ATP TestCase Flows/printing/PR_02 - Multiple Copies Print.yaml","pairing_optional","Copies counter + print path",Implemented,3 copies scenario
+PR_03,Printing,Multi-select images print,"ATP TestCase Flows/printing/PR_03 - Multi-Select Images Print.yaml","pairing_optional","Multi-select + print path",Implemented,3 photos scenario
+PR_04,Printing,Camera capture print,"ATP TestCase Flows/printing/PR_04 - Camera Capture Print.yaml","pairing_optional","Camera capture + print path",Implemented,Capture-to-print scenario
+PR_AI_01,Printing,Print screen AI verification,"ATP TestCase Flows/printing/PR_AI_01 - Print screen AI verification.yaml","pairing_optional; verify_print_screen_with_ai","OpenRouter print preview + optional success verify",Implemented,AI gate for printing module

@@ -1,0 +1,10 @@
+appId: com.kodak.steptouch
+---
+# Single-screen OpenRouter verification (print preview or print success).
+- runScript:
+    file: ../scripts/verify_print_screen_openrouter.js
+    env:
+      SCREEN_BASENAME: ${SCREEN_BASENAME}
+      SCREEN_LABEL: ${SCREEN_LABEL}
+      SCREEN_PROFILE: ${SCREEN_PROFILE}
+- assertTrue: ${output.print_screen_verified}

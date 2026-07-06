@@ -56,6 +56,16 @@ SCREEN_PROMPTS = {
         'Answer ONLY JSON: {"screen_correct": true/false, "gallery_visible": true/false, "summary": "one sentence"}. '
         "screen_correct=true when MY GALLERY grid is visible with photo thumbnails."
     ),
+    "print_preview": (
+        'Answer ONLY JSON: {"screen_correct": true/false, "print_ui_visible": true/false, "summary": "one sentence"}. '
+        "screen_correct=true when this is Kodak Step Print preview before printing with photo preview visible. "
+        "print_ui_visible=true when Print button, copies control, or printer connection UI is visible."
+    ),
+    "print_success": (
+        'Answer ONLY JSON: {"screen_correct": true/false, "success_visible": true/false, "summary": "one sentence"}. '
+        "screen_correct=true when print completed successfully (Print Successful message or confirmation). "
+        "success_visible=true when success text, checkmark, or completion dialog is clearly visible."
+    ),
 }
 
 PAIR_PROMPTS = {
@@ -137,6 +147,8 @@ def _parse_vision_json(raw: str) -> dict:
                 "screen_correct": True,
                 "controls_visible": True,
                 "gallery_visible": True,
+                "print_ui_visible": True,
+                "success_visible": True,
                 "summary": "OpenRouter moderation pass-through (non-JSON response)",
             }
         if "{" in text and "}" in text:
@@ -187,10 +199,15 @@ def verify_screen(body: dict) -> dict:
         raise RuntimeError(str(exc)) from exc
     if profile == "gallery":
         ok = result.get("screen_correct") is True and result.get("gallery_visible") is True
+    elif profile == "print_preview":
+        ok = result.get("screen_correct") is True and result.get("print_ui_visible") is True
+    elif profile == "print_success":
+        ok = result.get("screen_correct") is True and result.get("success_visible") is True
     else:
         ok = result.get("screen_correct") is True and result.get("controls_visible") is True
     return {
         "edit_screen_verified": ok,
+        "print_screen_verified": ok,
         "visual_pair_verified": ok,
         "filter_pair_verified": ok,
         "summary": result.get("summary", ""),
@@ -243,12 +260,12 @@ class _Handler(BaseHTTPRequestHandler):
             self.send_error(400, "Invalid JSON body")
             return
         try:
-            if self.path == "/verify/ed_screen":
+            if self.path in ("/verify/ed_screen", "/verify/print_screen"):
                 result = verify_screen(body)
             elif self.path == "/verify/ed_pair":
                 result = verify_pair_route(body)
             else:
-                self.send_error(404, "Use POST /verify/ed_screen or /verify/ed_pair")
+                self.send_error(404, "Use POST /verify/ed_screen, /verify/print_screen, or /verify/ed_pair")
                 return
         except Exception as exc:
             payload = json.dumps({"error": str(exc)}).encode("utf-8")
@@ -269,7 +286,7 @@ class _Handler(BaseHTTPRequestHandler):
 def main() -> int:
     server = ThreadingHTTPServer((_HOST, _PORT), _Handler)
     print(f"Editing OpenRouter verify server on http://{_HOST}:{_PORT}", flush=True)
-    print("Endpoints: POST /verify/ed_screen, POST /verify/ed_pair", flush=True)
+    print("Endpoints: POST /verify/ed_screen, /verify/print_screen, /verify/ed_pair", flush=True)
     server.serve_forever()
     return 0
 

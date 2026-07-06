@@ -6,7 +6,7 @@ cd /d "%REPO_ROOT%"
 if not exist "reports\editing" mkdir "reports\editing"
 echo Starting editing verify server on http://127.0.0.1:8767
 echo Close any older verify-server windows on port 8766 before running tests.
-echo Leave this window open while running ED_* flows in Maestro Studio.
+echo Leave this window open while running ED_* or PR_AI_* flows in Maestro Studio.
 set "EDITING_VERIFY_PORT=8767"
 set "OPENROUTER_SSL_VERIFY=0"
 set "EDITING_VERIFY_PORT=8767"

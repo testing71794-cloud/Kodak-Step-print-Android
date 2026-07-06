@@ -1,0 +1,3 @@
+# Maestro workspace config for printing flows (CLI + Studio when opened from this folder).
+# Screenshots from takeScreenshot are collected for OpenRouter verify scripts.
+testOutputDir: ../../reports/printing/maestro-debug

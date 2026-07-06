@@ -39,9 +39,14 @@ def is_subflow_helper(path: Path) -> bool:
     return any(part.lower() == "subflows" for part in path.parts)
 
 
+def is_maestro_workspace_config(path: Path) -> bool:
+    """Maestro per-folder config (testOutputDir, etc.) — not a runnable test flow."""
+    return path.name.lower() in ("config.yaml", "config.yml")
+
+
 def is_excluded_top_level_flow(path: Path) -> bool:
     """Reserved for flows that must not be discovered as top-level Jenkins tests."""
-    return False
+    return is_maestro_workspace_config(path)
 
 
 def safe_flow_stem(name: str) -> str:

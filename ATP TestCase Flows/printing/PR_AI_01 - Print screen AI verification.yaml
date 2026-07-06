@@ -1,9 +1,9 @@
-# TC_ID: PR_01 - Single Print
-# PR_01 – Single Print (recorded flow: video 1780485381338)
-# gallery → photo → print FAB → [connect: device 21%,13% + pair] → print preview → print → progress
+# TC_ID: PR_AI_01 - Print screen AI verification
+# ATP Steps: gallery → photo → print preview → AI verify; optional print success AI verify
+# ATP Expected: OpenRouter confirms print preview UI and (when printer available) success screen
 # Env: BT_DEVICE_NAME
 appId: com.kodak.steptouch
-name: PR_01 - Single Print
+name: PR_AI_01 - Print screen AI verification
 ---
 - launchApp:
     clearState: false
@@ -51,11 +51,9 @@ name: PR_01 - Single Print
 - tapOn:
     text: "OK"
     optional: true
-# Print bottom-right FAB (video).
 - tapOn:
     point: "88%, 92%"
     label: Print bottom-right
-# Connect from print window when printer not paired (video / CO_03).
 - tapOn: "Print"
 - waitForAnimationToEnd:
     timeout: 2000
@@ -64,8 +62,6 @@ name: PR_01 - Single Print
 - waitForAnimationToEnd:
     timeout: 2000
 - runFlow: subflows/pairing_optional.yaml
-- waitForAnimationToEnd:
-    timeout: 2000
 - waitForAnimationToEnd:
     timeout: 2000
 - repeat:
@@ -81,15 +77,21 @@ name: PR_01 - Single Print
 - assertVisible:
     id: "ivItemGridImage"
     index: 6
+- takeScreenshot: PR_AI_01_print_preview
+- runFlow:
+    file: subflows/verify_print_screen_with_ai.yaml
+    env:
+      SCREEN_BASENAME: PR_AI_01_print_preview
+      SCREEN_LABEL: PR_AI_01 Print preview
+      SCREEN_PROFILE: print_preview
 - runFlow:
     when:
       visible: "Print Successful"
     commands:
-      - assertVisible: "Print Successful"
-      - takeScreenshot: PR_01_print_success
+      - takeScreenshot: PR_AI_01_print_success
       - runFlow:
           file: subflows/verify_print_screen_with_ai.yaml
           env:
-            SCREEN_BASENAME: PR_01_print_success
-            SCREEN_LABEL: PR_01 Print Successful
+            SCREEN_BASENAME: PR_AI_01_print_success
+            SCREEN_LABEL: PR_AI_01 Print Successful
             SCREEN_PROFILE: print_success

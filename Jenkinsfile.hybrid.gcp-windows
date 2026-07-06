@@ -136,7 +136,7 @@ pipeline {
         booleanParam(name: 'RUN_ATP_GALLERY', defaultValue: false, description: 'ATP TestCase Flows/gallery')
         booleanParam(name: 'RUN_ATP_PRECUT', defaultValue: false, description: 'ATP TestCase Flows/precut')
         booleanParam(name: 'RUN_ATP_EDITING', defaultValue: false, description: 'ATP TestCase Flows/editing')
-        booleanParam(name: 'RUN_ATP_PRINTING', defaultValue: false, description: 'ATP TestCase Flows/printing (PR_01–PR_04)')
+        booleanParam(name: 'RUN_ATP_PRINTING', defaultValue: false, description: 'ATP TestCase Flows/printing (PR_01–PR_04, PR_AI_01 OpenRouter)')
         booleanParam(name: 'RUN_ATP_SETTINGS', defaultValue: false, description: 'ATP TestCase Flows/settings')
         booleanParam(name: 'RUN_AI_AGENT', defaultValue: false, description: 'Optional AI Step Print Agent module (ai-agent/) — independent from Maestro ATP stages')
         choice(name: 'AI_AGENT_MODE', choices: ['assist', 'observe', 'autonomous'], description: 'AI Step Print Agent execution mode (when RUN_AI_AGENT=true)')
@@ -373,11 +373,17 @@ pipeline {
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     script {
-                        withEnv(maestroEnvList() + [
-                            "ATP_FLOW_INCLUDE=${params.ATP_FLOW_INCLUDE}",
-                            'PYTHONIOENCODING=utf-8',
-                        ]) {
-                            bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all printing "${params.APP_PACKAGE}" "${params.CLEAR_STATE.toString()}" "${params.MAESTRO_CMD}" """
+                        withOpenRouterCredentials(params.OPENROUTER_CREDENTIALS_ID) {
+                            withEnv(maestroEnvList() + openRouterGraalJsEnvList() + [
+                                "ATP_FLOW_INCLUDE=${params.ATP_FLOW_INCLUDE}",
+                                "OPENROUTER_MODEL_VISION=${params.OPENROUTER_MODEL_VISION}",
+                                "OpenRouterAPI=${env.OPENROUTER_API_KEY ?: ''}",
+                                'EDITING_VERIFY_PORT=8767',
+                                'ATP_PRINTING_VERIFY_SERVER=1',
+                                'PYTHONIOENCODING=utf-8',
+                            ]) {
+                                bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all printing "${params.APP_PACKAGE}" "${params.CLEAR_STATE.toString()}" "${params.MAESTRO_CMD}" """
+                            }
                         }
                     }
                 }
