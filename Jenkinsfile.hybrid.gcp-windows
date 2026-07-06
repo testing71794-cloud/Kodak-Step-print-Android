@@ -51,14 +51,15 @@ def withOpenRouterCredentials = { Object credsId, Closure action ->
 def anyAtpModuleEnabled = {
     return params.RUN_ATP_ONBOARDING || params.RUN_ATP_SIGNUP_LOGIN ||
         params.RUN_ATP_CAMERA || params.RUN_ATP_COLLAGE ||
-        params.RUN_ATP_GALLERY || params.RUN_ATP_PRECUT || params.RUN_ATP_EDITING || params.RUN_ATP_SETTINGS
+        params.RUN_ATP_GALLERY || params.RUN_ATP_PRECUT || params.RUN_ATP_EDITING ||
+        params.RUN_ATP_PRINTING || params.RUN_ATP_SETTINGS
 }
 
 /** Suite ids for finalize flag checks (must match jenkins_atp_stage.py folder_to_suite_id). */
 def atpSuiteIdsList = {
     return [
         'atp_onboarding', 'atp_signup_login',
-        'atp_camera', 'atp_collage', 'atp_gallery', 'atp_precut', 'atp_editing', 'atp_settings',
+        'atp_camera', 'atp_collage', 'atp_gallery', 'atp_precut', 'atp_editing', 'atp_printing', 'atp_settings',
     ]
 }
 
@@ -78,12 +79,17 @@ def maestroEnvList() {
     return envList
 }
 
-/** GraalJS host access for in-flow adb capture (GA_02 OpenRouter verify). */
-def galleryOpenRouterEnvList() {
+/** GraalJS host access for in-flow OpenRouter verify (GA_02, ED_*). */
+def openRouterGraalJsEnvList() {
     return [
         'MAESTRO_CLI_DANGEROUS_GRAALJS_ALLOW_HOST_ACCESS=1',
         'MAESTRO_CLI_DANGEROUS_GRAALJS_ALLOW_HOST_CLASS_LOOKUP=1',
     ]
+}
+
+/** @deprecated use openRouterGraalJsEnvList */
+def galleryOpenRouterEnvList() {
+    return openRouterGraalJsEnvList()
 }
 
 /** Appium W3C pinch for GA_05 / GA_06 (real multitouch on gallery photo detail). */
@@ -130,6 +136,7 @@ pipeline {
         booleanParam(name: 'RUN_ATP_GALLERY', defaultValue: false, description: 'ATP TestCase Flows/gallery')
         booleanParam(name: 'RUN_ATP_PRECUT', defaultValue: false, description: 'ATP TestCase Flows/precut')
         booleanParam(name: 'RUN_ATP_EDITING', defaultValue: false, description: 'ATP TestCase Flows/editing')
+        booleanParam(name: 'RUN_ATP_PRINTING', defaultValue: false, description: 'ATP TestCase Flows/printing (PR_01–PR_04)')
         booleanParam(name: 'RUN_ATP_SETTINGS', defaultValue: false, description: 'ATP TestCase Flows/settings')
         booleanParam(name: 'RUN_AI_AGENT', defaultValue: false, description: 'Optional AI Step Print Agent module (ai-agent/) — independent from Maestro ATP stages')
         choice(name: 'AI_AGENT_MODE', choices: ['assist', 'observe', 'autonomous'], description: 'AI Step Print Agent execution mode (when RUN_AI_AGENT=true)')
@@ -149,8 +156,8 @@ pipeline {
         )
         string(
             name: 'OPENROUTER_MODEL_VISION',
-            defaultValue: 'openai/gpt-4.1-mini',
-            description: 'OpenRouter vision model for in-flow AI verify (GA_02 3x3 grid, ED_03, etc.).'
+            defaultValue: 'meta-llama/llama-3.2-11b-vision-instruct:free',
+            description: 'OpenRouter vision model for in-flow AI verify (GA_02, ED_01–ED_99 editing suite).'
         )
     }
 
@@ -309,7 +316,7 @@ pipeline {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     script {
                         withOpenRouterCredentials(params.OPENROUTER_CREDENTIALS_ID) {
-                            withEnv(maestroEnvList() + galleryOpenRouterEnvList() + galleryAppiumPinchEnvList() + [
+                            withEnv(maestroEnvList() + openRouterGraalJsEnvList() + galleryAppiumPinchEnvList() + [
                                 "ATP_FLOW_INCLUDE=${params.ATP_FLOW_INCLUDE}",
                                 "OPENROUTER_MODEL_VISION=${params.OPENROUTER_MODEL_VISION}",
                                 "OpenRouterAPI=${env.OPENROUTER_API_KEY ?: ''}",
@@ -343,8 +350,34 @@ pipeline {
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     script {
-                        withEnv(maestroEnvList()) {
-                            bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all editing "${params.APP_PACKAGE}" "${params.CLEAR_STATE.toString()}" "${params.MAESTRO_CMD}" """
+                        withOpenRouterCredentials(params.OPENROUTER_CREDENTIALS_ID) {
+                            withEnv(maestroEnvList() + openRouterGraalJsEnvList() + [
+                                "ATP_FLOW_INCLUDE=${params.ATP_FLOW_INCLUDE}",
+                                "OPENROUTER_MODEL_VISION=${params.OPENROUTER_MODEL_VISION}",
+                                "OpenRouterAPI=${env.OPENROUTER_API_KEY ?: ''}",
+                                'EDITING_VERIFY_PORT=8767',
+                                'ATP_EDITING_VERIFY_SERVER=1',
+                                'PYTHONIOENCODING=utf-8',
+                            ]) {
+                                bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all editing "${params.APP_PACKAGE}" "${params.CLEAR_STATE.toString()}" "${params.MAESTRO_CMD}" """
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Printing') {
+            when { expression { return params.RUN_ATP_PRINTING } }
+            agent { label params.DEVICES_AGENT }
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    script {
+                        withEnv(maestroEnvList() + [
+                            "ATP_FLOW_INCLUDE=${params.ATP_FLOW_INCLUDE}",
+                            'PYTHONIOENCODING=utf-8',
+                        ]) {
+                            bat """cd /d "${env.WORKSPACE}" && python scripts/jenkins_atp_stage.py all printing "${params.APP_PACKAGE}" "${params.CLEAR_STATE.toString()}" "${params.MAESTRO_CMD}" """
                         }
                     }
                 }

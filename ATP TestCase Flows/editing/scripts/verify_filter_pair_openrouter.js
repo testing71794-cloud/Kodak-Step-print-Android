@@ -245,7 +245,7 @@ if (!apiKey) {
   throw new Error("OpenRouter API key not found. Set OpenRouterAPI or OPENROUTER_API_KEY.");
 }
 
-var model = resolveEnvValue("OPENROUTER_MODEL_VISION") || "openrouter/free";
+var model = resolveEnvValue("OPENROUTER_MODEL_VISION") || "meta-llama/llama-3.2-11b-vision-instruct:free";
 var referer = resolveEnvValue("OPENROUTER_HTTP_REFERER") || "http://localhost";
 var appTitle = resolveEnvValue("OPENROUTER_APP_TITLE") || "Kodak Step Print Maestro";
 

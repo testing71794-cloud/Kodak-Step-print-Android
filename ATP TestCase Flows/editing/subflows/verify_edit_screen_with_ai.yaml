@@ -1,0 +1,10 @@
+appId: com.kodak.steptouch
+---
+# Single-screen OpenRouter verification (edit toolbar or gallery).
+- runScript:
+    file: ../scripts/verify_edit_screen_openrouter.js
+    env:
+      SCREEN_BASENAME: ${SCREEN_BASENAME}
+      SCREEN_LABEL: ${SCREEN_LABEL}
+      SCREEN_PROFILE: ${SCREEN_PROFILE}
+- assertTrue: ${output.edit_screen_verified}

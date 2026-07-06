@@ -1,0 +1,36 @@
+# TC_ID: ED_09 - Text comprehensive with AI verification
+appId: com.kodak.steptouch
+name: ED_09 - Text comprehensive
+---
+- startRecording:
+    path: ED_09_text
+    optional: true
+- runFlow:
+    file: subflows/prepare_editor_warm_start.yaml
+    env:
+      SCREENSHOT_BASENAME: ED_09_editor_ready
+      SCREEN_LABEL: Edit Photo before text
+- takeScreenshot: ED_09_text_before
+- runFlow: subflows/add_text.yaml
+- takeScreenshot: ED_09_text_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_09_text_before
+      AFTER_BASENAME: ED_09_text_after
+      VERIFY_LABEL: Text overlay
+      VERIFY_PROFILE: text
+- runFlow: subflows/undo_last_edit.yaml
+- takeScreenshot: ED_09_text_redo_before
+- runFlow: subflows/add_text.yaml
+- takeScreenshot: ED_09_text_redo_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_09_text_redo_before
+      AFTER_BASENAME: ED_09_text_redo_after
+      VERIFY_LABEL: Text re-applied after undo
+      VERIFY_PROFILE: text
+- assertVisible:
+    id: "filterEditingOptionsImageView"
+- stopRecording

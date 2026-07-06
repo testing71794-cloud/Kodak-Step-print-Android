@@ -19,3 +19,10 @@ name: ED_01 - Enter edit photo mode
 - runFlow: subflows/enter_edit_mode.yaml
 - assertVisible:
     id: "filterEditingOptionsImageView"
+- takeScreenshot: ED_01_editor_screen
+- runFlow:
+    file: subflows/verify_edit_screen_with_ai.yaml
+    env:
+      SCREEN_BASENAME: ED_01_editor_screen
+      SCREEN_LABEL: ED_01 Edit Photo entry
+      SCREEN_PROFILE: edit_screen

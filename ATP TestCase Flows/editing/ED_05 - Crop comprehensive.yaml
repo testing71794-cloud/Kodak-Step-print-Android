@@ -1,0 +1,41 @@
+# TC_ID: ED_05 - Crop comprehensive with AI verification
+# Covers fit/crop canvas pinch, pan, and photo detail preview crop path.
+appId: com.kodak.steptouch
+name: ED_05 - Crop comprehensive
+---
+- startRecording:
+    path: ED_05_crop
+    optional: true
+- runFlow:
+    file: subflows/prepare_editor_warm_start.yaml
+    env:
+      SCREENSHOT_BASENAME: ED_05_editor_ready
+      SCREEN_LABEL: Edit Photo before crop
+- takeScreenshot: ED_05_crop_canvas_before
+- runFlow: subflows/apply_fit_crop.yaml
+- takeScreenshot: ED_05_crop_canvas_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_05_crop_canvas_before
+      AFTER_BASENAME: ED_05_crop_canvas_after
+      VERIFY_LABEL: Fit crop canvas pinch and pan
+      VERIFY_PROFILE: crop
+- launchApp:
+    clearState: false
+- extendedWaitUntil:
+    visible:
+      text: ".*(?i)my gallery.*"
+    timeout: 20000
+- runFlow: subflows/open_photo_detail_preview.yaml
+- takeScreenshot: ED_05_detail_before_pinch
+- runFlow: subflows/pinch_photo_detail_preview.yaml
+- takeScreenshot: ED_05_detail_after_pinch
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_05_detail_before_pinch
+      AFTER_BASENAME: ED_05_detail_after_pinch
+      VERIFY_LABEL: Photo detail pinch crop
+      VERIFY_PROFILE: crop
+- stopRecording

@@ -1,0 +1,3 @@
+# Maestro workspace config for editing flows (CLI + Studio when opened from this folder).
+# Screenshots from takeScreenshot are collected for OpenRouter verify scripts.
+testOutputDir: ../../reports/editing/maestro-debug

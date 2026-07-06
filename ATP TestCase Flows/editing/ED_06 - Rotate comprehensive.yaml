@@ -1,0 +1,36 @@
+# TC_ID: ED_06 - Rotate comprehensive with AI verification
+appId: com.kodak.steptouch
+name: ED_06 - Rotate comprehensive
+---
+- startRecording:
+    path: ED_06_rotate
+    optional: true
+- runFlow:
+    file: subflows/prepare_editor_warm_start.yaml
+    env:
+      SCREENSHOT_BASENAME: ED_06_editor_ready
+      SCREEN_LABEL: Edit Photo before rotate
+- takeScreenshot: ED_06_rotate_1_before
+- runFlow: subflows/apply_rotate.yaml
+- takeScreenshot: ED_06_rotate_1_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_06_rotate_1_before
+      AFTER_BASENAME: ED_06_rotate_1_after
+      VERIFY_LABEL: Rotate 90 degrees
+      VERIFY_PROFILE: rotate
+- runFlow: subflows/undo_last_edit.yaml
+- takeScreenshot: ED_06_rotate_2_before
+- runFlow: subflows/apply_rotate.yaml
+- takeScreenshot: ED_06_rotate_2_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_06_rotate_2_before
+      AFTER_BASENAME: ED_06_rotate_2_after
+      VERIFY_LABEL: Second rotate
+      VERIFY_PROFILE: rotate
+- assertVisible:
+    id: "editingOptionsImageView"
+- stopRecording

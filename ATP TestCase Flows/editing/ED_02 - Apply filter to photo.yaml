@@ -7,16 +7,11 @@ name: ED_02 - Apply filter to photo
 - startRecording:
     path: ED_02_all_filters
     optional: true
-- launchApp:
-    clearState: false
 - runFlow:
-    when:
-      visible: "No Thanks"
-    commands:
-      - tapOn: "No Thanks"
-- assertVisible:
-    text: ".*(?i)my gallery.*"
-- runFlow: subflows/enter_edit_mode.yaml
+    file: subflows/prepare_editor_warm_start.yaml
+    env:
+      SCREENSHOT_BASENAME: ED_02_editor_ready
+      SCREEN_LABEL: ED_02 Edit Photo before filters
 
 # Filter 1
 - runFlow: subflows/reset_to_no_filter.yaml

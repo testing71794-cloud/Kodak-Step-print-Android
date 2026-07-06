@@ -1,0 +1,17 @@
+appId: com.kodak.steptouch
+---
+# Save edited image and AI-verify gallery shows saved photo grid.
+- takeScreenshot: ${BEFORE_BASENAME}
+- runFlow: save_changes.yaml
+- extendedWaitUntil:
+    visible:
+      text: ".*(?i)my gallery.*"
+    timeout: 20000
+- takeScreenshot: ${AFTER_BASENAME}
+- runFlow:
+    file: verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ${BEFORE_BASENAME}
+      AFTER_BASENAME: ${AFTER_BASENAME}
+      VERIFY_LABEL: ${VERIFY_LABEL}
+      VERIFY_PROFILE: save

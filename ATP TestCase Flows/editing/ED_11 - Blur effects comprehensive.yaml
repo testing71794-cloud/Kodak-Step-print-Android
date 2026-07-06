@@ -1,0 +1,49 @@
+# TC_ID: ED_11 - Blur effects comprehensive with AI verification
+appId: com.kodak.steptouch
+name: ED_11 - Blur effects comprehensive
+---
+- startRecording:
+    path: ED_11_blur
+    optional: true
+- runFlow:
+    file: subflows/prepare_editor_warm_start.yaml
+    env:
+      SCREENSHOT_BASENAME: ED_11_editor_ready
+      SCREEN_LABEL: Edit Photo before blur
+- takeScreenshot: ED_11_blur_before
+- runFlow: subflows/apply_blur_yes.yaml
+- takeScreenshot: ED_11_blur_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_11_blur_before
+      AFTER_BASENAME: ED_11_blur_after
+      VERIFY_LABEL: Radial blur effect
+      VERIFY_PROFILE: blur
+- runFlow: subflows/open_blur_tool.yaml
+- tapOn:
+    text: ".*(?i)no blur.*"
+    optional: true
+- runFlow:
+    when:
+      visible:
+        id: "saveRecentEditImageView"
+    commands:
+      - tapOn:
+          id: "saveRecentEditImageView"
+      - waitForAnimationToEnd:
+          timeout: 1500
+- takeScreenshot: ED_11_reblur_before
+- runFlow: subflows/apply_blur_yes.yaml
+- runFlow: subflows/apply_blur_yes.yaml
+- takeScreenshot: ED_11_reblur_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_11_reblur_before
+      AFTER_BASENAME: ED_11_reblur_after
+      VERIFY_LABEL: Blur re-applied after NO BLUR
+      VERIFY_PROFILE: blur
+- assertVisible:
+    id: "filterEditingOptionsImageView"
+- stopRecording

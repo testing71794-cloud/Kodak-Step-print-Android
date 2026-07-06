@@ -1,0 +1,36 @@
+# TC_ID: ED_12 - Save comprehensive with AI gallery verification
+appId: com.kodak.steptouch
+name: ED_12 - Save comprehensive
+---
+- startRecording:
+    path: ED_12_save
+    optional: true
+- runFlow:
+    file: subflows/prepare_editor_warm_start.yaml
+    env:
+      SCREENSHOT_BASENAME: ED_12_editor_ready
+      SCREEN_LABEL: Edit Photo before save
+- takeScreenshot: ED_12_edited_before_save
+- runFlow: subflows/apply_filter.yaml
+- takeScreenshot: ED_12_edited_after_filter
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_12_edited_before_save
+      AFTER_BASENAME: ED_12_edited_after_filter
+      VERIFY_LABEL: Filter before save
+      VERIFY_PROFILE: filter
+- runFlow:
+    file: subflows/save_and_verify_gallery_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_12_edited_after_filter
+      AFTER_BASENAME: ED_12_gallery_after_save
+      VERIFY_LABEL: Save to gallery
+- takeScreenshot: ED_12_gallery_final
+- runFlow:
+    file: subflows/verify_edit_screen_with_ai.yaml
+    env:
+      SCREEN_BASENAME: ED_12_gallery_final
+      SCREEN_LABEL: Gallery after save
+      SCREEN_PROFILE: gallery
+- stopRecording

@@ -1,0 +1,21 @@
+appId: com.kodak.steptouch
+---
+# Horizontal flip under Adjust menu (optional resource IDs + label fallbacks).
+- runFlow: open_adjust_menu.yaml
+- tapOn:
+    id: "adjustfliphorizontalImageView"
+    optional: true
+- tapOn:
+    id: "adjusthorizontalImageView"
+    optional: true
+- tapOn:
+    text: ".*(?i)horizontal.*"
+    optional: true
+- tapOn:
+    id: "adjustrotateImageView"
+    index: 0
+    optional: true
+    label: Fallback flip control near rotate when dedicated id is absent
+- waitForAnimationToEnd:
+    timeout: 1500
+- runFlow: confirm_adjust_tool_returns_toolbar.yaml

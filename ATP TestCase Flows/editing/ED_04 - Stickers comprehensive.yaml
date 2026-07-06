@@ -1,0 +1,36 @@
+# TC_ID: ED_04 - Stickers comprehensive with AI verification
+appId: com.kodak.steptouch
+name: ED_04 - Stickers comprehensive
+---
+- startRecording:
+    path: ED_04_stickers
+    optional: true
+- runFlow:
+    file: subflows/prepare_editor_warm_start.yaml
+    env:
+      SCREENSHOT_BASENAME: ED_04_editor_ready
+      SCREEN_LABEL: Edit Photo before stickers
+- takeScreenshot: ED_04_sticker_1_before
+- runFlow: subflows/apply_sticker.yaml
+- takeScreenshot: ED_04_sticker_1_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_04_sticker_1_before
+      AFTER_BASENAME: ED_04_sticker_1_after
+      VERIFY_LABEL: Sticker application
+      VERIFY_PROFILE: sticker
+- runFlow: subflows/undo_last_edit.yaml
+- takeScreenshot: ED_04_sticker_2_before
+- runFlow: subflows/apply_sticker.yaml
+- takeScreenshot: ED_04_sticker_2_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_04_sticker_2_before
+      AFTER_BASENAME: ED_04_sticker_2_after
+      VERIFY_LABEL: Second sticker application
+      VERIFY_PROFILE: sticker
+- assertVisible:
+    id: "filterEditingOptionsImageView"
+- stopRecording
