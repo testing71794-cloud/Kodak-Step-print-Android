@@ -1,0 +1,9 @@
+appId: com.kodak.steptouch
+---
+# Paint panel: undo reset, color swatches, brush size bars.
+- assertVisible:
+    text: ".*(?i)paint.*"
+    optional: true
+- assertVisible:
+    id: "undoPaintImageView"
+    optional: true

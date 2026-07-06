@@ -1,0 +1,22 @@
+# TC_ID: ED_11A - Blur comprehensive with AI
+# P0 — Before/after radial blur with OpenRouter pair verification
+appId: com.kodak.steptouch
+name: ED_11A - Blur comprehensive with AI
+---
+- runFlow:
+    file: subflows/prepare_editor_warm_start.yaml
+    env:
+      SCREENSHOT_BASENAME: ED_11A_editor_ready
+      SCREEN_LABEL: ED_11A Edit Photo before blur
+- takeScreenshot: ED_11A_blur_before
+- runFlow: subflows/blur/apply_blur_effect.yaml
+- takeScreenshot: ED_11A_blur_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_11A_blur_before
+      AFTER_BASENAME: ED_11A_blur_after
+      VERIFY_LABEL: Radial blur effect
+      VERIFY_PROFILE: blur
+- assertVisible:
+    text: ".*(?i)(Blur|Filter).*"

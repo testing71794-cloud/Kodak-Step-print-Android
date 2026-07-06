@@ -1,14 +1,4 @@
 appId: com.kodak.steptouch
 ---
-# Open Blur tool from edit toolbar (may require scrolling right past Adjust).
-- runFlow: scroll_edit_toolbar_right.yaml
-- scrollUntilVisible:
-    element: "Blur"
-    direction: RIGHT
-    timeout: 8000
-    optional: true
-- tapOn: "Blur"
-- extendedWaitUntil:
-    visible:
-      text: ".*(?i)no blur.*"
-    timeout: 10000
+# Backward-compatible alias.
+- runFlow: blur/open_blur_tool.yaml

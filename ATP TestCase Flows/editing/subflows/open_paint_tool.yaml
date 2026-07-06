@@ -1,15 +1,4 @@
 appId: com.kodak.steptouch
 ---
-# Paint tool (ATP ED_13 doodle) — extended toolbar, swipe then tap Paint.
-- runFlow: scroll_edit_toolbar_right.yaml
-- scrollUntilVisible:
-    element: "Paint"
-    direction: RIGHT
-    timeout: 8000
-    optional: true
-- tapOn: "Paint"
-- extendedWaitUntil:
-    visible:
-      id: "editPhotoTextView"
-    timeout: 10000
-    optional: true
+# Backward-compatible alias.
+- runFlow: paint/open_paint_tool.yaml

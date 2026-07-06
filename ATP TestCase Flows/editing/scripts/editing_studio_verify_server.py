@@ -103,6 +103,21 @@ SCREEN_PROMPTS = {
         "screen_correct=true when Kodak Edit Photo Adjust tool is open with photo preview and transform controls (horizontal flip, vertical flip, rotate 90). "
         "tools_visible=true when flip and/or rotate icon controls are visible below the photo."
     ),
+    "blur_screen": (
+        'Answer ONLY JSON: {"screen_correct": true/false, "controls_visible": true/false, "summary": "one sentence"}. '
+        "screen_correct=true when Kodak Edit Photo Blur tool is open with photo preview and blur controls (NO BLUR button and radial blur option). "
+        "controls_visible=true when NO BLUR and at least one blur effect control are visible."
+    ),
+    "text_screen": (
+        'Answer ONLY JSON: {"screen_correct": true/false, "editor_visible": true/false, "summary": "one sentence"}. '
+        "screen_correct=true when Kodak Edit Photo Text tool is open with photo preview and text entry UI (color palette, Abc, or canvas cursor). "
+        "editor_visible=true when text editing controls or visible text overlay on photo are present."
+    ),
+    "paint_screen": (
+        'Answer ONLY JSON: {"screen_correct": true/false, "palette_visible": true/false, "summary": "one sentence"}. '
+        "screen_correct=true when Kodak Edit Photo Paint tool is open with photo preview and brush controls (color swatches and brush size). "
+        "palette_visible=true when color swatches or brush size bars are visible below the photo."
+    ),
 }
 
 PAIR_PROMPTS = {
@@ -281,6 +296,18 @@ def verify_screen(body: dict) -> dict:
     elif profile == "adjust_tool_screen":
         ok = result.get("screen_correct") is True and (
             result.get("tools_visible") is True or result.get("tools_visible") is None
+        )
+    elif profile == "blur_screen":
+        ok = result.get("screen_correct") is True and (
+            result.get("controls_visible") is True or result.get("controls_visible") is None
+        )
+    elif profile == "text_screen":
+        ok = result.get("screen_correct") is True and (
+            result.get("editor_visible") is True or result.get("editor_visible") is None
+        )
+    elif profile == "paint_screen":
+        ok = result.get("screen_correct") is True and (
+            result.get("palette_visible") is True or result.get("palette_visible") is None
         )
     else:
         ok = result.get("screen_correct") is True and result.get("controls_visible") is True

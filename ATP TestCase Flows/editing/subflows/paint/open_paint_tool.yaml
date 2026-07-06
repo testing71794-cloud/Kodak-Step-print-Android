@@ -1,0 +1,12 @@
+appId: com.kodak.steptouch
+---
+# Open Paint from extended edit toolbar.
+- runFlow: ../scroll_edit_toolbar_right.yaml
+- scrollUntilVisible:
+    element: "Paint"
+    direction: RIGHT
+    timeout: 8000
+    optional: true
+- tapOn: "Paint"
+- waitForAnimationToEnd:
+    timeout: 2000

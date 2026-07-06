@@ -1,0 +1,5 @@
+appId: com.kodak.steptouch
+---
+# Open Text tool and apply text overlay.
+- runFlow: open_text_tool.yaml
+- runFlow: enter_text_overlay.yaml

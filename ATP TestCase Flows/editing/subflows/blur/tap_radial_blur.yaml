@@ -1,0 +1,15 @@
+appId: com.kodak.steptouch
+---
+# Select radial blur (yellow circle — right of NO BLUR).
+- tapOn:
+    point: "72%,78%"
+    optional: true
+    label: Radial blur button
+- tapOn:
+    id: "imageViewBlur"
+    optional: true
+- tapOn:
+    id: "blurImageView"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 2000

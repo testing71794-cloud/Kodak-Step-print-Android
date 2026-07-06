@@ -1,0 +1,7 @@
+appId: com.kodak.steptouch
+---
+# Tap NO BLUR to remove blur effect.
+- tapOn:
+    text: ".*(?i)no blur.*"
+- waitForAnimationToEnd:
+    timeout: 1500

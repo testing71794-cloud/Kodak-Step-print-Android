@@ -1,33 +1,7 @@
 appId: com.kodak.steptouch
 ---
-# Text UI (extended toolbar):
-# 1) Tap Text — color palette + cursor on canvas; Cancel top-right
-# 2) Type text + pick color — keyboard; Done confirms text entry (not exit-edit Done)
-# 3) X + checkmark — applies text overlay; Text tab active in toolbar
-- runFlow: open_text_tool.yaml
-- tapOn:
-    point: "50%,45%"
-    optional: true
-    label: Focus text cursor on canvas
-- inputText: "ATP"
-- tapOn:
-    point: "82%,88%"
-    optional: true
-    label: Red text color swatch
-- tapOn:
-    text: "Done"
-    optional: true
-- hideKeyboard:
-    optional: true
-- runFlow:
-    when:
-      visible:
-        id: "saveRecentEditImageView"
-    commands:
-      - tapOn:
-          id: "saveRecentEditImageView"
-      - waitForAnimationToEnd:
-          timeout: 1500
+# Backward-compatible alias.
+- runFlow: text/apply_text_overlay.yaml
 - extendedWaitUntil:
     visible:
       id: "editingOptionsImageView"

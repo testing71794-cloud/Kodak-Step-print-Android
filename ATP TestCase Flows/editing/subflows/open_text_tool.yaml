@@ -1,20 +1,4 @@
 appId: com.kodak.steptouch
 ---
-# Text tool lives on extended toolbar — swipe toolbar then find Text.
-- runFlow: scroll_edit_toolbar_right.yaml
-- scrollUntilVisible:
-    element: "Text"
-    direction: RIGHT
-    timeout: 8000
-    optional: true
-- tapOn: "Text"
-- extendedWaitUntil:
-    visible:
-      text: ".*(?i)(cancel|abc).*"
-    timeout: 10000
-    optional: true
-- extendedWaitUntil:
-    visible:
-      id: "editPhotoTextView"
-    timeout: 10000
-    optional: true
+# Backward-compatible alias.
+- runFlow: text/open_text_tool.yaml

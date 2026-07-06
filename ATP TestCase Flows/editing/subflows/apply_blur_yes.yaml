@@ -1,37 +1,4 @@
 appId: com.kodak.steptouch
 ---
-# Blur UI (toolbar tool — not an entry popup):
-# Blur panel: NO BLUR (grey) | radial blur (yellow circle); confirm with checkmark — never Done.
-- runFlow: open_blur_tool.yaml
-# Select radial blur (yellow circle button — right of NO BLUR).
-- tapOn:
-    point: "72%,78%"
-    optional: true
-    label: Radial blur button fallback
-- tapOn:
-    id: "imageViewBlur"
-    optional: true
-- tapOn:
-    id: "blurImageView"
-    optional: true
-- waitForAnimationToEnd:
-    timeout: 2000
-- runFlow:
-    when:
-      visible:
-        id: "saveRecentEditImageView"
-    commands:
-      - tapOn:
-          id: "saveRecentEditImageView"
-      - waitForAnimationToEnd:
-          timeout: 1500
-- extendedWaitUntil:
-    visible:
-      id: "editPhotoTextView"
-    timeout: 10000
-    optional: true
-- extendedWaitUntil:
-    visible:
-      id: "editingOptionsImageView"
-    timeout: 10000
-    optional: true
+# Backward-compatible alias.
+- runFlow: blur/apply_blur_effect.yaml

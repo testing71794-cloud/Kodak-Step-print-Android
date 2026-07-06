@@ -1,0 +1,31 @@
+# TC_ID: ED_10B - Paint screen navigation and UI
+# P0 — Paint panel, AI screen verify, stroke pair AI, return to toolbar
+appId: com.kodak.steptouch
+name: ED_10B - Paint screen navigation and UI
+---
+- runFlow:
+    file: subflows/prepare_editor_warm_start.yaml
+    env:
+      SCREENSHOT_BASENAME: ED_10B_editor_ready
+      SCREEN_LABEL: ED_10B Edit Photo before paint
+- runFlow: subflows/paint/open_paint_tool.yaml
+- runFlow: subflows/paint/assert_paint_screen.yaml
+- takeScreenshot: ED_10B_paint_screen
+- runFlow:
+    file: subflows/verify_edit_screen_with_ai.yaml
+    env:
+      SCREEN_BASENAME: ED_10B_paint_screen
+      SCREEN_LABEL: ED_10B Paint panel screen
+      SCREEN_PROFILE: paint_screen
+- runFlow: subflows/paint/draw_paint_stroke.yaml
+- takeScreenshot: ED_10B_paint_after_stroke
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_10B_paint_screen
+      AFTER_BASENAME: ED_10B_paint_after_stroke
+      VERIFY_LABEL: ED_10B Paint stroke on panel
+      VERIFY_PROFILE: draw
+- runFlow: subflows/paint/return_to_edit_toolbar_from_paint.yaml
+- assertVisible:
+    text: ".*(?i)(Paint|Filter).*"

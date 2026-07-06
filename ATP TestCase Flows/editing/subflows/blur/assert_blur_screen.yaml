@@ -1,0 +1,14 @@
+appId: com.kodak.steptouch
+---
+# Blur panel: NO BLUR button and radial blur (yellow circle) controls.
+- assertVisible:
+    text: ".*(?i)blur.*"
+    optional: true
+- assertVisible:
+    text: ".*(?i)no blur.*"
+- assertVisible:
+    id: "imageViewBlur"
+    optional: true
+- assertVisible:
+    id: "blurImageView"
+    optional: true

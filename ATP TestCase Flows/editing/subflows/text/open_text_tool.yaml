@@ -1,0 +1,17 @@
+appId: com.kodak.steptouch
+---
+# Open Text from extended edit toolbar.
+- runFlow: ../scroll_edit_toolbar_right.yaml
+- scrollUntilVisible:
+    element: "Text"
+    direction: RIGHT
+    timeout: 8000
+    optional: true
+- tapOn: "Text"
+- waitForAnimationToEnd:
+    timeout: 2000
+- extendedWaitUntil:
+    visible:
+      text: ".*(?i)(abc|cancel).*"
+    timeout: 15000
+    optional: true

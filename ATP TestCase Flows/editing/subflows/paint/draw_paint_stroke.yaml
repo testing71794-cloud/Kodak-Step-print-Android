@@ -1,0 +1,20 @@
+appId: com.kodak.steptouch
+---
+# Draw paint stroke on canvas (caller on Paint panel).
+- tapOn:
+    point: "82%,88%"
+    optional: true
+    label: Red paint color swatch
+- tapOn:
+    point: "93%,88%"
+    optional: true
+    label: Thickest brush size
+- swipe:
+    start: "35%,45%"
+    end: "75%,55%"
+- swipe:
+    start: "40%,50%"
+    end: "70%,48%"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 1500

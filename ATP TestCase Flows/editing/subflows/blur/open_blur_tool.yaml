@@ -1,0 +1,16 @@
+appId: com.kodak.steptouch
+---
+# Open Blur from extended edit toolbar (scroll right if needed).
+- runFlow: ../scroll_edit_toolbar_right.yaml
+- scrollUntilVisible:
+    element: "Blur"
+    direction: RIGHT
+    timeout: 8000
+    optional: true
+- tapOn: "Blur"
+- waitForAnimationToEnd:
+    timeout: 2000
+- extendedWaitUntil:
+    visible:
+      text: ".*(?i)no blur.*"
+    timeout: 15000

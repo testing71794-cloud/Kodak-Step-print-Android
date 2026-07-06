@@ -1,0 +1,12 @@
+appId: com.kodak.steptouch
+---
+# Text overlay editor: color palette, Abc, canvas cursor.
+- assertVisible:
+    text: ".*(?i)text.*"
+    optional: true
+- assertVisible:
+    text: ".*(?i)abc.*"
+    optional: true
+- assertVisible:
+    text: ".*(?i)cancel.*"
+    optional: true

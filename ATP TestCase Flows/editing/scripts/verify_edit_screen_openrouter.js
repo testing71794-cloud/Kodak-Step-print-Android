@@ -46,6 +46,18 @@ var PROMPTS = {
     'Answer ONLY JSON: {"screen_correct": true/false, "tools_visible": true/false, "summary": "one sentence"}. ' +
     "screen_correct=true when Kodak Edit Photo Adjust tool is open with photo preview and transform controls (horizontal flip, vertical flip, rotate 90). " +
     "tools_visible=true when flip and/or rotate icon controls are visible below the photo.",
+  blur_screen:
+    'Answer ONLY JSON: {"screen_correct": true/false, "controls_visible": true/false, "summary": "one sentence"}. ' +
+    "screen_correct=true when Kodak Edit Photo Blur tool is open with photo preview and blur controls (NO BLUR button and radial blur option). " +
+    "controls_visible=true when NO BLUR and at least one blur effect control are visible.",
+  text_screen:
+    'Answer ONLY JSON: {"screen_correct": true/false, "editor_visible": true/false, "summary": "one sentence"}. ' +
+    "screen_correct=true when Kodak Edit Photo Text tool is open with photo preview and text entry UI (color palette, Abc, or canvas cursor). " +
+    "editor_visible=true when text editing controls or visible text overlay on photo are present.",
+  paint_screen:
+    'Answer ONLY JSON: {"screen_correct": true/false, "palette_visible": true/false, "summary": "one sentence"}. ' +
+    "screen_correct=true when Kodak Edit Photo Paint tool is open with photo preview and brush controls (color swatches and brush size). " +
+    "palette_visible=true when color swatches or brush size bars are visible below the photo.",
 };
 
 function maestroEnvValue(name) {
@@ -317,6 +329,12 @@ function verifyViaOpenRouterDirect() {
     ok = result.screen_correct === true && (result.slider_visible === true || result.slider_visible === undefined);
   } else if (screenProfile === "adjust_tool_screen") {
     ok = result.screen_correct === true && (result.tools_visible === true || result.tools_visible === undefined);
+  } else if (screenProfile === "blur_screen") {
+    ok = result.screen_correct === true && (result.controls_visible === true || result.controls_visible === undefined);
+  } else if (screenProfile === "text_screen") {
+    ok = result.screen_correct === true && (result.editor_visible === true || result.editor_visible === undefined);
+  } else if (screenProfile === "paint_screen") {
+    ok = result.screen_correct === true && (result.palette_visible === true || result.palette_visible === undefined);
   } else {
     ok = result.screen_correct === true && result.controls_visible === true;
   }

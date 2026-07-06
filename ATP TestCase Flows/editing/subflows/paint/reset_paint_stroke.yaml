@@ -1,0 +1,12 @@
+appId: com.kodak.steptouch
+---
+# Reset paint via undo on panel.
+- tapOn:
+    id: "undoPaintImageView"
+    optional: true
+- tapOn:
+    point: "8%,88%"
+    optional: true
+    label: Paint undo fallback
+- waitForAnimationToEnd:
+    timeout: 1500

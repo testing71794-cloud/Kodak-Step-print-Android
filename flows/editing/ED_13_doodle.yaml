@@ -1,4 +1,5 @@
 appId: com.kodak.steptouch
 name: ED_13 - Doodle
 ---
-- runFlow: "../../ATP TestCase Flows/editing/subflows/apply_doodle.yaml"
+- runFlow:
+    file: ../../ATP TestCase Flows/editing/ED_10A - Paint comprehensive with AI.yaml

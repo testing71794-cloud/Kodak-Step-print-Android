@@ -1,4 +1,5 @@
 appId: com.kodak.steptouch
 name: ED_12 - Text
 ---
-- runFlow: "../../ATP TestCase Flows/editing/subflows/add_text.yaml"
+- runFlow:
+    file: ../../ATP TestCase Flows/editing/ED_09A - Text comprehensive with AI.yaml

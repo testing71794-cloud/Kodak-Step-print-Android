@@ -1,0 +1,22 @@
+# TC_ID: ED_10A - Paint comprehensive with AI
+# P0 — Before/after paint stroke with OpenRouter pair verification
+appId: com.kodak.steptouch
+name: ED_10A - Paint comprehensive with AI
+---
+- runFlow:
+    file: subflows/prepare_editor_warm_start.yaml
+    env:
+      SCREENSHOT_BASENAME: ED_10A_editor_ready
+      SCREEN_LABEL: ED_10A Edit Photo before paint
+- takeScreenshot: ED_10A_paint_before
+- runFlow: subflows/paint/apply_paint_doodle.yaml
+- takeScreenshot: ED_10A_paint_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_10A_paint_before
+      AFTER_BASENAME: ED_10A_paint_after
+      VERIFY_LABEL: Paint stroke
+      VERIFY_PROFILE: draw
+- assertVisible:
+    text: ".*(?i)(Paint|Filter).*"
