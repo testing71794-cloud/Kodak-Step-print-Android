@@ -1,0 +1,8 @@
+appId: com.kodak.steptouch
+---
+# Leave temperature slider panel without exiting edit mode.
+- runFlow: ../confirm_slider_tool_returns_toolbar.yaml
+- extendedWaitUntil:
+    visible:
+      text: ".*(?i)(Temperature|Filter).*"
+    timeout: 15000

@@ -1,0 +1,15 @@
+appId: com.kodak.steptouch
+---
+# Temperature slider panel: undo reset, blue-to-red gradient seekbar, Edit Photo header.
+- assertVisible:
+    text: ".*(?i)temperature.*"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "temperatureSeekbar"
+    timeout: 10000
+- assertVisible:
+    id: "temperatureSeekbar"
+- assertVisible:
+    id: "undoTemperatureImageView"
+    optional: true

@@ -1,0 +1,12 @@
+appId: com.kodak.steptouch
+---
+# Reset temperature via undo icon on slider panel.
+- tapOn:
+    id: "undoTemperatureImageView"
+    optional: true
+- tapOn:
+    point: "8%,88%"
+    optional: true
+    label: Temperature reset fallback
+- waitForAnimationToEnd:
+    timeout: 1500

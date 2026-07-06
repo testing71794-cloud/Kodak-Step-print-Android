@@ -1,0 +1,22 @@
+# TC_ID: ED_08C - Temperature comprehensive with AI
+# P0 — Before/after temperature swipe with OpenRouter pair verification
+appId: com.kodak.steptouch
+name: ED_08C - Temperature comprehensive with AI
+---
+- runFlow:
+    file: subflows/prepare_editor_warm_start.yaml
+    env:
+      SCREENSHOT_BASENAME: ED_08C_editor_ready
+      SCREEN_LABEL: ED_08C Edit Photo before temperature
+- takeScreenshot: ED_08C_temperature_before
+- runFlow: subflows/temperature/apply_temperature_adjustment.yaml
+- takeScreenshot: ED_08C_temperature_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_08C_temperature_before
+      AFTER_BASENAME: ED_08C_temperature_after
+      VERIFY_LABEL: Temperature warm increase
+      VERIFY_PROFILE: temperature
+- assertVisible:
+    text: ".*(?i)(Temperature|Filter).*"

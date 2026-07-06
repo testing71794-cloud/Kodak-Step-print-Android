@@ -1,0 +1,32 @@
+# TC_ID: ED_08D - Temperature screen navigation and UI
+# P0 — Temperature slider panel, AI screen verify, swipe pair AI, reset, return to toolbar
+appId: com.kodak.steptouch
+name: ED_08D - Temperature screen navigation and UI
+---
+- runFlow:
+    file: subflows/prepare_editor_warm_start.yaml
+    env:
+      SCREENSHOT_BASENAME: ED_08D_editor_ready
+      SCREEN_LABEL: ED_08D Edit Photo before temperature
+- runFlow: subflows/temperature/open_temperature_tool.yaml
+- runFlow: subflows/temperature/assert_temperature_screen.yaml
+- takeScreenshot: ED_08D_temperature_screen
+- runFlow:
+    file: subflows/verify_edit_screen_with_ai.yaml
+    env:
+      SCREEN_BASENAME: ED_08D_temperature_screen
+      SCREEN_LABEL: ED_08D Temperature slider screen
+      SCREEN_PROFILE: temperature_screen
+- runFlow: subflows/temperature/swipe_temperature_slider_warm.yaml
+- takeScreenshot: ED_08D_temperature_after_swipe
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_08D_temperature_screen
+      AFTER_BASENAME: ED_08D_temperature_after_swipe
+      VERIFY_LABEL: ED_08D Temperature slider swipe
+      VERIFY_PROFILE: temperature
+- runFlow: subflows/temperature/reset_temperature_slider.yaml
+- runFlow: subflows/temperature/return_to_edit_toolbar_from_temperature.yaml
+- assertVisible:
+    text: ".*(?i)(Temperature|Filter).*"

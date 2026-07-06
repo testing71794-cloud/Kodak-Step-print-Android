@@ -63,6 +63,13 @@ var PROFILES = {
       "change_applied=true when AFTER photo preview is noticeably brighter or darker than BEFORE inside the white frame. " +
       "brighter_in_after=true when AFTER is clearly lighter/brighter than BEFORE. Ignore slider UI chrome.",
   },
+  temperature: {
+    passKeys: ["change_applied", "looks_different"],
+    prompt:
+      'Answer ONLY JSON: {"change_applied": true/false, "warmer_in_after": true/false, "looks_different": true/false, "summary": "one sentence"}. ' +
+      "change_applied=true when AFTER photo color temperature visibly differs from BEFORE (warmer/orange or cooler/blue cast). " +
+      "warmer_in_after=true when AFTER has a noticeably warmer color cast than BEFORE. Ignore slider UI chrome.",
+  },
   text: {
     passKeys: ["change_applied", "looks_different"],
     prompt:

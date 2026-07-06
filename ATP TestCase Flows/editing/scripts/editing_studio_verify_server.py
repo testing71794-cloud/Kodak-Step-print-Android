@@ -93,6 +93,11 @@ SCREEN_PROMPTS = {
         "screen_correct=true when Kodak Edit Photo Brightness tool is open with photo preview and horizontal brightness slider. "
         "slider_visible=true when brightness seekbar/slider with thumb is visible below the photo."
     ),
+    "temperature_screen": (
+        'Answer ONLY JSON: {"screen_correct": true/false, "slider_visible": true/false, "summary": "one sentence"}. '
+        "screen_correct=true when Kodak Edit Photo Temperature tool is open with photo preview and horizontal color-temperature slider (blue cool to red warm). "
+        "slider_visible=true when temperature seekbar/slider with thumb is visible below the photo."
+    ),
 }
 
 PAIR_PROMPTS = {
@@ -129,6 +134,11 @@ PAIR_PROMPTS = {
         "change_applied=true when AFTER photo preview is noticeably brighter or darker than BEFORE inside the white frame. "
         "brighter_in_after=true when AFTER is clearly lighter/brighter than BEFORE. Ignore slider UI chrome."
     ),
+    "temperature": (
+        'Answer ONLY JSON: {"change_applied": true/false, "warmer_in_after": true/false, "looks_different": true/false, "summary": "one sentence"}. '
+        "change_applied=true when AFTER photo color temperature visibly differs from BEFORE (warmer/orange or cooler/blue cast). "
+        "warmer_in_after=true when AFTER has a noticeably warmer color cast than BEFORE. Ignore slider UI chrome."
+    ),
     "text": (
         'Answer ONLY JSON: {"change_applied": true/false, "looks_different": true/false, "summary": "one sentence"}. '
         "change_applied=true when AFTER shows text overlay on the photo."
@@ -160,6 +170,7 @@ PAIR_PASS_KEYS = {
     "flip": ["change_applied"],
     "adjust": ["change_applied", "looks_different"],
     "brightness": ["change_applied", "looks_different"],
+    "temperature": ["change_applied", "looks_different"],
     "text": ["change_applied", "looks_different"],
     "draw": ["change_applied", "looks_different"],
     "blur": ["change_applied", "looks_different"],
@@ -255,6 +266,10 @@ def verify_screen(body: dict) -> dict:
             result.get("carousel_visible") is True or result.get("carousel_visible") is None
         )
     elif profile == "brightness_screen":
+        ok = result.get("screen_correct") is True and (
+            result.get("slider_visible") is True or result.get("slider_visible") is None
+        )
+    elif profile == "temperature_screen":
         ok = result.get("screen_correct") is True and (
             result.get("slider_visible") is True or result.get("slider_visible") is None
         )

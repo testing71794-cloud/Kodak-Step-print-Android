@@ -1,0 +1,10 @@
+appId: com.kodak.steptouch
+---
+# Open Temperature from edit toolbar; land on slider panel with temperatureSeekbar.
+- tapOn: "Temperature"
+- waitForAnimationToEnd:
+    timeout: 2000
+- extendedWaitUntil:
+    visible:
+      id: "temperatureSeekbar"
+    timeout: 15000

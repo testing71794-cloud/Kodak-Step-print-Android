@@ -1,0 +1,6 @@
+appId: com.kodak.steptouch
+---
+# Open Temperature, swipe toward warm, confirm back to toolbar (no Done — exits edit).
+- runFlow: open_temperature_tool.yaml
+- runFlow: swipe_temperature_slider_warm.yaml
+- runFlow: ../confirm_slider_tool_returns_toolbar.yaml

@@ -1,0 +1,14 @@
+appId: com.kodak.steptouch
+---
+# Swipe temperature seekbar right toward warm/red (live preview).
+- extendedWaitUntil:
+    visible:
+      id: "temperatureSeekbar"
+    timeout: 8000
+- waitForAnimationToEnd:
+    timeout: 1000
+- swipe:
+    start: "25%,88%"
+    end: "85%,88%"
+- waitForAnimationToEnd:
+    timeout: 1500

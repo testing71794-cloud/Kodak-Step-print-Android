@@ -1,4 +1,5 @@
 appId: com.kodak.steptouch
-name: ED_07 - Warmth
+name: ED_07 - Temperature
 ---
-- runFlow: "../../ATP TestCase Flows/editing/subflows/adjust_warmth.yaml"
+- runFlow:
+    file: ../../ATP TestCase Flows/editing/ED_08C - Temperature comprehensive with AI.yaml
