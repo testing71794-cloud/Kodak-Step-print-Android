@@ -30,8 +30,15 @@ name: GA_04 - Gallery open Facebook album
     optional: true
 - tapOn:
     point: 23%,15%
+- tapOn: "MY GALLERY"
+- scrollUntilVisible:
+    element:
+      text: "Facebook"
+- tapOn: "Facebook"
 - tapOn:
-    id: "ivItemGridImage"   
+    id: "ivItemGridImage"  
+- tapOn:
+    id: "ivItemGridImage"
 - assertVisible: "Edit"
 - assertVisible: "Collage"
 - assertVisible: "Print"
