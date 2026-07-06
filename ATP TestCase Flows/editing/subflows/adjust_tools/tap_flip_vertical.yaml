@@ -1,0 +1,14 @@
+appId: com.kodak.steptouch
+---
+# Tap vertical flip on Adjust submenu.
+- tapOn:
+    id: "adjustflipverticalImageView"
+    optional: true
+- tapOn:
+    id: "adjustverticalImageView"
+    optional: true
+- tapOn:
+    text: ".*(?i)vertical.*"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 1500

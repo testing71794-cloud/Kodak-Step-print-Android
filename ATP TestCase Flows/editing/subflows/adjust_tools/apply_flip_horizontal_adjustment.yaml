@@ -1,0 +1,6 @@
+appId: com.kodak.steptouch
+---
+# Open Adjust, horizontal flip, confirm back to toolbar.
+- runFlow: open_adjust_tool.yaml
+- runFlow: tap_flip_horizontal.yaml
+- runFlow: ../confirm_adjust_tool_returns_toolbar.yaml

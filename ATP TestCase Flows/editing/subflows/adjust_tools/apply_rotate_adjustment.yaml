@@ -1,0 +1,6 @@
+appId: com.kodak.steptouch
+---
+# Open Adjust, rotate 90°, confirm back to toolbar (checkmark — no Done).
+- runFlow: open_adjust_tool.yaml
+- runFlow: tap_rotate_90.yaml
+- runFlow: ../confirm_adjust_tool_returns_toolbar.yaml

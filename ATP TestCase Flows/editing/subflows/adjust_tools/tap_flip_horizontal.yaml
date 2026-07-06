@@ -1,0 +1,14 @@
+appId: com.kodak.steptouch
+---
+# Tap horizontal flip on Adjust submenu.
+- tapOn:
+    id: "adjustfliphorizontalImageView"
+    optional: true
+- tapOn:
+    id: "adjusthorizontalImageView"
+    optional: true
+- tapOn:
+    text: ".*(?i)horizontal.*"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 1500

@@ -42,6 +42,10 @@ var PROMPTS = {
     'Answer ONLY JSON: {"screen_correct": true/false, "slider_visible": true/false, "summary": "one sentence"}. ' +
     "screen_correct=true when Kodak Edit Photo Temperature tool is open with photo preview and horizontal color-temperature slider (blue cool to red warm). " +
     "slider_visible=true when temperature seekbar/slider with thumb is visible below the photo.",
+  adjust_tool_screen:
+    'Answer ONLY JSON: {"screen_correct": true/false, "tools_visible": true/false, "summary": "one sentence"}. ' +
+    "screen_correct=true when Kodak Edit Photo Adjust tool is open with photo preview and transform controls (horizontal flip, vertical flip, rotate 90). " +
+    "tools_visible=true when flip and/or rotate icon controls are visible below the photo.",
 };
 
 function maestroEnvValue(name) {
@@ -311,6 +315,8 @@ function verifyViaOpenRouterDirect() {
     ok = result.screen_correct === true && (result.slider_visible === true || result.slider_visible === undefined);
   } else if (screenProfile === "temperature_screen") {
     ok = result.screen_correct === true && (result.slider_visible === true || result.slider_visible === undefined);
+  } else if (screenProfile === "adjust_tool_screen") {
+    ok = result.screen_correct === true && (result.tools_visible === true || result.tools_visible === undefined);
   } else {
     ok = result.screen_correct === true && result.controls_visible === true;
   }

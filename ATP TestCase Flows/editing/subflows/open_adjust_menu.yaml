@@ -1,11 +1,4 @@
 appId: com.kodak.steptouch
 ---
-# Open Adjust tools cluster (flip + rotate icons on current builds).
-- tapOn:
-    text: "Adjust"
-    optional: true
-- extendedWaitUntil:
-    visible:
-      id: "adjustrotateImageView"
-    timeout: 8000
-    optional: true
+# Backward-compatible alias.
+- runFlow: adjust_tools/open_adjust_tool.yaml

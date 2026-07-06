@@ -1,0 +1,10 @@
+appId: com.kodak.steptouch
+---
+# Open Adjust tool cluster: horizontal flip, vertical flip, rotate 90 icons.
+- tapOn: "Adjust"
+- waitForAnimationToEnd:
+    timeout: 2000
+- extendedWaitUntil:
+    visible:
+      id: "adjustrotateImageView"
+    timeout: 15000

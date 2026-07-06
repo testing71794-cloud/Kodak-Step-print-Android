@@ -1,21 +1,7 @@
 appId: com.kodak.steptouch
 ---
-# Vertical flip under Adjust menu (optional resource IDs + label fallbacks).
-- runFlow: open_adjust_menu.yaml
-- tapOn:
-    id: "adjustflipverticalImageView"
-    optional: true
-- tapOn:
-    id: "adjustverticalImageView"
-    optional: true
-- tapOn:
-    text: ".*(?i)vertical.*"
-    optional: true
-- tapOn:
-    id: "adjustrotateImageView"
-    index: 1
-    optional: true
-    label: Fallback flip control near rotate when dedicated id is absent
-- waitForAnimationToEnd:
-    timeout: 1500
+# Backward-compatible alias.
+- runFlow:
+    file: adjust_tools/open_adjust_tool.yaml
+- runFlow: adjust_tools/tap_flip_vertical.yaml
 - runFlow: confirm_adjust_tool_returns_toolbar.yaml

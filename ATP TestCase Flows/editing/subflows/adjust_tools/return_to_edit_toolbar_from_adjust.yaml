@@ -1,0 +1,16 @@
+appId: com.kodak.steptouch
+---
+# Confirm adjust change and return to edit toolbar.
+- runFlow:
+    when:
+      visible:
+        id: "saveRecentEditImageView"
+    commands:
+      - tapOn:
+          id: "saveRecentEditImageView"
+      - waitForAnimationToEnd:
+          timeout: 1500
+- extendedWaitUntil:
+    visible:
+      text: ".*(?i)(Adjust|Filter).*"
+    timeout: 15000

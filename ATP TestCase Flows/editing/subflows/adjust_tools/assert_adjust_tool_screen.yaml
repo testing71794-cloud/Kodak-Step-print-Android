@@ -1,0 +1,24 @@
+appId: com.kodak.steptouch
+---
+# Adjust submenu: flip horizontal, flip vertical, rotate 90 controls under photo preview.
+- assertVisible:
+    text: ".*(?i)adjust.*"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "adjustrotateImageView"
+    timeout: 10000
+- assertVisible:
+    id: "adjustrotateImageView"
+- assertVisible:
+    id: "adjustfliphorizontalImageView"
+    optional: true
+- assertVisible:
+    id: "adjustflipverticalImageView"
+    optional: true
+- assertVisible:
+    id: "adjusthorizontalImageView"
+    optional: true
+- assertVisible:
+    id: "adjustverticalImageView"
+    optional: true

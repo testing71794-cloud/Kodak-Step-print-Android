@@ -1,0 +1,7 @@
+appId: com.kodak.steptouch
+---
+# Tap rotate 90° control on Adjust submenu.
+- tapOn:
+    id: "adjustrotateImageView"
+- waitForAnimationToEnd:
+    timeout: 1500
