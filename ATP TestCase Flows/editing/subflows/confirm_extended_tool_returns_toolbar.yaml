@@ -1,0 +1,41 @@
+appId: com.kodak.steptouch
+---
+# Extended tools (Blur, Text, Paint): confirm via checkmark — never yellow Done (exits edit).
+# Fallback: tap Filter when still on a tool panel.
+- runFlow:
+    when:
+      visible:
+        id: "saveRecentEditImageView"
+    commands:
+      - tapOn:
+          id: "saveRecentEditImageView"
+      - waitForAnimationToEnd:
+          timeout: 1500
+- runFlow:
+    when:
+      visible:
+        text: ".*(?i)no blur.*"
+    commands:
+      - tapOn: "Filter"
+      - waitForAnimationToEnd:
+          timeout: 1500
+- runFlow:
+    when:
+      visible:
+        text: ".*(?i)abc.*"
+    commands:
+      - tapOn: "Filter"
+      - waitForAnimationToEnd:
+          timeout: 1500
+- runFlow:
+    when:
+      visible:
+        id: "undoPaintImageView"
+    commands:
+      - tapOn: "Filter"
+      - waitForAnimationToEnd:
+          timeout: 1500
+- extendedWaitUntil:
+    visible:
+      id: "filterEditingOptionsImageView"
+    timeout: 15000

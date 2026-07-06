@@ -1,12 +1,4 @@
 appId: com.kodak.steptouch
 ---
-# Confirm paint stroke via checkmark.
-- runFlow:
-    when:
-      visible:
-        id: "saveRecentEditImageView"
-    commands:
-      - tapOn:
-          id: "saveRecentEditImageView"
-      - waitForAnimationToEnd:
-          timeout: 1500
+# Confirm paint stroke back to edit toolbar.
+- runFlow: ../confirm_extended_tool_returns_toolbar.yaml

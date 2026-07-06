@@ -1,12 +1,4 @@
 appId: com.kodak.steptouch
 ---
-# Confirm blur change via checkmark (never Done — exits edit).
-- runFlow:
-    when:
-      visible:
-        id: "saveRecentEditImageView"
-    commands:
-      - tapOn:
-          id: "saveRecentEditImageView"
-      - waitForAnimationToEnd:
-          timeout: 1500
+# Confirm blur change back to edit toolbar.
+- runFlow: ../confirm_extended_tool_returns_toolbar.yaml

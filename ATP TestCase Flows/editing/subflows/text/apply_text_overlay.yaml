@@ -1,5 +1,6 @@
 appId: com.kodak.steptouch
 ---
-# Open Text tool and apply text overlay.
+# Open Text tool, apply overlay, return to toolbar.
 - runFlow: open_text_tool.yaml
 - runFlow: enter_text_overlay.yaml
+- runFlow: return_to_edit_toolbar_from_text.yaml

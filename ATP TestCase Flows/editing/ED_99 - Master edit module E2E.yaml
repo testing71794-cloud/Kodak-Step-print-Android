@@ -78,7 +78,7 @@ name: ED_99 - Master edit module E2E
 
 # Text
 - takeScreenshot: ED_99_text_before
-- runFlow: subflows/add_text.yaml
+- runFlow: subflows/text/apply_text_overlay.yaml
 - takeScreenshot: ED_99_text_after
 - runFlow:
     file: subflows/verify_visual_pair_with_ai.yaml
@@ -90,7 +90,7 @@ name: ED_99 - Master edit module E2E
 
 # Draw
 - takeScreenshot: ED_99_draw_before
-- runFlow: subflows/apply_doodle.yaml
+- runFlow: subflows/paint/apply_paint_doodle.yaml
 - takeScreenshot: ED_99_draw_after
 - runFlow:
     file: subflows/verify_visual_pair_with_ai.yaml
@@ -102,7 +102,7 @@ name: ED_99 - Master edit module E2E
 
 # Blur
 - takeScreenshot: ED_99_blur_before
-- runFlow: subflows/apply_blur_yes.yaml
+- runFlow: subflows/blur/apply_blur_effect.yaml
 - takeScreenshot: ED_99_blur_after
 - runFlow:
     file: subflows/verify_visual_pair_with_ai.yaml

@@ -1,11 +1,17 @@
 appId: com.kodak.steptouch
 ---
-# Type text on canvas, pick color, confirm with Done + checkmark.
+# Type text on canvas, pick color, confirm placement (Done), then checkmark via return subflow.
 - tapOn:
     point: "50%,45%"
     optional: true
     label: Focus text cursor on canvas
+- tapOn:
+    text: ".*(?i)abc.*"
+    optional: true
+    label: Open text keyboard via Abc
 - inputText: "ATP"
+- hideKeyboard:
+    optional: true
 - tapOn:
     point: "82%,88%"
     optional: true
@@ -17,12 +23,3 @@ appId: com.kodak.steptouch
     optional: true
 - waitForAnimationToEnd:
     timeout: 1500
-- runFlow:
-    when:
-      visible:
-        id: "saveRecentEditImageView"
-    commands:
-      - tapOn:
-          id: "saveRecentEditImageView"
-      - waitForAnimationToEnd:
-          timeout: 1500

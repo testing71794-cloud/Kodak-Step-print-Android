@@ -10,3 +10,13 @@ appId: com.kodak.steptouch
 - tapOn: "Paint"
 - waitForAnimationToEnd:
     timeout: 2000
+- extendedWaitUntil:
+    visible:
+      id: "undoPaintImageView"
+    timeout: 15000
+    optional: true
+- extendedWaitUntil:
+    visible:
+      text: ".*(?i)paint.*"
+    timeout: 15000
+    optional: true

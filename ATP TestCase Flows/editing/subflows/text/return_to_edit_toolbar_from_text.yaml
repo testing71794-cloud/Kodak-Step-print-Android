@@ -1,15 +1,7 @@
 appId: com.kodak.steptouch
 ---
-# Confirm text overlay and return to toolbar.
-- runFlow:
-    when:
-      visible:
-        id: "saveRecentEditImageView"
-    commands:
-      - tapOn:
-          id: "saveRecentEditImageView"
-      - waitForAnimationToEnd:
-          timeout: 1500
+# Confirm text overlay and return to edit toolbar.
+- runFlow: ../confirm_extended_tool_returns_toolbar.yaml
 - extendedWaitUntil:
     visible:
       text: ".*(?i)(Text|Filter).*"
