@@ -21,7 +21,7 @@ name: ED_08 - Adjust comprehensive
       BEFORE_BASENAME: ED_08_brightness_before
       AFTER_BASENAME: ED_08_brightness_after
       VERIFY_LABEL: Brightness adjustment
-      VERIFY_PROFILE: adjust
+      VERIFY_PROFILE: brightness
 
 - takeScreenshot: ED_08_contrast_before
 - runFlow: subflows/adjust_contrast.yaml

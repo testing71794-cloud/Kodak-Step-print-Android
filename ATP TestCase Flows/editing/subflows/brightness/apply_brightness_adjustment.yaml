@@ -1,0 +1,6 @@
+appId: com.kodak.steptouch
+---
+# Open Brightness, swipe slider increase, confirm back to toolbar (no Done — exits edit).
+- runFlow: open_brightness_tool.yaml
+- runFlow: swipe_brightness_slider_increase.yaml
+- runFlow: ../confirm_slider_tool_returns_toolbar.yaml

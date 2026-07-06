@@ -1,0 +1,8 @@
+appId: com.kodak.steptouch
+---
+# Reset brightness via undo icon on slider panel.
+- tapOn:
+    id: "undoBrightnessImageView"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 1500

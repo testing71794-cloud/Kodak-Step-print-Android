@@ -1,0 +1,8 @@
+appId: com.kodak.steptouch
+---
+# Leave brightness slider panel without exiting edit mode.
+- runFlow: ../confirm_slider_tool_returns_toolbar.yaml
+- extendedWaitUntil:
+    visible:
+      text: ".*(?i)(Brightness|Filter).*"
+    timeout: 15000

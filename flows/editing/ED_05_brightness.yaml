@@ -1,4 +1,5 @@
 appId: com.kodak.steptouch
 name: ED_05 - Brightness
 ---
-- runFlow: "../../ATP TestCase Flows/editing/subflows/adjust_brightness.yaml"
+- runFlow:
+    file: ../../ATP TestCase Flows/editing/ED_08A - Brightness comprehensive with AI.yaml

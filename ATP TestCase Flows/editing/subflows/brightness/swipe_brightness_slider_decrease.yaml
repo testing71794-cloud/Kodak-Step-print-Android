@@ -1,0 +1,14 @@
+appId: com.kodak.steptouch
+---
+# Swipe brightness seekbar left to decrease exposure.
+- extendedWaitUntil:
+    visible:
+      id: "brightnessSeekbar"
+    timeout: 8000
+- waitForAnimationToEnd:
+    timeout: 1000
+- swipe:
+    start: "85%,88%"
+    end: "25%,88%"
+- waitForAnimationToEnd:
+    timeout: 1500

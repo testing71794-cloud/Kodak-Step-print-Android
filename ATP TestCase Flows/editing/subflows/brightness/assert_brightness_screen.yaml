@@ -1,0 +1,15 @@
+appId: com.kodak.steptouch
+---
+# Brightness slider panel: undo reset, horizontal seekbar, Edit Photo header.
+- assertVisible:
+    text: ".*(?i)brightness.*"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "brightnessSeekbar"
+    timeout: 10000
+- assertVisible:
+    id: "brightnessSeekbar"
+- assertVisible:
+    id: "undoBrightnessImageView"
+    optional: true

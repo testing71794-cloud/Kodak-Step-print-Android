@@ -1,0 +1,10 @@
+appId: com.kodak.steptouch
+---
+# Open Brightness from edit toolbar; land on slider panel with brightnessSeekbar.
+- tapOn: "Brightness"
+- waitForAnimationToEnd:
+    timeout: 2000
+- extendedWaitUntil:
+    visible:
+      id: "brightnessSeekbar"
+    timeout: 15000

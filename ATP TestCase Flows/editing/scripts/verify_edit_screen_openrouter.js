@@ -34,6 +34,10 @@ var PROMPTS = {
     'Answer ONLY JSON: {"screen_correct": true/false, "carousel_visible": true/false, "summary": "one sentence"}. ' +
     "screen_correct=true when in-category sticker picker shows photo preview and horizontal sticker thumbnails. " +
     "carousel_visible=true when multiple sticker thumbnail options are visible below the preview.",
+  brightness_screen:
+    'Answer ONLY JSON: {"screen_correct": true/false, "slider_visible": true/false, "summary": "one sentence"}. ' +
+    "screen_correct=true when Kodak Edit Photo Brightness tool is open with photo preview and horizontal brightness slider. " +
+    "slider_visible=true when brightness seekbar/slider with thumb is visible below the photo.",
 };
 
 function maestroEnvValue(name) {
@@ -299,6 +303,8 @@ function verifyViaOpenRouterDirect() {
     ok = result.screen_correct === true && result.categories_visible === true;
   } else if (screenProfile === "sticker_carousel") {
     ok = result.screen_correct === true && result.carousel_visible === true;
+  } else if (screenProfile === "brightness_screen") {
+    ok = result.screen_correct === true && (result.slider_visible === true || result.slider_visible === undefined);
   } else {
     ok = result.screen_correct === true && result.controls_visible === true;
   }
