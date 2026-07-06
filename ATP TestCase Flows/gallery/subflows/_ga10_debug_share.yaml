@@ -6,9 +6,9 @@
     visible: "MY GALLERY"
     timeout: 10000
 - tapOn: "MY GALLERY"
-- runFlow: subflows/wait_for_gallery_grid.yaml
-- runFlow: subflows/enter_gallery_select_mode.yaml
-- runFlow: subflows/select_two_photos.yaml
+- runFlow: wait_for_gallery_grid.yaml
+- runFlow: enter_gallery_select_mode.yaml
+- runFlow: select_two_photos.yaml
 - tapOn:
     point: "90%, 8%"
     label: Share
