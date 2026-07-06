@@ -1,0 +1,13 @@
+appId: com.kodak.steptouch
+---
+# First carousel slot is typically "no frame" (circle with slash).
+- tapOn:
+    id: "imageViewFilter"
+    index: 0
+    optional: true
+- tapOn:
+    id: "ivFrameCategory"
+    index: 0
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 2000

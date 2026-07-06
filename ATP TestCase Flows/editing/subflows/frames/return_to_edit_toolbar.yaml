@@ -1,0 +1,24 @@
+appId: com.kodak.steptouch
+---
+# After frame apply: checkmark only (Done exits edit on some builds).
+- runFlow: confirm_frame_checkmark.yaml
+- waitForAnimationToEnd:
+    timeout: 3000
+- runFlow:
+    when:
+      visible:
+        text: ".*(?i)select frame category.*"
+    commands:
+      - tapOn: "Frames"
+      - waitForAnimationToEnd:
+          timeout: 2000
+- extendedWaitUntil:
+    visible:
+      text: "Frames"
+    timeout: 15000
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "filterEditingOptionsImageView"
+    timeout: 5000
+    optional: true

@@ -1,0 +1,15 @@
+appId: com.kodak.steptouch
+---
+# Open Frames from edit toolbar; land on category picker or in-category carousel.
+- tapOn: "Frames"
+- waitForAnimationToEnd:
+    timeout: 2000
+- extendedWaitUntil:
+    visible:
+      text: ".*(?i)select frame category.*"
+    timeout: 15000
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "flFrameCategory"
+    timeout: 15000

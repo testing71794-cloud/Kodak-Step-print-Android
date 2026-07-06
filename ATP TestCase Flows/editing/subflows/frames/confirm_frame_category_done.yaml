@@ -1,0 +1,12 @@
+appId: com.kodak.steptouch
+---
+# Yellow Done pill on "Select Frame Category" screen — exit frames back to edit toolbar.
+- runFlow:
+    when:
+      visible:
+        text: ".*(?i)select frame category.*"
+    commands:
+      - tapOn:
+          text: "Done"
+      - waitForAnimationToEnd:
+          timeout: 1500

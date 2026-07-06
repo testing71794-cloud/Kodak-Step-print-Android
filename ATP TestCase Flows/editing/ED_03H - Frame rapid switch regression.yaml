@@ -1,0 +1,36 @@
+# TC_ID: ED_03H - Frame rapid switch regression
+# P2 — Stress: switch thumbnails quickly; toolbar and editor must remain stable
+appId: com.kodak.steptouch
+name: ED_03H - Frame rapid switch regression
+---
+- runFlow:
+    file: subflows/prepare_editor_warm_start.yaml
+    env:
+      SCREENSHOT_BASENAME: ED_03H_editor_ready
+      SCREEN_LABEL: ED_03H Edit Photo before frames
+- runFlow: subflows/frames/open_frames_tool.yaml
+- runFlow:
+    file: subflows/frames/select_frame_category.yaml
+    env:
+      FRAME_CATEGORY: Graduation
+      FRAME_CATEGORY_INDEX: 2
+- repeat:
+    times: 5
+    commands:
+      - runFlow:
+          file: subflows/frames/select_frame_thumbnail.yaml
+          env:
+            FRAME_THUMB_INDEX: 1
+      - runFlow:
+          file: subflows/frames/select_frame_thumbnail.yaml
+          env:
+            FRAME_THUMB_INDEX: 3
+      - runFlow:
+          file: subflows/frames/select_frame_thumbnail.yaml
+          env:
+            FRAME_THUMB_INDEX: 4
+- runFlow: subflows/frames/return_to_edit_toolbar.yaml
+- assertVisible:
+    id: "filterEditingOptionsImageView"
+- assertVisible:
+    text: "Frames"

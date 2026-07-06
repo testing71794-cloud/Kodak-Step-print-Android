@@ -1,0 +1,25 @@
+# TC_ID: ED_04G - Sticker frame cross tool save persistence
+# P1 — Frame then sticker, save, reopen
+# Reference recordings: framesvideo.mp4 + Stickers.mp4
+appId: com.kodak.steptouch
+name: ED_04G - Sticker frame cross tool save persistence
+---
+- runFlow:
+    file: subflows/prepare_editor_warm_start.yaml
+    env:
+      SCREENSHOT_BASENAME: ED_04G_editor_ready
+      SCREEN_LABEL: ED_04G Edit Photo before cross-tool
+- runFlow: subflows/apply_frame.yaml
+- runFlow: subflows/apply_sticker.yaml
+- takeScreenshot: ED_04G_frame_sticker_before_save
+- runFlow: subflows/save_changes.yaml
+- runFlow: subflows/open_gallery_photo_for_edit.yaml
+- takeScreenshot: ED_04G_reopen_after_save
+- runFlow:
+    file: subflows/verify_edit_screen_with_ai.yaml
+    env:
+      SCREEN_BASENAME: ED_04G_reopen_after_save
+      SCREEN_LABEL: ED_04G Reopened with frame and sticker
+      SCREEN_PROFILE: edit_screen
+- assertVisible:
+    id: "filterEditingOptionsImageView"

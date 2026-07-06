@@ -1,0 +1,42 @@
+appId: com.kodak.steptouch
+---
+# Env: STICKER_CATEGORY (label), STICKER_CATEGORY_INDEX, STICKER_CATEGORY_POINT (e.g. 20%,65%).
+# Sticker category cards often lack text/flFrameCategory nodes — grid index + point tap are fallbacks.
+- extendedWaitUntil:
+    visible:
+      text: ".*(?i)select sticker category.*"
+    timeout: 15000
+    optional: true
+- tapOn:
+    text: ${STICKER_CATEGORY}
+    optional: true
+- tapOn:
+    id: "relativeLayoutItem"
+    index: ${STICKER_CATEGORY_INDEX}
+    optional: true
+- tapOn:
+    id: "flFrameCategory"
+    index: ${STICKER_CATEGORY_INDEX}
+    optional: true
+- tapOn:
+    id: "tvFrameCategory"
+    index: ${STICKER_CATEGORY_INDEX}
+    optional: true
+- doubleTapOn:
+    point: ${STICKER_CATEGORY_POINT}
+- waitForAnimationToEnd:
+    timeout: 3000
+- runFlow:
+    when:
+      visible:
+        text: ".*(?i)select sticker category.*"
+    commands:
+      - tapOn:
+          point: ${STICKER_CATEGORY_POINT}
+      - waitForAnimationToEnd:
+          timeout: 3000
+- extendedWaitUntil:
+    visible:
+      id: "imageViewStricker"
+    timeout: 20000
+    optional: true

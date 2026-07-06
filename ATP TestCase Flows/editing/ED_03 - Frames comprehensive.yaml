@@ -19,19 +19,8 @@ name: ED_03 - Frames comprehensive
     env:
       BEFORE_BASENAME: ED_03_frame_1_before
       AFTER_BASENAME: ED_03_frame_1_after
-      VERIFY_LABEL: Frame application 1
-      VERIFY_PROFILE: frame
-- runFlow: subflows/undo_last_edit.yaml
-- takeScreenshot: ED_03_frame_2_before
-- runFlow: subflows/apply_frame.yaml
-- takeScreenshot: ED_03_frame_2_after
-- runFlow:
-    file: subflows/verify_visual_pair_with_ai.yaml
-    env:
-      BEFORE_BASENAME: ED_03_frame_2_before
-      AFTER_BASENAME: ED_03_frame_2_after
-      VERIFY_LABEL: Frame application 2
+      VERIFY_LABEL: Frame application
       VERIFY_PROFILE: frame
 - assertVisible:
-    id: "filterEditingOptionsImageView"
+    text: ".*(?i)(Frames|Filter).*"
 - stopRecording

@@ -1,0 +1,14 @@
+appId: com.kodak.steptouch
+---
+# Category grid: Person, Object, Words, Mother Day, Graduation, Summer, Patriotic…
+- assertVisible:
+    text: ".*(?i)select sticker category.*"
+    optional: true
+- assertVisible:
+    id: "flFrameCategory"
+    optional: true
+- assertVisible:
+    id: "tvFrameCategory"
+    optional: true
+- assertVisible:
+    text: "Stickers"

@@ -1,0 +1,9 @@
+appId: com.kodak.steptouch
+---
+# Tap canvas center to place/move sticker overlay (per Stickers.mp4).
+- tapOn:
+    point: "50%, 50%"
+    label: Place sticker on canvas
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 2000

@@ -1,0 +1,10 @@
+appId: com.kodak.steptouch
+---
+# Category grid: Soccer, Graduation, Fathers Day, Summer, etc.
+- assertVisible:
+    text: ".*(?i)select frame category.*"
+    optional: true
+- assertVisible:
+    id: "flFrameCategory"
+- assertVisible:
+    text: "Frames"

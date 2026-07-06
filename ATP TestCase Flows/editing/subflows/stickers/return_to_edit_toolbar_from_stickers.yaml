@@ -1,0 +1,21 @@
+appId: com.kodak.steptouch
+---
+# Exit sticker category screen back to edit toolbar (Done pill — do not press back).
+- runFlow:
+    when:
+      visible:
+        text: ".*(?i)select sticker category.*"
+    commands:
+      - tapOn:
+          text: "Done"
+          optional: true
+      - tapOn:
+          point: "88%, 8%"
+          optional: true
+          label: Done pill fallback
+      - waitForAnimationToEnd:
+          timeout: 2000
+- extendedWaitUntil:
+    visible:
+      text: ".*(?i)(Stickers|Filter).*"
+    timeout: 15000

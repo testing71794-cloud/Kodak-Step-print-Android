@@ -1,0 +1,11 @@
+appId: com.kodak.steptouch
+---
+- runFlow:
+    when:
+      visible:
+        text: ".*(?i)select sticker category.*"
+    commands:
+      - tapOn:
+          text: "Done"
+      - waitForAnimationToEnd:
+          timeout: 1500

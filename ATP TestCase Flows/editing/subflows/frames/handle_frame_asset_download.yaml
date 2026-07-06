@@ -1,0 +1,23 @@
+appId: com.kodak.steptouch
+---
+# Some frames show a download badge — tap thumbnail and wait for asset.
+- runFlow:
+    when:
+      visible:
+        text: ".*(?i)download.*"
+    commands:
+      - tapOn:
+          text: ".*(?i)download.*"
+          optional: true
+      - waitForAnimationToEnd:
+          timeout: 5000
+- runFlow:
+    when:
+      visible:
+        text: ".*(?i)retry.*"
+    commands:
+      - tapOn:
+          text: ".*(?i)retry.*"
+          optional: true
+      - waitForAnimationToEnd:
+          timeout: 5000

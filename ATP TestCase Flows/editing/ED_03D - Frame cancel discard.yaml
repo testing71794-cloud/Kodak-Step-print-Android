@@ -1,0 +1,32 @@
+# TC_ID: ED_03D - Frame cancel discard
+# P1 — Select frame in carousel but cancel (X/back); preview must not persist on editor
+appId: com.kodak.steptouch
+name: ED_03D - Frame cancel discard
+---
+- runFlow:
+    file: subflows/prepare_editor_warm_start.yaml
+    env:
+      SCREENSHOT_BASENAME: ED_03D_editor_ready
+      SCREEN_LABEL: ED_03D Edit Photo before frames
+- takeScreenshot: ED_03D_before_cancel
+- runFlow: subflows/frames/open_frames_tool.yaml
+- runFlow:
+    file: subflows/frames/select_frame_category.yaml
+    env:
+      FRAME_CATEGORY: Graduation
+      FRAME_CATEGORY_INDEX: 2
+- runFlow:
+    file: subflows/frames/select_frame_thumbnail.yaml
+    env:
+      FRAME_THUMB_INDEX: 3
+- runFlow: subflows/frames/cancel_frame_edit.yaml
+- takeScreenshot: ED_03D_after_cancel
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_03D_before_cancel
+      AFTER_BASENAME: ED_03D_after_cancel
+      VERIFY_LABEL: ED_03D Cancel frame — no visual change
+      VERIFY_PROFILE: generic
+- assertVisible:
+    id: "filterEditingOptionsImageView"

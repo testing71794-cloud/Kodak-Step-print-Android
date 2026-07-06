@@ -1,0 +1,34 @@
+# TC_ID: ED_04D - Sticker cancel discard
+# P1 — Select sticker in carousel but cancel; no overlay on editor
+# Reference recording: Stickers.mp4
+appId: com.kodak.steptouch
+name: ED_04D - Sticker cancel discard
+---
+- runFlow:
+    file: subflows/prepare_editor_warm_start.yaml
+    env:
+      SCREENSHOT_BASENAME: ED_04D_editor_ready
+      SCREEN_LABEL: ED_04D Edit Photo before stickers
+- takeScreenshot: ED_04D_before_cancel
+- runFlow: subflows/stickers/open_stickers_tool.yaml
+- runFlow:
+    file: subflows/stickers/select_sticker_category.yaml
+    env:
+      STICKER_CATEGORY: "Mother Day"
+      STICKER_CATEGORY_INDEX: 3
+      STICKER_CATEGORY_POINT: "75%,72%"
+- runFlow:
+    file: subflows/stickers/select_sticker_thumbnail.yaml
+    env:
+      STICKER_THUMB_INDEX: 4
+- runFlow: subflows/stickers/cancel_sticker_edit.yaml
+- takeScreenshot: ED_04D_after_cancel
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_04D_before_cancel
+      AFTER_BASENAME: ED_04D_after_cancel
+      VERIFY_LABEL: ED_04D Cancel sticker — no visual change
+      VERIFY_PROFILE: generic
+- assertVisible:
+    id: "filterEditingOptionsImageView"

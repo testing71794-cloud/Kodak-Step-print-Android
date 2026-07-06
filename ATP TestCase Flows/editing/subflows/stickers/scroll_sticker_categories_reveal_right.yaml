@@ -1,0 +1,15 @@
+appId: com.kodak.steptouch
+---
+# Swipe category row left to reveal categories further right (Mother Day, Graduation…).
+- swipe:
+    start: "85%, 72%"
+    end: "15%, 72%"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 1000
+- swipe:
+    start: "85%, 72%"
+    end: "15%, 72%"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 1000

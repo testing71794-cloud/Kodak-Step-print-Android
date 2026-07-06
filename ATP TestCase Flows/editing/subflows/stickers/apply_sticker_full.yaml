@@ -1,0 +1,24 @@
+appId: com.kodak.steptouch
+---
+# Full apply: category → sticker thumbnail → place on canvas → checkmark → Done.
+# Env (optional): STICKER_CATEGORY, STICKER_CATEGORY_INDEX, STICKER_CATEGORY_POINT, STICKER_THUMB_INDEX
+- runFlow:
+    file: select_sticker_category.yaml
+    env:
+      STICKER_CATEGORY: ${STICKER_CATEGORY}
+      STICKER_CATEGORY_INDEX: ${STICKER_CATEGORY_INDEX}
+      STICKER_CATEGORY_POINT: ${STICKER_CATEGORY_POINT}
+- runFlow: assert_sticker_carousel_screen.yaml
+- runFlow:
+    file: select_sticker_thumbnail.yaml
+    env:
+      STICKER_THUMB_INDEX: ${STICKER_THUMB_INDEX}
+- runFlow: place_sticker_on_canvas.yaml
+- runFlow: confirm_sticker_checkmark.yaml
+- runFlow: confirm_sticker_category_done.yaml
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible:
+      text: "Stickers"
+    timeout: 15000

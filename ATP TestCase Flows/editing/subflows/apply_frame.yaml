@@ -1,17 +1,10 @@
 appId: com.kodak.steptouch
 ---
-# Frames UI (multi-step, per device):
-# 1) "Select Frame Category" — Mother Day | Spring | Graduation | Fathers Day (+ Done pill)
-# 2) Category picker (e.g. "Graduation") — frame carousel, X + checkmark; assets may need download
-# 3) Frame applied on preview — confirm with checkmark; Done if returned to category screen
-- tapOn: "Frames"
-- extendedWaitUntil:
-    visible:
-      text: ".*(?i)select frame category.*"
-    timeout: 15000
-    optional: true
-- extendedWaitUntil:
-    visible:
-      id: "flFrameCategory"
-    timeout: 15000
-- runFlow: apply_frame_from_category.yaml
+# Frames UI — reference recording: framesvideo.mp4
+- runFlow: frames/open_frames_tool.yaml
+- runFlow:
+    file: frames/apply_frame_full.yaml
+    env:
+      FRAME_CATEGORY: Graduation
+      FRAME_CATEGORY_INDEX: 2
+      FRAME_THUMB_INDEX: 3

@@ -1,0 +1,36 @@
+appId: com.kodak.steptouch
+---
+# Exit sticker picker without applying — X on carousel, then Done on category screen.
+- tapOn:
+    point: "6%, 8%"
+    optional: true
+    label: Sticker carousel X
+- tapOn:
+    id: "image_cross"
+    optional: true
+- back
+- waitForAnimationToEnd:
+    timeout: 2000
+- runFlow:
+    when:
+      visible:
+        text: ".*(?i)discard.*"
+    commands:
+      - tapOn:
+          text: ".*(?i)discard.*"
+      - tapOn:
+          text: ".*(?i)yes.*"
+          optional: true
+- runFlow:
+    when:
+      visible:
+        text: ".*(?i)select sticker category.*"
+    commands:
+      - tapOn:
+          text: "Done"
+      - waitForAnimationToEnd:
+          timeout: 2000
+- extendedWaitUntil:
+    visible:
+      id: "filterEditingOptionsImageView"
+    timeout: 15000

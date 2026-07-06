@@ -1,0 +1,17 @@
+appId: com.kodak.steptouch
+---
+# Open Stickers from edit toolbar; land on category picker or in-category carousel.
+# Reference recording: Stickers.mp4
+- tapOn: "Stickers"
+- waitForAnimationToEnd:
+    timeout: 2000
+- extendedWaitUntil:
+    visible:
+      text: ".*(?i)select sticker category.*"
+    timeout: 15000
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "flFrameCategory"
+    timeout: 15000
+    optional: true

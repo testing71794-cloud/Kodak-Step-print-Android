@@ -1,0 +1,12 @@
+appId: com.kodak.steptouch
+---
+# Env: FRAME_CATEGORY (label), FRAME_CATEGORY_INDEX (flFrameCategory index).
+- tapOn:
+    text: ${FRAME_CATEGORY}
+    optional: true
+- tapOn:
+    id: "flFrameCategory"
+    index: ${FRAME_CATEGORY_INDEX}
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 3000

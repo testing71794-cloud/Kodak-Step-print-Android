@@ -18,6 +18,22 @@ var PROMPTS = {
   gallery:
     'Answer ONLY JSON: {"screen_correct": true/false, "gallery_visible": true/false, "summary": "one sentence"}. ' +
     "screen_correct=true when MY GALLERY grid is visible with photo thumbnails.",
+  frame_category:
+    'Answer ONLY JSON: {"screen_correct": true/false, "categories_visible": true/false, "summary": "one sentence"}. ' +
+    "screen_correct=true when Select Frame Category screen shows horizontal category cards. " +
+    "categories_visible=true when at least two labeled frame category thumbnails are visible.",
+  frame_carousel:
+    'Answer ONLY JSON: {"screen_correct": true/false, "carousel_visible": true/false, "summary": "one sentence"}. ' +
+    "screen_correct=true when in-category frame picker shows photo preview and horizontal frame thumbnails. " +
+    "carousel_visible=true when multiple frame thumbnail options are visible below the preview.",
+  sticker_category:
+    'Answer ONLY JSON: {"screen_correct": true/false, "categories_visible": true/false, "summary": "one sentence"}. ' +
+    "screen_correct=true when Select Sticker Category screen shows horizontal category cards. " +
+    "categories_visible=true when at least two labeled sticker category thumbnails are visible.",
+  sticker_carousel:
+    'Answer ONLY JSON: {"screen_correct": true/false, "carousel_visible": true/false, "summary": "one sentence"}. ' +
+    "screen_correct=true when in-category sticker picker shows photo preview and horizontal sticker thumbnails. " +
+    "carousel_visible=true when multiple sticker thumbnail options are visible below the preview.",
 };
 
 function maestroEnvValue(name) {
@@ -275,6 +291,14 @@ function verifyViaOpenRouterDirect() {
   var ok = result.screen_correct === true;
   if (screenProfile === "gallery") {
     ok = result.screen_correct === true && result.gallery_visible === true;
+  } else if (screenProfile === "frame_category") {
+    ok = result.screen_correct === true && result.categories_visible === true;
+  } else if (screenProfile === "frame_carousel") {
+    ok = result.screen_correct === true && result.carousel_visible === true;
+  } else if (screenProfile === "sticker_category") {
+    ok = result.screen_correct === true && result.categories_visible === true;
+  } else if (screenProfile === "sticker_carousel") {
+    ok = result.screen_correct === true && result.carousel_visible === true;
   } else {
     ok = result.screen_correct === true && result.controls_visible === true;
   }

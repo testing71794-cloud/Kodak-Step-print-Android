@@ -1,0 +1,15 @@
+appId: com.kodak.steptouch
+---
+# Full apply: category → carousel thumbnail → checkmark → Done.
+# Env (optional): FRAME_CATEGORY, FRAME_CATEGORY_INDEX, FRAME_THUMB_INDEX
+- runFlow:
+    file: select_frame_category.yaml
+    env:
+      FRAME_CATEGORY: ${FRAME_CATEGORY}
+      FRAME_CATEGORY_INDEX: ${FRAME_CATEGORY_INDEX}
+- runFlow: assert_frame_carousel_screen.yaml
+- runFlow:
+    file: select_frame_thumbnail.yaml
+    env:
+      FRAME_THUMB_INDEX: ${FRAME_THUMB_INDEX}
+- runFlow: return_to_edit_toolbar.yaml

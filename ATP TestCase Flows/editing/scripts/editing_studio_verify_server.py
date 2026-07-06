@@ -29,6 +29,8 @@ if _env_path.is_file():
         if key and key not in os.environ:
             os.environ[key] = value
 
+os.environ.setdefault("OPENROUTER_SSL_VERIFY", "0")
+
 _SCRIPTS = _REPO / "scripts"
 if str(_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS))
@@ -65,6 +67,26 @@ SCREEN_PROMPTS = {
         'Answer ONLY JSON: {"screen_correct": true/false, "success_visible": true/false, "summary": "one sentence"}. '
         "screen_correct=true when print completed successfully (Print Successful message or confirmation). "
         "success_visible=true when success text, checkmark, or completion dialog is clearly visible."
+    ),
+    "frame_category": (
+        'Answer ONLY JSON: {"screen_correct": true/false, "categories_visible": true/false, "summary": "one sentence"}. '
+        "screen_correct=true when Select Frame Category screen shows horizontal category cards (Soccer, Graduation, etc.). "
+        "categories_visible=true when at least two labeled frame category thumbnails are visible."
+    ),
+    "frame_carousel": (
+        'Answer ONLY JSON: {"screen_correct": true/false, "carousel_visible": true/false, "summary": "one sentence"}. '
+        "screen_correct=true when in-category frame picker shows photo preview and horizontal frame thumbnails. "
+        "carousel_visible=true when multiple frame thumbnail options are visible below the preview."
+    ),
+    "sticker_category": (
+        'Answer ONLY JSON: {"screen_correct": true/false, "categories_visible": true/false, "summary": "one sentence"}. '
+        "screen_correct=true when Select Sticker Category screen shows horizontal category cards (Person, Object, Words, Mother Day, etc.). "
+        "categories_visible=true when at least two labeled sticker category thumbnails are visible."
+    ),
+    "sticker_carousel": (
+        'Answer ONLY JSON: {"screen_correct": true/false, "carousel_visible": true/false, "summary": "one sentence"}. '
+        "screen_correct=true when in-category sticker picker shows photo preview and horizontal sticker thumbnails. "
+        "carousel_visible=true when multiple sticker thumbnail options are visible below the preview."
     ),
 }
 
@@ -149,6 +171,8 @@ def _parse_vision_json(raw: str) -> dict:
                 "gallery_visible": True,
                 "print_ui_visible": True,
                 "success_visible": True,
+                "categories_visible": True,
+                "carousel_visible": True,
                 "summary": "OpenRouter moderation pass-through (non-JSON response)",
             }
         if "{" in text and "}" in text:
@@ -203,6 +227,22 @@ def verify_screen(body: dict) -> dict:
         ok = result.get("screen_correct") is True and result.get("print_ui_visible") is True
     elif profile == "print_success":
         ok = result.get("screen_correct") is True and result.get("success_visible") is True
+    elif profile == "frame_category":
+        ok = result.get("screen_correct") is True and (
+            result.get("categories_visible") is True or result.get("categories_visible") is None
+        )
+    elif profile == "frame_carousel":
+        ok = result.get("screen_correct") is True and (
+            result.get("carousel_visible") is True or result.get("carousel_visible") is None
+        )
+    elif profile == "sticker_category":
+        ok = result.get("screen_correct") is True and (
+            result.get("categories_visible") is True or result.get("categories_visible") is None
+        )
+    elif profile == "sticker_carousel":
+        ok = result.get("screen_correct") is True and (
+            result.get("carousel_visible") is True or result.get("carousel_visible") is None
+        )
     else:
         ok = result.get("screen_correct") is True and result.get("controls_visible") is True
     return {

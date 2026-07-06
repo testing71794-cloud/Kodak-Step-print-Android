@@ -1,0 +1,14 @@
+appId: com.kodak.steptouch
+---
+# Env: FRAME_THUMB_INDEX (default 3) — carousel thumbnail in category picker.
+- runFlow: handle_frame_asset_download.yaml
+- tapOn:
+    id: "imageViewFilter"
+    index: ${FRAME_THUMB_INDEX}
+    optional: true
+- tapOn:
+    id: "ivFrameCategory"
+    index: ${FRAME_THUMB_INDEX}
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 2000

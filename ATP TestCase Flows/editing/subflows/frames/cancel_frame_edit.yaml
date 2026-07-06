@@ -1,0 +1,37 @@
+appId: com.kodak.steptouch
+---
+# Exit frame picker without applying — back to category, then Done.
+- repeat:
+    times: 3
+    commands:
+      - runFlow:
+          when:
+            visible:
+              id: "imageViewFilter"
+          commands:
+            - back
+            - waitForAnimationToEnd:
+                timeout: 1500
+- runFlow:
+    when:
+      visible:
+        text: ".*(?i)discard.*"
+    commands:
+      - tapOn:
+          text: ".*(?i)discard.*"
+      - tapOn:
+          text: ".*(?i)yes.*"
+          optional: true
+- runFlow:
+    when:
+      visible:
+        text: ".*(?i)select frame category.*"
+    commands:
+      - tapOn:
+          text: "Done"
+      - waitForAnimationToEnd:
+          timeout: 2000
+- extendedWaitUntil:
+    visible:
+      id: "filterEditingOptionsImageView"
+    timeout: 15000

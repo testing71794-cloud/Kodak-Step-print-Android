@@ -1,0 +1,15 @@
+appId: com.kodak.steptouch
+---
+# Swipe frame thumbnail strip (more frames off-screen).
+- swipe:
+    start: "88%, 78%"
+    end: "12%, 78%"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 1000
+- swipe:
+    start: "12%, 78%"
+    end: "88%, 78%"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 1000

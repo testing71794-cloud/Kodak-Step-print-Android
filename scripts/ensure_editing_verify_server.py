@@ -35,6 +35,7 @@ def apply_editing_openrouter_env() -> None:
         "meta-llama/llama-3.2-11b-vision-instruct:free",
     )
     os.environ.setdefault("EDITING_VERIFY_PORT", str(_PORT))
+    os.environ.setdefault("OPENROUTER_SSL_VERIFY", "0")
     if os.environ.get("OPENROUTER_API_KEY") and not os.environ.get("OpenRouterAPI"):
         os.environ["OpenRouterAPI"] = os.environ["OPENROUTER_API_KEY"]
 

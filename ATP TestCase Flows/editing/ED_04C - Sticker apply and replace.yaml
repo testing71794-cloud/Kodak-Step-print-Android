@@ -1,0 +1,40 @@
+# TC_ID: ED_04C - Sticker apply and replace
+# P0 — Apply Mother Day sticker, replace with second sticker, AI verify
+# Reference recording: Stickers.mp4
+appId: com.kodak.steptouch
+name: ED_04C - Sticker apply and replace
+---
+- runFlow:
+    file: subflows/prepare_editor_warm_start.yaml
+    env:
+      SCREENSHOT_BASENAME: ED_04C_editor_ready
+      SCREEN_LABEL: ED_04C Edit Photo before stickers
+- takeScreenshot: ED_04C_apply_before
+- runFlow: subflows/apply_sticker.yaml
+- takeScreenshot: ED_04C_apply_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_04C_apply_before
+      AFTER_BASENAME: ED_04C_apply_after
+      VERIFY_LABEL: ED_04C Mother Day sticker apply
+      VERIFY_PROFILE: sticker
+- takeScreenshot: ED_04C_replace_before
+- runFlow: subflows/stickers/open_stickers_tool.yaml
+- runFlow:
+    file: subflows/stickers/apply_sticker_full.yaml
+    env:
+      STICKER_CATEGORY: Words
+      STICKER_CATEGORY_INDEX: 2
+      STICKER_CATEGORY_POINT: "55%,72%"
+      STICKER_THUMB_INDEX: 2
+- takeScreenshot: ED_04C_replace_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_04C_replace_before
+      AFTER_BASENAME: ED_04C_replace_after
+      VERIFY_LABEL: ED_04C Replace with Words sticker
+      VERIFY_PROFILE: sticker
+- assertVisible:
+    id: "filterEditingOptionsImageView"

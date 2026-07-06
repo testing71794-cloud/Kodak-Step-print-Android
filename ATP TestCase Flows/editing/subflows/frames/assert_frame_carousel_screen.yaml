@@ -1,0 +1,15 @@
+appId: com.kodak.steptouch
+---
+# In-category frame picker: horizontal thumbnails, X + checkmark header.
+- extendedWaitUntil:
+    visible:
+      id: "imageViewFilter"
+    timeout: 10000
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "ivFrameCategory"
+    timeout: 10000
+    optional: true
+- assertVisible:
+    text: "Frames"

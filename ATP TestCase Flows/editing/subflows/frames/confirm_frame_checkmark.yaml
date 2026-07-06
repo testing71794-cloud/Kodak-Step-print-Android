@@ -1,0 +1,12 @@
+appId: com.kodak.steptouch
+---
+# Orange checkmark — apply frame within category picker.
+- runFlow:
+    when:
+      visible:
+        id: "saveRecentEditImageView"
+    commands:
+      - tapOn:
+          id: "saveRecentEditImageView"
+      - waitForAnimationToEnd:
+          timeout: 1500

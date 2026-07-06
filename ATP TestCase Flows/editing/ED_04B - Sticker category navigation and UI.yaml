@@ -1,0 +1,24 @@
+# TC_ID: ED_04B - Sticker category navigation and UI
+# P0 — Category screen, scroll, AI verify, Done exit
+# Reference recording: Stickers.mp4
+appId: com.kodak.steptouch
+name: ED_04B - Sticker category navigation and UI
+---
+- runFlow:
+    file: subflows/prepare_editor_warm_start.yaml
+    env:
+      SCREENSHOT_BASENAME: ED_04B_editor_ready
+      SCREEN_LABEL: ED_04B Edit Photo before stickers
+- runFlow: subflows/stickers/open_stickers_tool.yaml
+- runFlow: subflows/stickers/assert_sticker_category_screen.yaml
+- takeScreenshot: ED_04B_sticker_category
+- runFlow:
+    file: subflows/verify_edit_screen_with_ai.yaml
+    env:
+      SCREEN_BASENAME: ED_04B_sticker_category
+      SCREEN_LABEL: ED_04B Sticker category screen
+      SCREEN_PROFILE: sticker_category
+- runFlow: subflows/stickers/scroll_sticker_categories.yaml
+- runFlow: subflows/stickers/return_to_edit_toolbar_from_stickers.yaml
+- assertVisible:
+    text: ".*(?i)(Stickers|Filter).*"

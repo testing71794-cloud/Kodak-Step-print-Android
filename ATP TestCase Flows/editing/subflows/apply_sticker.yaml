@@ -1,23 +1,15 @@
 appId: com.kodak.steptouch
 ---
 # Stickers UI (multi-step, per device):
-# 1) "Select Sticker Category" — Mother Day | Spring | Graduation | Fathers Day
-# 2) Category picker (e.g. "Graduation") — sticker carousel, X + checkmark; assets may need download
-# 3) Sticker on preview — confirm with checkmark; Done if returned to category screen
-- tapOn: "Stickers"
-- extendedWaitUntil:
-    visible:
-      text: ".*(?i)select sticker category.*"
-    timeout: 15000
-    optional: true
-- extendedWaitUntil:
-    visible:
-      id: "flFrameCategory"
-    timeout: 15000
-    optional: true
-- extendedWaitUntil:
-    visible:
-      id: "tvFrameCategory"
-    timeout: 15000
-    optional: true
-- runFlow: apply_sticker_from_category.yaml
+# 1) "Select Sticker Category" — Person | Object | Words | Mother Day | Graduation…
+# 2) Category picker (e.g. "Mother Day") — sticker carousel, X + checkmark; assets may need download
+# 3) Sticker on preview — tap canvas to place; confirm with checkmark; Done on category screen
+# Reference recording: Stickers.mp4
+- runFlow: stickers/open_stickers_tool.yaml
+- runFlow:
+    file: stickers/apply_sticker_full.yaml
+    env:
+      STICKER_CATEGORY: "Mother Day"
+      STICKER_CATEGORY_INDEX: 3
+      STICKER_CATEGORY_POINT: "75%,72%"
+      STICKER_THUMB_INDEX: 4
