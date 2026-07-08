@@ -121,8 +121,16 @@ def call_openrouter(
 VISION_MODEL_FALLBACKS: tuple[str, ...] = (
     "qwen/qwen2.5-vl-32b-instruct:free",
     "google/gemma-3-12b-it:free",
-    "meta-llama/llama-3.2-11b-vision-instruct:free",
 )
+
+
+def _vision_fallback_models() -> tuple[str, ...]:
+    raw = (os.environ.get("OPENROUTER_VISION_FALLBACKS") or "").strip()
+    if raw:
+        if raw.lower() in {"0", "none", "false", "off"}:
+            return ()
+        return tuple(x.strip() for x in raw.split(",") if x.strip())
+    return VISION_MODEL_FALLBACKS
 
 
 def call_openrouter_vision(
@@ -137,16 +145,12 @@ def call_openrouter_vision(
 ) -> tuple[str, str]:
     """Try primary vision model then fallbacks. Returns (content, model_used)."""
     candidates: list[str] = []
-    for m in (model, *VISION_MODEL_FALLBACKS):
+    for m in (model, *_vision_fallback_models()):
         if m and m not in candidates:
             candidates.append(m)
-    # Free models (incl. the openrouter/free router) are intermittently rate-limited
-    # (HTTP 429 "retry shortly") or return empty bodies under load. Do a few full
-    # passes over the candidate list with a short backoff so a transient blip on one
-    # round doesn't fail the whole verification.
-    import time
-
-    max_rounds = 2
+    # Free models are intermittently rate-limited. Keep retry rounds low so the
+    # Maestro GraalJS localhost HTTP client (~60s read timeout) does not hang CI.
+    max_rounds = max(1, int(os.environ.get("OPENROUTER_VISION_MAX_ROUNDS", "2")))
     backoff_sec = 2.0
     vision_timeout = VISION_TIMEOUT_SEC
     last_error: Exception | None = None

@@ -361,8 +361,11 @@ def discover_flows(repo: Path, atp_subfolder: str) -> list[Path]:
             return []
     flows = discover_atp_yaml_files(repo, folder_arg, exclude_subflows=True)
     include = (os.environ.get("ATP_FLOW_INCLUDE") or "").strip()
+    exclude = (os.environ.get("ATP_FLOW_EXCLUDE") or "").strip()
     if include:
         print(f"[ATP] ATP_FLOW_INCLUDE filter={include!r} -> {len(flows)} flow(s)", flush=True)
+    if exclude:
+        print(f"[ATP] ATP_FLOW_EXCLUDE filter={exclude!r} -> {len(flows)} flow(s)", flush=True)
     if flows:
         print(f"[ATP] discovered {len(flows)} yaml test file(s):", flush=True)
         for p in flows:

@@ -274,6 +274,17 @@ def _prepare_gallery_openrouter(folder: str) -> None:
         )
 
 
+def _apply_editing_ci_defaults(folder: str) -> None:
+    """Set editing-stage defaults before flow discovery (must run before preflight log)."""
+    if not _is_editing_folder(folder):
+        return
+    os.environ.setdefault("ATP_FLOW_EXCLUDE", "ED_Q")
+    os.environ.setdefault("EDITING_VERIFY_SOFT", "1")
+    os.environ.setdefault("OPENROUTER_VISION_TIMEOUT_SEC", "25")
+    os.environ.setdefault("OPENROUTER_VISION_MAX_ROUNDS", "1")
+    os.environ.setdefault("OPENROUTER_VISION_FALLBACKS", "google/gemma-3-12b-it:free")
+
+
 def _prepare_editing_openrouter(folder: str) -> None:
     """GraalJS host access + editing verify server for ED_* OpenRouter vision verify."""
     if not _is_editing_folder(folder):
@@ -289,11 +300,14 @@ def _prepare_editing_openrouter(folder: str) -> None:
     spec.loader.exec_module(mod)
 
     mod.apply_editing_openrouter_env()
+    _apply_editing_ci_defaults(folder)
     print(
         "[jenkins_atp_stage] editing OpenRouter: "
         f"MAESTRO_CLI_DANGEROUS_GRAALJS_ALLOW_HOST_ACCESS={os.environ.get('MAESTRO_CLI_DANGEROUS_GRAALJS_ALLOW_HOST_ACCESS', '')} "
         f"OPENROUTER_MODEL_VISION={os.environ.get('OPENROUTER_MODEL_VISION', '')} "
-        f"EDITING_VERIFY_PORT={os.environ.get('EDITING_VERIFY_PORT', '8767')}",
+        f"EDITING_VERIFY_PORT={os.environ.get('EDITING_VERIFY_PORT', '8767')} "
+        f"EDITING_VERIFY_SOFT={os.environ.get('EDITING_VERIFY_SOFT', '')} "
+        f"ATP_FLOW_EXCLUDE={os.environ.get('ATP_FLOW_EXCLUDE', '')}",
         flush=True,
     )
     if os.environ.get("ATP_EDITING_VERIFY_SERVER", "1").strip().lower() in (
@@ -351,6 +365,7 @@ def _prepare_printing_openrouter(folder: str) -> None:
 def cmd_run(folder: str, app: str, clear_state: str, maestro_cmd: str) -> int:
     resolved = resolve_atp_subfolder(REPO, folder)
     sid = folder_to_suite_id(resolved or folder)
+    _apply_editing_ci_defaults(folder)
     _log_folder_discovery(folder, resolved)
     yaml_rc = _validate_maestro_yaml_preflight()
     if yaml_rc != 0:

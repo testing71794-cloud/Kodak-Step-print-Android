@@ -472,19 +472,19 @@ if (!beforeBasename || !afterBasename) {
 var cfg = profileConfig(verifyProfile);
 
 try {
-  verifyViaOpenRouterDirect();
-} catch (directErr) {
-  console.log("Direct OpenRouter pair verify failed, trying local editing server: " + directErr);
+  verifyViaLocalServer();
+} catch (serverErr) {
+  console.log("Local editing verify server failed, trying direct OpenRouter: " + serverErr);
   try {
-    verifyViaLocalServer();
-  } catch (serverErr) {
+    verifyViaOpenRouterDirect();
+  } catch (directErr) {
     throw new Error(
       "OpenRouter pair verify failed. Start ATP TestCase Flows/editing/scripts/start_editing_studio_verify.bat " +
         "(reads repo .env), or set OPENROUTER_API_KEY in Windows env + GraalJS host access. " +
-        "Direct: " +
-        directErr +
-        " | Server: " +
-        serverErr
+        "Server: " +
+        serverErr +
+        " | Direct: " +
+        directErr
     );
   }
 }

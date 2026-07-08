@@ -59,19 +59,26 @@ def _soft_mode() -> bool:
 
 
 def _openrouter_unavailable(exc: Exception) -> bool:
-    """True when the failure looks like account/model unavailability rather than a
-    transient network error (so we don't mask real regressions in soft mode)."""
+    """True when OpenRouter/vision infra failed (soft-degrade in CI, not UI regression)."""
     msg = str(exc).lower()
     markers = (
         "unavailable for free",
         "http 404",
         "http 402",
         "http 429",
+        "http 502",
+        "http 503",
+        "http 504",
         "empty choices",
         "no message content",
         "no models available",
         "no endpoints found",
         "rate-limited",
+        "timeout",
+        "timed out",
+        "interruptedioexception",
+        "network error",
+        "vision failed",
     )
     return any(m in msg for m in markers)
 

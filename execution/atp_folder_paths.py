@@ -69,6 +69,8 @@ def discover_atp_yaml_files(repo: Path, atp_subfolder: str, *, exclude_subflows:
     else:
         roots = [atp_root]
     include = (os.environ.get("ATP_FLOW_INCLUDE") or "").strip()
+    exclude_raw = (os.environ.get("ATP_FLOW_EXCLUDE") or "").strip()
+    exclude_parts = [p.strip().lower() for p in exclude_raw.split(",") if p.strip()]
     flows: list[Path] = []
     for root in roots:
         for p in sorted(root.rglob("*"), key=lambda x: str(x).lower()):
@@ -79,6 +81,8 @@ def discover_atp_yaml_files(repo: Path, atp_subfolder: str, *, exclude_subflows:
             if exclude_subflows and is_excluded_top_level_flow(p):
                 continue
             if include and include.lower() not in p.name.lower():
+                continue
+            if exclude_parts and any(part in p.name.lower() for part in exclude_parts):
                 continue
             flows.append(p)
     return flows
