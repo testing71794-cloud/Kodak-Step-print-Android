@@ -1,29 +1,29 @@
-# TC_ID: ED_13 - Filter dedicated with AI verification
+# TC_ID: ED_01 - Filter dedicated with AI verification
 # Dedicated Filter-only editing test with OpenRouter pair verification.
 appId: com.kodak.steptouch
-name: ED_13 - Filter dedicated with AI
+name: ED_01 - Filter dedicated with AI
 ---
 - startRecording:
-    path: ED_13_filter_dedicated
+    path: ED_01_filter_dedicated
     optional: true
 - runFlow:
     file: subflows/prepare_editor_warm_start.yaml
     env:
-      SCREENSHOT_BASENAME: ED_13_editor_ready
-      SCREEN_LABEL: ED_13 Edit Photo before filter
+      SCREENSHOT_BASENAME: ED_01_editor_ready
+      SCREEN_LABEL: ED_01 Edit Photo before filter
 
-- takeScreenshot: ED_13_filter_before
+- takeScreenshot: ED_01_filter_before
 - runFlow:
     file: subflows/apply_filter_by_index.yaml
     env:
       FILTER_INDEX: 2
-- takeScreenshot: ED_13_filter_after
+- takeScreenshot: ED_01_filter_after
 - runFlow:
     file: subflows/verify_visual_pair_with_ai.yaml
     env:
-      BEFORE_BASENAME: ED_13_filter_before
-      AFTER_BASENAME: ED_13_filter_after
-      VERIFY_LABEL: ED_13 Dedicated filter
+      BEFORE_BASENAME: ED_01_filter_before
+      AFTER_BASENAME: ED_01_filter_after
+      VERIFY_LABEL: ED_01 Dedicated filter
       VERIFY_PROFILE: filter
 
 - assertVisible:

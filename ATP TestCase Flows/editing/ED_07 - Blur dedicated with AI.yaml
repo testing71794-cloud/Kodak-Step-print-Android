@@ -1,26 +1,26 @@
-# TC_ID: ED_12C - Blur dedicated with AI verification
+# TC_ID: ED_07 - Blur dedicated with AI verification
 # Dedicated Blur-only editing test with OpenRouter pair verification.
 appId: com.kodak.steptouch
-name: ED_12C - Blur dedicated with AI
+name: ED_07 - Blur dedicated with AI
 ---
 - startRecording:
-    path: ED_12C_blur_dedicated
+    path: ED_07_blur_dedicated
     optional: true
 - runFlow:
     file: subflows/prepare_editor_warm_start.yaml
     env:
-      SCREENSHOT_BASENAME: ED_12C_editor_ready
-      SCREEN_LABEL: ED_12C Edit Photo before blur
+      SCREENSHOT_BASENAME: ED_07_editor_ready
+      SCREEN_LABEL: ED_07 Edit Photo before blur
 
-- takeScreenshot: ED_12C_blur_before
+- takeScreenshot: ED_07_blur_before
 - runFlow: subflows/blur/apply_blur_effect.yaml
-- takeScreenshot: ED_12C_blur_after
+- takeScreenshot: ED_07_blur_after
 - runFlow:
     file: subflows/verify_visual_pair_with_ai.yaml
     env:
-      BEFORE_BASENAME: ED_12C_blur_before
-      AFTER_BASENAME: ED_12C_blur_after
-      VERIFY_LABEL: ED_12C Dedicated blur
+      BEFORE_BASENAME: ED_07_blur_before
+      AFTER_BASENAME: ED_07_blur_after
+      VERIFY_LABEL: ED_07 Dedicated blur
       VERIFY_PROFILE: blur
 
 - assertVisible:

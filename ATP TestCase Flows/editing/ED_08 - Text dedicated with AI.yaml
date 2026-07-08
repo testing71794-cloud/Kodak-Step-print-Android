@@ -1,26 +1,26 @@
-# TC_ID: ED_12E - Text dedicated with AI verification
+# TC_ID: ED_08 - Text dedicated with AI verification
 # Dedicated Text-only editing test with OpenRouter pair verification.
 appId: com.kodak.steptouch
-name: ED_12E - Text dedicated with AI
+name: ED_08 - Text dedicated with AI
 ---
 - startRecording:
-    path: ED_12E_text_dedicated
+    path: ED_08_text_dedicated
     optional: true
 - runFlow:
     file: subflows/prepare_editor_warm_start.yaml
     env:
-      SCREENSHOT_BASENAME: ED_12E_editor_ready
-      SCREEN_LABEL: ED_12E Edit Photo before text
+      SCREENSHOT_BASENAME: ED_08_editor_ready
+      SCREEN_LABEL: ED_08 Edit Photo before text
 
-- takeScreenshot: ED_12E_text_before
+- takeScreenshot: ED_08_text_before
 - runFlow: subflows/text/apply_text_overlay.yaml
-- takeScreenshot: ED_12E_text_after
+- takeScreenshot: ED_08_text_after
 - runFlow:
     file: subflows/verify_visual_pair_with_ai.yaml
     env:
-      BEFORE_BASENAME: ED_12E_text_before
-      AFTER_BASENAME: ED_12E_text_after
-      VERIFY_LABEL: ED_12E Dedicated text
+      BEFORE_BASENAME: ED_08_text_before
+      AFTER_BASENAME: ED_08_text_after
+      VERIFY_LABEL: ED_08 Dedicated text
       VERIFY_PROFILE: text
 
 - assertVisible:

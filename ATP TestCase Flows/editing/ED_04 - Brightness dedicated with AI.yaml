@@ -1,28 +1,28 @@
-# TC_ID: ED_19 - Brightness dedicated with AI verification
+# TC_ID: ED_04 - Brightness dedicated with AI verification
 # Dedicated Brightness-only editing test with OpenRouter pair verification.
 appId: com.kodak.steptouch
-name: ED_19 - Brightness dedicated with AI
+name: ED_04 - Brightness dedicated with AI
 ---
 - startRecording:
-    path: ED_19_brightness_dedicated
+    path: ED_04_brightness_dedicated
     optional: true
 - runFlow:
     file: subflows/prepare_editor_warm_start.yaml
     env:
-      SCREENSHOT_BASENAME: ED_19_editor_ready
-      SCREEN_LABEL: ED_19 Edit Photo before brightness
+      SCREENSHOT_BASENAME: ED_04_editor_ready
+      SCREEN_LABEL: ED_04 Edit Photo before brightness
 
 - runFlow: subflows/brightness/open_brightness_tool.yaml
 - runFlow: subflows/brightness/assert_brightness_screen.yaml
-- takeScreenshot: ED_19_brightness_before
+- takeScreenshot: ED_04_brightness_before
 - runFlow: subflows/brightness/swipe_brightness_slider_increase.yaml
-- takeScreenshot: ED_19_brightness_after
+- takeScreenshot: ED_04_brightness_after
 - runFlow:
     file: subflows/verify_visual_pair_with_ai.yaml
     env:
-      BEFORE_BASENAME: ED_19_brightness_before
-      AFTER_BASENAME: ED_19_brightness_after
-      VERIFY_LABEL: ED_19 Dedicated brightness
+      BEFORE_BASENAME: ED_04_brightness_before
+      AFTER_BASENAME: ED_04_brightness_after
+      VERIFY_LABEL: ED_04 Dedicated brightness
       VERIFY_PROFILE: brightness
 
 - runFlow: subflows/brightness/return_to_edit_toolbar_from_brightness.yaml

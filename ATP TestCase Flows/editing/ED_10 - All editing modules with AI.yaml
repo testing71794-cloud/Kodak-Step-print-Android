@@ -1,0 +1,163 @@
+# TC_ID: ED_10 - All editing modules with AI verification
+# Single editor session covering all editing modules in order with AI verification after each module.
+appId: com.kodak.steptouch
+name: ED_10 - All editing modules with AI
+---
+- startRecording:
+    path: ED_10_all_editing_modules
+    optional: true
+- runFlow:
+    file: subflows/prepare_editor_warm_start.yaml
+    env:
+      SCREENSHOT_BASENAME: ED_10_editor_ready
+      SCREEN_LABEL: ED_10 Edit Photo before all modules
+
+# Filter
+- takeScreenshot: ED_10_filter_before
+- runFlow:
+    file: subflows/apply_filter_by_index.yaml
+    env:
+      FILTER_INDEX: 2
+- takeScreenshot: ED_10_filter_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_10_filter_before
+      AFTER_BASENAME: ED_10_filter_after
+      VERIFY_LABEL: ED_10 Filter module
+      VERIFY_PROFILE: filter
+
+# Frames
+- takeScreenshot: ED_10_frame_before
+- runFlow: subflows/apply_frame.yaml
+- takeScreenshot: ED_10_frame_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_10_frame_before
+      AFTER_BASENAME: ED_10_frame_after
+      VERIFY_LABEL: ED_10 Frames module
+      VERIFY_PROFILE: frame
+
+# Stickers
+- takeScreenshot: ED_10_sticker_before
+- runFlow: subflows/apply_sticker.yaml
+- takeScreenshot: ED_10_sticker_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_10_sticker_before
+      AFTER_BASENAME: ED_10_sticker_after
+      VERIFY_LABEL: ED_10 Stickers module
+      VERIFY_PROFILE: sticker
+
+# Brightness
+- runFlow: subflows/brightness/open_brightness_tool.yaml
+- runFlow: subflows/brightness/assert_brightness_screen.yaml
+- takeScreenshot: ED_10_brightness_before
+- runFlow: subflows/brightness/swipe_brightness_slider_increase.yaml
+- takeScreenshot: ED_10_brightness_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_10_brightness_before
+      AFTER_BASENAME: ED_10_brightness_after
+      VERIFY_LABEL: ED_10 Brightness module
+      VERIFY_PROFILE: brightness
+- runFlow: subflows/brightness/return_to_edit_toolbar_from_brightness.yaml
+
+# Temperature
+- runFlow: subflows/temperature/open_temperature_tool.yaml
+- runFlow: subflows/temperature/assert_temperature_screen.yaml
+- takeScreenshot: ED_10_temperature_before
+- runFlow: subflows/temperature/swipe_temperature_slider_warm.yaml
+- takeScreenshot: ED_10_temperature_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_10_temperature_before
+      AFTER_BASENAME: ED_10_temperature_after
+      VERIFY_LABEL: ED_10 Temperature module
+      VERIFY_PROFILE: temperature
+- runFlow: subflows/temperature/return_to_edit_toolbar_from_temperature.yaml
+
+# Adjust
+- runFlow: subflows/adjust_tools/open_adjust_tool.yaml
+- runFlow: subflows/adjust_tools/assert_adjust_tool_screen.yaml
+- takeScreenshot: ED_10_adjust_panel
+- runFlow:
+    file: subflows/verify_edit_screen_with_ai.yaml
+    env:
+      SCREEN_BASENAME: ED_10_adjust_panel
+      SCREEN_LABEL: ED_10 Adjust panel
+      SCREEN_PROFILE: adjust_tool_screen
+- takeScreenshot: ED_10_adjust_rotate_before
+- runFlow: subflows/adjust_tools/tap_rotate_90.yaml
+- takeScreenshot: ED_10_adjust_rotate_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_10_adjust_rotate_before
+      AFTER_BASENAME: ED_10_adjust_rotate_after
+      VERIFY_LABEL: ED_10 Adjust rotate
+      VERIFY_PROFILE: rotate
+- takeScreenshot: ED_10_adjust_flip_before
+- runFlow: subflows/adjust_tools/tap_flip_vertical.yaml
+- takeScreenshot: ED_10_adjust_flip_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_10_adjust_flip_before
+      AFTER_BASENAME: ED_10_adjust_flip_after
+      VERIFY_LABEL: ED_10 Adjust flip
+      VERIFY_PROFILE: flip
+- takeScreenshot: ED_10_adjust_mirror_before
+- runFlow: subflows/adjust_tools/tap_flip_horizontal.yaml
+- takeScreenshot: ED_10_adjust_mirror_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_10_adjust_mirror_before
+      AFTER_BASENAME: ED_10_adjust_mirror_after
+      VERIFY_LABEL: ED_10 Adjust mirror
+      VERIFY_PROFILE: flip
+- runFlow: subflows/confirm_adjust_tool_returns_toolbar.yaml
+
+# Blur
+- takeScreenshot: ED_10_blur_before
+- runFlow: subflows/blur/apply_blur_effect.yaml
+- takeScreenshot: ED_10_blur_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_10_blur_before
+      AFTER_BASENAME: ED_10_blur_after
+      VERIFY_LABEL: ED_10 Blur module
+      VERIFY_PROFILE: blur
+
+# Text
+- takeScreenshot: ED_10_text_before
+- runFlow: subflows/text/apply_text_overlay.yaml
+- takeScreenshot: ED_10_text_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_10_text_before
+      AFTER_BASENAME: ED_10_text_after
+      VERIFY_LABEL: ED_10 Text module
+      VERIFY_PROFILE: text
+
+# Paint
+- takeScreenshot: ED_10_paint_before
+- runFlow: subflows/paint/apply_paint_doodle.yaml
+- takeScreenshot: ED_10_paint_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_10_paint_before
+      AFTER_BASENAME: ED_10_paint_after
+      VERIFY_LABEL: ED_10 Paint module
+      VERIFY_PROFILE: draw
+
+- runFlow: subflows/save_changes.yaml
+- stopRecording

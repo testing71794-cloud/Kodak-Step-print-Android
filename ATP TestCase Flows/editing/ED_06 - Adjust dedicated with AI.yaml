@@ -1,58 +1,58 @@
-# TC_ID: ED_21 - Adjust dedicated with AI verification
+# TC_ID: ED_06 - Adjust dedicated with AI verification
 # Dedicated Adjust-only editing test with OpenRouter panel and transform verification.
 appId: com.kodak.steptouch
-name: ED_21 - Adjust dedicated with AI
+name: ED_06 - Adjust dedicated with AI
 ---
 - startRecording:
-    path: ED_21_adjust_dedicated
+    path: ED_06_adjust_dedicated
     optional: true
 - runFlow:
     file: subflows/prepare_editor_warm_start.yaml
     env:
-      SCREENSHOT_BASENAME: ED_21_editor_ready
-      SCREEN_LABEL: ED_21 Edit Photo before adjust
+      SCREENSHOT_BASENAME: ED_06_editor_ready
+      SCREEN_LABEL: ED_06 Edit Photo before adjust
 
 - runFlow: subflows/adjust_tools/open_adjust_tool.yaml
 - runFlow: subflows/adjust_tools/assert_adjust_tool_screen.yaml
-- takeScreenshot: ED_21_adjust_panel
+- takeScreenshot: ED_06_adjust_panel
 - runFlow:
     file: subflows/verify_edit_screen_with_ai.yaml
     env:
-      SCREEN_BASENAME: ED_21_adjust_panel
-      SCREEN_LABEL: ED_21 Adjust panel
+      SCREEN_BASENAME: ED_06_adjust_panel
+      SCREEN_LABEL: ED_06 Adjust panel
       SCREEN_PROFILE: adjust_tool_screen
 
-- takeScreenshot: ED_21_rotate_before
+- takeScreenshot: ED_06_rotate_before
 - runFlow: subflows/adjust_tools/tap_rotate_90.yaml
-- takeScreenshot: ED_21_rotate_after
+- takeScreenshot: ED_06_rotate_after
 - runFlow:
     file: subflows/verify_visual_pair_with_ai.yaml
     env:
-      BEFORE_BASENAME: ED_21_rotate_before
-      AFTER_BASENAME: ED_21_rotate_after
-      VERIFY_LABEL: ED_21 Adjust rotate
+      BEFORE_BASENAME: ED_06_rotate_before
+      AFTER_BASENAME: ED_06_rotate_after
+      VERIFY_LABEL: ED_06 Adjust rotate
       VERIFY_PROFILE: rotate
 
-- takeScreenshot: ED_21_flip_before
+- takeScreenshot: ED_06_flip_before
 - runFlow: subflows/adjust_tools/tap_flip_vertical.yaml
-- takeScreenshot: ED_21_flip_after
+- takeScreenshot: ED_06_flip_after
 - runFlow:
     file: subflows/verify_visual_pair_with_ai.yaml
     env:
-      BEFORE_BASENAME: ED_21_flip_before
-      AFTER_BASENAME: ED_21_flip_after
-      VERIFY_LABEL: ED_21 Adjust flip
+      BEFORE_BASENAME: ED_06_flip_before
+      AFTER_BASENAME: ED_06_flip_after
+      VERIFY_LABEL: ED_06 Adjust flip
       VERIFY_PROFILE: flip
 
-- takeScreenshot: ED_21_mirror_before
+- takeScreenshot: ED_06_mirror_before
 - runFlow: subflows/adjust_tools/tap_flip_horizontal.yaml
-- takeScreenshot: ED_21_mirror_after
+- takeScreenshot: ED_06_mirror_after
 - runFlow:
     file: subflows/verify_visual_pair_with_ai.yaml
     env:
-      BEFORE_BASENAME: ED_21_mirror_before
-      AFTER_BASENAME: ED_21_mirror_after
-      VERIFY_LABEL: ED_21 Adjust mirror
+      BEFORE_BASENAME: ED_06_mirror_before
+      AFTER_BASENAME: ED_06_mirror_after
+      VERIFY_LABEL: ED_06 Adjust mirror
       VERIFY_PROFILE: flip
 
 - runFlow: subflows/confirm_adjust_tool_returns_toolbar.yaml

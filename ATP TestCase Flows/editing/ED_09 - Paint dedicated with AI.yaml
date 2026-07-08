@@ -1,26 +1,26 @@
-# TC_ID: ED_12D - Paint dedicated with AI verification
+# TC_ID: ED_09 - Paint dedicated with AI verification
 # Dedicated Paint-only editing test with OpenRouter pair verification.
 appId: com.kodak.steptouch
-name: ED_12D - Paint dedicated with AI
+name: ED_09 - Paint dedicated with AI
 ---
 - startRecording:
-    path: ED_12D_paint_dedicated
+    path: ED_09_paint_dedicated
     optional: true
 - runFlow:
     file: subflows/prepare_editor_warm_start.yaml
     env:
-      SCREENSHOT_BASENAME: ED_12D_editor_ready
-      SCREEN_LABEL: ED_12D Edit Photo before paint
+      SCREENSHOT_BASENAME: ED_09_editor_ready
+      SCREEN_LABEL: ED_09 Edit Photo before paint
 
-- takeScreenshot: ED_12D_paint_before
+- takeScreenshot: ED_09_paint_before
 - runFlow: subflows/paint/apply_paint_doodle.yaml
-- takeScreenshot: ED_12D_paint_after
+- takeScreenshot: ED_09_paint_after
 - runFlow:
     file: subflows/verify_visual_pair_with_ai.yaml
     env:
-      BEFORE_BASENAME: ED_12D_paint_before
-      AFTER_BASENAME: ED_12D_paint_after
-      VERIFY_LABEL: ED_12D Dedicated paint
+      BEFORE_BASENAME: ED_09_paint_before
+      AFTER_BASENAME: ED_09_paint_after
+      VERIFY_LABEL: ED_09 Dedicated paint
       VERIFY_PROFILE: draw
 
 - assertVisible:

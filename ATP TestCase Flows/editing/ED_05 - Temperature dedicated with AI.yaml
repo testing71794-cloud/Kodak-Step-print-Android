@@ -1,28 +1,28 @@
-# TC_ID: ED_20 - Temperature dedicated with AI verification
+# TC_ID: ED_05 - Temperature dedicated with AI verification
 # Dedicated Temperature-only editing test with OpenRouter pair verification.
 appId: com.kodak.steptouch
-name: ED_20 - Temperature dedicated with AI
+name: ED_05 - Temperature dedicated with AI
 ---
 - startRecording:
-    path: ED_20_temperature_dedicated
+    path: ED_05_temperature_dedicated
     optional: true
 - runFlow:
     file: subflows/prepare_editor_warm_start.yaml
     env:
-      SCREENSHOT_BASENAME: ED_20_editor_ready
-      SCREEN_LABEL: ED_20 Edit Photo before temperature
+      SCREENSHOT_BASENAME: ED_05_editor_ready
+      SCREEN_LABEL: ED_05 Edit Photo before temperature
 
 - runFlow: subflows/temperature/open_temperature_tool.yaml
 - runFlow: subflows/temperature/assert_temperature_screen.yaml
-- takeScreenshot: ED_20_temperature_before
+- takeScreenshot: ED_05_temperature_before
 - runFlow: subflows/temperature/swipe_temperature_slider_warm.yaml
-- takeScreenshot: ED_20_temperature_after
+- takeScreenshot: ED_05_temperature_after
 - runFlow:
     file: subflows/verify_visual_pair_with_ai.yaml
     env:
-      BEFORE_BASENAME: ED_20_temperature_before
-      AFTER_BASENAME: ED_20_temperature_after
-      VERIFY_LABEL: ED_20 Dedicated temperature
+      BEFORE_BASENAME: ED_05_temperature_before
+      AFTER_BASENAME: ED_05_temperature_after
+      VERIFY_LABEL: ED_05 Dedicated temperature
       VERIFY_PROFILE: temperature
 
 - runFlow: subflows/temperature/return_to_edit_toolbar_from_temperature.yaml
