@@ -1,7 +1,9 @@
 appId: com.kodak.steptouch
 ---
-# Tap NO BLUR to remove blur effect.
+# NO BLUR control (grey button, left of the radial circle). Removes the blur.
+# Drawn on a custom surface with no accessible id/text, so tap by coordinate.
 - tapOn:
-    text: ".*(?i)no blur.*"
+    point: "40%,87%"
+    label: NO BLUR control
 - waitForAnimationToEnd:
-    timeout: 1500
+    timeout: 2000

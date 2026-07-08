@@ -1,8 +1,19 @@
 appId: com.kodak.steptouch
 ---
-# Confirm text overlay and return to edit toolbar.
-- runFlow: ../confirm_extended_tool_returns_toolbar.yaml
+# Text overlay is already committed + confirmed in enter_text_overlay
+# (Done -> top-right checkmark). Here we only verify we are back on the editor
+# toolbar; we must NOT tap another confirm/Done (that would exit the editor).
 - extendedWaitUntil:
     visible:
-      text: ".*(?i)(Text|Filter).*"
+      id: "filterEditingOptionsImageView"
+    timeout: 12000
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "editingOptionsImageView"
+    timeout: 12000
+    optional: true
+- extendedWaitUntil:
+    visible:
+      text: ".*(?i)(Text|Blur|Paint|Filter|Adjust).*"
     timeout: 15000

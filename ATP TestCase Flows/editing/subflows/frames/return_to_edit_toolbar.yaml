@@ -1,6 +1,7 @@
 appId: com.kodak.steptouch
 ---
-# After frame apply: checkmark only (Done exits edit on some builds).
+# After frame apply: checkmark, then exit frames back to main edit toolbar.
+# Never tap yellow Done on category screen — use Filter to return to toolbar.
 - runFlow: confirm_frame_checkmark.yaml
 - waitForAnimationToEnd:
     timeout: 3000
@@ -9,16 +10,24 @@ appId: com.kodak.steptouch
       visible:
         text: ".*(?i)select frame category.*"
     commands:
-      - tapOn: "Frames"
+      - tapOn: "Filter"
+      - waitForAnimationToEnd:
+          timeout: 2000
+- runFlow:
+    when:
+      visible:
+        id: "imageViewFilter"
+    commands:
+      - tapOn: "Filter"
       - waitForAnimationToEnd:
           timeout: 2000
 - extendedWaitUntil:
     visible:
-      text: "Frames"
+      id: "filterEditingOptionsImageView"
     timeout: 15000
     optional: true
 - extendedWaitUntil:
     visible:
-      id: "filterEditingOptionsImageView"
-    timeout: 5000
+      text: ".*(?i)(Frames|Filter).*"
+    timeout: 15000
     optional: true

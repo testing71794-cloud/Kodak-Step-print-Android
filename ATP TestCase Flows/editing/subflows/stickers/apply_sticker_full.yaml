@@ -15,10 +15,6 @@ appId: com.kodak.steptouch
       STICKER_THUMB_INDEX: ${STICKER_THUMB_INDEX}
 - runFlow: place_sticker_on_canvas.yaml
 - runFlow: confirm_sticker_checkmark.yaml
-- runFlow: confirm_sticker_category_done.yaml
+- runFlow: return_to_edit_toolbar_from_stickers.yaml
 - waitForAnimationToEnd:
     timeout: 3000
-- extendedWaitUntil:
-    visible:
-      text: "Stickers"
-    timeout: 15000

@@ -1,13 +1,22 @@
 appId: com.kodak.steptouch
 ---
-# Extended tools (Blur, Text, Paint) may be off-screen — swipe the bottom toolbar left.
+# Extended tools (Blur, Text, Paint) sit to the right of Adjust on the bottom toolbar
+# row (~96% height). Swiping higher (91%) scrolls the filter thumbnail strip instead,
+# so target the toolbar row itself and swipe a few times to reach the far right.
 - swipe:
-    start: "88%,91%"
-    end: "12%,91%"
+    start: "85%,96%"
+    end: "12%,96%"
+    duration: 400
     optional: true
 - swipe:
-    start: "88%,91%"
-    end: "12%,91%"
+    start: "85%,96%"
+    end: "12%,96%"
+    duration: 400
+    optional: true
+- swipe:
+    start: "85%,96%"
+    end: "12%,96%"
+    duration: 400
     optional: true
 - waitForAnimationToEnd:
     timeout: 1000

@@ -1,0 +1,13 @@
+appId: com.kodak.steptouch
+---
+# Reset the bottom edit toolbar to the left so early tools (Filter, Frames) are visible.
+- swipe:
+    start: "12%,91%"
+    end: "88%,91%"
+    optional: true
+- swipe:
+    start: "12%,91%"
+    end: "88%,91%"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 1000

@@ -1,0 +1,35 @@
+# TC_ID: ED_Q4 - Rotate module quick check with AI
+# Quick rotate 90 twice via Adjust transform. AI compares after each rotate.
+appId: com.kodak.steptouch
+name: ED_Q4 - Rotate module quick check with AI
+---
+- runFlow:
+    file: subflows/prepare_editor_warm_start.yaml
+    env:
+      SCREENSHOT_BASENAME: ED_Q4_editor_ready
+      SCREEN_LABEL: ED_Q4 Edit Photo before rotate
+
+- takeScreenshot: ED_Q4_rotate_1_before
+- runFlow: subflows/apply_rotate.yaml
+- takeScreenshot: ED_Q4_rotate_1_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_Q4_rotate_1_before
+      AFTER_BASENAME: ED_Q4_rotate_1_after
+      VERIFY_LABEL: ED_Q4 Rotate 90
+      VERIFY_PROFILE: rotate
+
+- takeScreenshot: ED_Q4_rotate_2_before
+- runFlow: subflows/apply_rotate.yaml
+- takeScreenshot: ED_Q4_rotate_2_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_Q4_rotate_2_before
+      AFTER_BASENAME: ED_Q4_rotate_2_after
+      VERIFY_LABEL: ED_Q4 Rotate again
+      VERIFY_PROFILE: rotate
+
+- assertVisible:
+    id: "editingOptionsImageView"

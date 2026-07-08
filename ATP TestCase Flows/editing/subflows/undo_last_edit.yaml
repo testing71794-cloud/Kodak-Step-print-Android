@@ -1,10 +1,25 @@
 appId: com.kodak.steptouch
 ---
+# Undo last edit — undo icon may be hidden until Filter toolbar is active.
 - tapOn:
     text: ".*(?i)undo.*"
     optional: true
 - tapOn:
     id: "imageViewUndo"
+    optional: true
+- runFlow:
+    when:
+      notVisible:
+        id: "imageViewUndo"
+    commands:
+      - tapOn: "Filter"
+      - waitForAnimationToEnd:
+          timeout: 1500
+- tapOn:
+    id: "imageViewUndo"
+    optional: true
+- tapOn:
+    text: ".*(?i)undo.*"
     optional: true
 - waitForAnimationToEnd:
     timeout: 2000
@@ -12,3 +27,9 @@ appId: com.kodak.steptouch
     visible:
       id: "filterEditingOptionsImageView"
     timeout: 10000
+    optional: true
+- extendedWaitUntil:
+    visible:
+      text: ".*(?i)(Frames|Filter).*"
+    timeout: 10000
+    optional: true

@@ -1,6 +1,11 @@
 appId: com.kodak.steptouch
 ---
-# Open Blur from extended edit toolbar (scroll right if needed).
+# Open Blur from the extended edit toolbar (scroll right first).
+# IMPORTANT: the Blur tool is a fully custom-rendered surface. Its controls
+# ("NO BLUR" button, radial blur circle) are NOT exposed to the accessibility /
+# view hierarchy (uiautomator returns a null root here), so we cannot assert or
+# tap them by text/id — they must be driven by screen coordinates. Blur applies
+# live to the preview as soon as the tool opens (radial selected by default).
 - runFlow: ../scroll_edit_toolbar_right.yaml
 - scrollUntilVisible:
     element: "Blur"
@@ -9,8 +14,4 @@ appId: com.kodak.steptouch
     optional: true
 - tapOn: "Blur"
 - waitForAnimationToEnd:
-    timeout: 2000
-- extendedWaitUntil:
-    visible:
-      text: ".*(?i)no blur.*"
-    timeout: 15000
+    timeout: 2500

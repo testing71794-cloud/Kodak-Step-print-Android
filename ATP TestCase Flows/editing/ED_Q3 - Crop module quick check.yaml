@@ -1,0 +1,21 @@
+# TC_ID: ED_Q3 - Crop module quick check with AI
+# Quick fit/crop canvas pinch + pan. AI compares before/after crop.
+appId: com.kodak.steptouch
+name: ED_Q3 - Crop module quick check with AI
+---
+- runFlow:
+    file: subflows/prepare_editor_warm_start.yaml
+    env:
+      SCREENSHOT_BASENAME: ED_Q3_editor_ready
+      SCREEN_LABEL: ED_Q3 Edit Photo before crop
+
+- takeScreenshot: ED_Q3_crop_before
+- runFlow: subflows/apply_fit_crop.yaml
+- takeScreenshot: ED_Q3_crop_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_Q3_crop_before
+      AFTER_BASENAME: ED_Q3_crop_after
+      VERIFY_LABEL: ED_Q3 Fit crop pinch and pan
+      VERIFY_PROFILE: crop

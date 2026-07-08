@@ -1,0 +1,36 @@
+# TC_ID: ED_Q8 - Adjust module quick check with AI
+# Quick check of the Adjust transform panel (flip / vertical flip / rotate 90).
+# Verifies the panel opens (screen AI) and a rotate is applied (pair AI).
+appId: com.kodak.steptouch
+name: ED_Q8 - Adjust module quick check with AI
+---
+- runFlow:
+    file: subflows/prepare_editor_warm_start.yaml
+    env:
+      SCREENSHOT_BASENAME: ED_Q8_editor_ready
+      SCREEN_LABEL: ED_Q8 Edit Photo before adjust
+
+- runFlow: subflows/adjust_tools/open_adjust_tool.yaml
+- runFlow: subflows/adjust_tools/assert_adjust_tool_screen.yaml
+- takeScreenshot: ED_Q8_adjust_panel
+- runFlow:
+    file: subflows/verify_edit_screen_with_ai.yaml
+    env:
+      SCREEN_BASENAME: ED_Q8_adjust_panel
+      SCREEN_LABEL: ED_Q8 Adjust transform panel
+      SCREEN_PROFILE: adjust_tool_screen
+
+- takeScreenshot: ED_Q8_rotate_before
+- runFlow: subflows/adjust_tools/tap_rotate_90.yaml
+- takeScreenshot: ED_Q8_rotate_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_Q8_rotate_before
+      AFTER_BASENAME: ED_Q8_rotate_after
+      VERIFY_LABEL: ED_Q8 Adjust rotate 90
+      VERIFY_PROFILE: rotate
+
+- runFlow: subflows/confirm_adjust_tool_returns_toolbar.yaml
+- assertVisible:
+    id: "editingOptionsImageView"

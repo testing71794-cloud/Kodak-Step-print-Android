@@ -7,8 +7,11 @@ appId: com.kodak.steptouch
     timeout: 8000
 - waitForAnimationToEnd:
     timeout: 1000
+# Seekbar track sits at ~85% height; the previous 88% landed below the touch
+# target so the thumb never moved. Drag from the centered thumb to the far right.
 - swipe:
-    start: "25%,88%"
-    end: "85%,88%"
+    start: "50%,85%"
+    end: "92%,85%"
+    duration: 700
 - waitForAnimationToEnd:
     timeout: 1500

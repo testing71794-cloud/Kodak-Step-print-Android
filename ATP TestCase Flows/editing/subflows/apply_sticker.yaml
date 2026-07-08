@@ -1,15 +1,16 @@
 appId: com.kodak.steptouch
 ---
 # Stickers UI (multi-step, per device):
-# 1) "Select Sticker Category" — Person | Object | Words | Mother Day | Graduation…
-# 2) Category picker (e.g. "Mother Day") — sticker carousel, X + checkmark; assets may need download
-# 3) Sticker on preview — tap canvas to place; confirm with checkmark; Done on category screen
-# Reference recording: Stickers.mp4
+# 1) "Select Sticker Category" — Graduation, Fathers Day, Summer, Patriotic…
+# 2) Category carousel — sticker thumbnails; first asset often pre-cached
+# 3) Confirm checkmark → category screen → Filter returns to edit toolbar
+# Use "Summer" (colorful flip-flops) — visually distinct from the base test photo
+# so the AI pair check can clearly detect the added sticker.
 - runFlow: stickers/open_stickers_tool.yaml
 - runFlow:
     file: stickers/apply_sticker_full.yaml
     env:
-      STICKER_CATEGORY: "Mother Day"
-      STICKER_CATEGORY_INDEX: 3
-      STICKER_CATEGORY_POINT: "75%,72%"
-      STICKER_THUMB_INDEX: 4
+      STICKER_CATEGORY: Summer
+      STICKER_CATEGORY_INDEX: 2
+      STICKER_CATEGORY_POINT: "50%,72%"
+      STICKER_THUMB_INDEX: 0

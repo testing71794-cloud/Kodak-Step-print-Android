@@ -26,6 +26,18 @@ var PROFILES = {
       'Answer ONLY JSON: {"change_applied": true/false, "looks_different": true/false, "summary": "one sentence"}. ' +
       "change_applied=true when AFTER shows a decorative frame/border around the photo that BEFORE lacks.",
   },
+  frame_remove: {
+    passKeys: ["change_applied", "looks_different"],
+    prompt:
+      'Answer ONLY JSON: {"change_applied": true/false, "looks_different": true/false, "summary": "one sentence"}. ' +
+      "change_applied=true when AFTER shows the decorative frame/border from BEFORE was removed (photo back to plain/no frame).",
+  },
+  unchanged: {
+    passKeys: ["unchanged"],
+    prompt:
+      'Answer ONLY JSON: {"unchanged": true/false, "change_applied": true/false, "looks_different": true/false, "summary": "one sentence"}. ' +
+      "unchanged=true when AFTER photo preview is essentially the same as BEFORE (no frame, filter, or overlay change applied).",
+  },
   sticker: {
     passKeys: ["change_applied", "looks_different"],
     prompt:

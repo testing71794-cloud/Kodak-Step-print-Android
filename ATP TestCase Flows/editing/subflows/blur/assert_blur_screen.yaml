@@ -5,7 +5,7 @@ appId: com.kodak.steptouch
     text: ".*(?i)blur.*"
     optional: true
 - assertVisible:
-    text: ".*(?i)no blur.*"
+    text: "(?is).*no\\s+blur.*"
 - assertVisible:
     id: "imageViewBlur"
     optional: true

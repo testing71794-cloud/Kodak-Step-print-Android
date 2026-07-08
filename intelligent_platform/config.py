@@ -75,7 +75,7 @@ def openrouter_model_fallback_2() -> str:
     return s or _DEFAULT_MODEL_FB2
 
 
-_DEFAULT_MODEL_VISION: str = "openrouter/free"
+_DEFAULT_MODEL_VISION: str = "meta-llama/llama-3.2-11b-vision-instruct:free"
 
 
 def openrouter_model_vision() -> str:

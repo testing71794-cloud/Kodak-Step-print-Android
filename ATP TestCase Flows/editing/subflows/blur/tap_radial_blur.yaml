@@ -1,15 +1,10 @@
 appId: com.kodak.steptouch
 ---
-# Select radial blur (yellow circle — right of NO BLUR).
+# Radial blur control (yellow circle, right of the NO BLUR button). Drawn on a
+# custom surface with no accessible id/text, so tap by coordinate. Radial is the
+# default selection, so this is idempotent (verified: re-tapping keeps the blur).
 - tapOn:
-    point: "72%,78%"
-    optional: true
-    label: Radial blur button
-- tapOn:
-    id: "imageViewBlur"
-    optional: true
-- tapOn:
-    id: "blurImageView"
-    optional: true
+    point: "59%,87%"
+    label: Radial blur control
 - waitForAnimationToEnd:
     timeout: 2000

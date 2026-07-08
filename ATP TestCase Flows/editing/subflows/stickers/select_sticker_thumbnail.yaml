@@ -5,5 +5,9 @@ appId: com.kodak.steptouch
     id: "imageViewStricker"
     index: ${STICKER_THUMB_INDEX}
     optional: true
+- tapOn:
+    point: "20%,86%"
+    optional: true
+    label: First sticker thumbnail fallback
 - waitForAnimationToEnd:
     timeout: 3000

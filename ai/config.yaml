@@ -1,0 +1,19 @@
+# AI Visual Validation — Qwen3 VL via OpenRouter
+# Model can be swapped via AI_VISUAL_MODEL / OPENROUTER_MODEL_VISION env vars.
+
+model: meta-llama/llama-3.2-11b-vision-instruct:free
+fallback_models:
+  - qwen/qwen2.5-vl-32b-instruct:free
+  - google/gemma-3-12b-it:free
+
+timeout_sec: 60
+max_retries: 3
+retry_backoff_sec: 2.0
+rate_limit_rps: 2.0
+max_concurrent: 2
+
+cache_dir: .cache/ai_visual
+log_file: logs/visual_validation.log
+
+# Optional screen context passed to the model (flow name, suite, etc.)
+default_context: ""

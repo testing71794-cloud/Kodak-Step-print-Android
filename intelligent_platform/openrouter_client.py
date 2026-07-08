@@ -7,8 +7,10 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import socket
 import ssl
+import time
 import urllib.error
 import urllib.request
 from typing import Any
@@ -30,6 +32,9 @@ MODEL_FALLBACK = "meta-llama/llama-3.3-70b-instruct:free"
 
 DEFAULT_BASE_URL = "https://openrouter.ai/api/v1"
 DEFAULT_TIMEOUT_SEC = 120
+# Vision calls use a shorter per-model timeout so a full fallback pass finishes
+# within the Maestro JS client's localhost HTTP budget (~2 min).
+VISION_TIMEOUT_SEC = max(15, int(os.environ.get("OPENROUTER_VISION_TIMEOUT_SEC", "45")))
 
 # Deterministic generation
 TEMPERATURE = 0.1
@@ -57,6 +62,7 @@ def call_openrouter(
     http_referer: str = "",
     app_title: str = "Kodak Intelligent Platform",
     max_tokens: int | None = None,
+    timeout_sec: int | None = None,
 ) -> str:
     """
     POST /chat/completions. Returns assistant message content (string).
@@ -82,7 +88,7 @@ def call_openrouter(
     req = urllib.request.Request(url, data=body, headers=headers, method="POST")
     try:
         with urllib.request.urlopen(
-            req, timeout=DEFAULT_TIMEOUT_SEC, context=_ssl_context()
+            req, timeout=timeout_sec if timeout_sec is not None else DEFAULT_TIMEOUT_SEC, context=_ssl_context()
         ) as resp:
             raw = resp.read().decode("utf-8", errors="replace")
     except urllib.error.HTTPError as e:
@@ -113,10 +119,9 @@ def call_openrouter(
 
 
 VISION_MODEL_FALLBACKS: tuple[str, ...] = (
-    "openrouter/free",
-    "google/gemma-3-4b-it:free",
+    "qwen/qwen2.5-vl-32b-instruct:free",
+    "google/gemma-3-12b-it:free",
     "meta-llama/llama-3.2-11b-vision-instruct:free",
-    "mistralai/mistral-small-3.1-24b-instruct:free",
 )
 
 
@@ -135,28 +140,55 @@ def call_openrouter_vision(
     for m in (model, *VISION_MODEL_FALLBACKS):
         if m and m not in candidates:
             candidates.append(m)
+    # Free models (incl. the openrouter/free router) are intermittently rate-limited
+    # (HTTP 429 "retry shortly") or return empty bodies under load. Do a few full
+    # passes over the candidate list with a short backoff so a transient blip on one
+    # round doesn't fail the whole verification.
+    import time
+
+    max_rounds = 2
+    backoff_sec = 2.0
+    vision_timeout = VISION_TIMEOUT_SEC
     last_error: Exception | None = None
-    for candidate in candidates:
-        try:
-            content = call_openrouter(
-                messages,
-                candidate,
-                api_key=api_key,
-                base_url=base_url,
-                http_referer=http_referer,
-                app_title=app_title,
-                max_tokens=max_tokens,
-            )
-            return content, candidate
-        except OpenRouterHTTPError as e:
-            last_error = e
-            if e.code in {400, 402, 404, 429}:
-                logger.warning("OpenRouter vision model=%s unavailable: %s", candidate, e)
+    for round_idx in range(max_rounds):
+        rate_limited_or_empty = False
+        for candidate in candidates:
+            try:
+                content = call_openrouter(
+                    messages,
+                    candidate,
+                    api_key=api_key,
+                    base_url=base_url,
+                    http_referer=http_referer,
+                    app_title=app_title,
+                    max_tokens=max_tokens,
+                    timeout_sec=vision_timeout,
+                )
+                return content, candidate
+            except OpenRouterHTTPError as e:
+                last_error = e
+                # 429 rate-limit or 5xx provider error (e.g. a backend that can't handle
+                # the two-image pair request) — transient, retry next candidate/round.
+                if e.code == 429 or (e.code is not None and 500 <= e.code < 600):
+                    rate_limited_or_empty = True
+                    logger.warning("OpenRouter vision model=%s transient error: %s", candidate, e)
+                    continue
+                # 400/402/404: model genuinely unavailable for this account — skip it.
+                if e.code in {400, 402, 404}:
+                    logger.warning("OpenRouter vision model=%s unavailable: %s", candidate, e)
+                    continue
+                raise
+            except RuntimeError as e:
+                # Empty choices / no content — retriable.
+                last_error = e
+                rate_limited_or_empty = True
+                logger.warning("OpenRouter vision model=%s returned no usable content: %s", candidate, e)
                 continue
-            raise
-        except RuntimeError as e:
-            last_error = e
-            raise
+        # Only worth another pass if failures were transient (rate limit / empty).
+        if not rate_limited_or_empty or round_idx == max_rounds - 1:
+            break
+        logger.warning("OpenRouter vision: all candidates rate-limited on round %s; retrying in %ss", round_idx + 1, backoff_sec)
+        time.sleep(backoff_sec)
     if last_error:
         raise last_error
     raise RuntimeError("OpenRouter vision: no models available")

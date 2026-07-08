@@ -1,0 +1,24 @@
+# TC_ID: ED_Q2 - Stickers module quick check with AI
+# Quick single-session sticker check: apply sticker overlay. AI compares after apply.
+appId: com.kodak.steptouch
+name: ED_Q2 - Stickers module quick check with AI
+---
+- runFlow:
+    file: subflows/prepare_editor_warm_start.yaml
+    env:
+      SCREENSHOT_BASENAME: ED_Q2_editor_ready
+      SCREEN_LABEL: ED_Q2 Edit Photo before stickers
+
+- takeScreenshot: ED_Q2_apply_before
+- runFlow: subflows/apply_sticker.yaml
+- takeScreenshot: ED_Q2_apply_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_Q2_apply_before
+      AFTER_BASENAME: ED_Q2_apply_after
+      VERIFY_LABEL: ED_Q2 Sticker applied
+      VERIFY_PROFILE: sticker
+
+- assertVisible:
+    text: ".*(?i)(Stickers|Filter|Frames).*"

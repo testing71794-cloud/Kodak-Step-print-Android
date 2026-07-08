@@ -1,0 +1,28 @@
+# TC_ID: ED_Q7 - Temperature module quick check with AI
+# Quick temperature check. Screenshots on the slider panel (live preview) so the
+# color-temperature shift is captured before leaving the slider.
+appId: com.kodak.steptouch
+name: ED_Q7 - Temperature module quick check with AI
+---
+- runFlow:
+    file: subflows/prepare_editor_warm_start.yaml
+    env:
+      SCREENSHOT_BASENAME: ED_Q7_editor_ready
+      SCREEN_LABEL: ED_Q7 Edit Photo before temperature
+
+- runFlow: subflows/temperature/open_temperature_tool.yaml
+- runFlow: subflows/temperature/assert_temperature_screen.yaml
+- takeScreenshot: ED_Q7_temperature_before
+- runFlow: subflows/temperature/swipe_temperature_slider_warm.yaml
+- takeScreenshot: ED_Q7_temperature_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_Q7_temperature_before
+      AFTER_BASENAME: ED_Q7_temperature_after
+      VERIFY_LABEL: ED_Q7 Temperature warm shift
+      VERIFY_PROFILE: temperature
+
+- runFlow: subflows/temperature/return_to_edit_toolbar_from_temperature.yaml
+- assertVisible:
+    text: ".*(?i)(Temperature|Filter).*"

@@ -28,10 +28,14 @@ appId: com.kodak.steptouch
       - tapOn: "Filter"
       - waitForAnimationToEnd:
           timeout: 1500
+# Confirm + Filter can land on either the main edit toolbar (editPhotoTextView) or
+# the filter carousel; the bottom toolbar row (filterEditingOptionsImageView) is
+# present on both, so treat the title as optional and gate on the toolbar row.
 - extendedWaitUntil:
     visible:
       id: "editPhotoTextView"
     timeout: 10000
+    optional: true
 - extendedWaitUntil:
     visible:
       id: "filterEditingOptionsImageView"

@@ -14,7 +14,7 @@ appId: com.kodak.steptouch
 - runFlow:
     when:
       visible:
-        text: ".*(?i)no blur.*"
+        text: "(?is).*no\\s+blur.*"
     commands:
       - tapOn: "Filter"
       - waitForAnimationToEnd:
@@ -35,7 +35,20 @@ appId: com.kodak.steptouch
       - tapOn: "Filter"
       - waitForAnimationToEnd:
           timeout: 1500
+# After confirming, the toolbar is scrolled to the extended tools (Filter icon is
+# off-screen far left), so gate on any editor-toolbar indicator rather than the
+# Filter icon specifically.
 - extendedWaitUntil:
     visible:
       id: "filterEditingOptionsImageView"
+    timeout: 15000
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "editingOptionsImageView"
+    timeout: 15000
+    optional: true
+- extendedWaitUntil:
+    visible:
+      text: ".*(?i)(Blur|Text|Paint|Filter|Adjust).*"
     timeout: 15000

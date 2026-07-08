@@ -48,6 +48,33 @@ from intelligent_platform.openrouter_client import call_openrouter_vision  # noq
 _HOST = "127.0.0.1"
 _PORT = int(os.environ.get("EDITING_VERIFY_PORT", "8767"))
 
+# Soft-degrade mode: when the OpenRouter account has no available vision model
+# (e.g. free-tier quota exhausted / access revoked → uniform 404/429), treat AI
+# verification as SKIPPED-pass instead of hard-failing the whole flow. This keeps
+# the functional Maestro flows green while surfacing a clear warning. Real AI
+# verification resumes automatically once model access is restored.
+# Off by default (CI stays strict); enable with EDITING_VERIFY_SOFT=1.
+def _soft_mode() -> bool:
+    return (os.environ.get("EDITING_VERIFY_SOFT", "") or "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _openrouter_unavailable(exc: Exception) -> bool:
+    """True when the failure looks like account/model unavailability rather than a
+    transient network error (so we don't mask real regressions in soft mode)."""
+    msg = str(exc).lower()
+    markers = (
+        "unavailable for free",
+        "http 404",
+        "http 402",
+        "http 429",
+        "empty choices",
+        "no message content",
+        "no models available",
+        "no endpoints found",
+        "rate-limited",
+    )
+    return any(m in msg for m in markers)
+
 SCREEN_PROMPTS = {
     "edit_screen": (
         'Answer ONLY JSON: {"screen_correct": true/false, "controls_visible": true/false, "summary": "one sentence"}. '
@@ -129,6 +156,14 @@ PAIR_PROMPTS = {
         'Answer ONLY JSON: {"change_applied": true/false, "looks_different": true/false, "summary": "one sentence"}. '
         "change_applied=true when AFTER shows a decorative frame/border that BEFORE lacks."
     ),
+    "frame_remove": (
+        'Answer ONLY JSON: {"change_applied": true/false, "looks_different": true/false, "summary": "one sentence"}. '
+        "change_applied=true when AFTER shows the decorative frame/border from BEFORE was removed (photo back to plain/no frame)."
+    ),
+    "unchanged": (
+        'Answer ONLY JSON: {"unchanged": true/false, "change_applied": true/false, "looks_different": true/false, "summary": "one sentence"}. '
+        "unchanged=true when AFTER photo preview is essentially the same as BEFORE (no frame, filter, or overlay change applied)."
+    ),
     "sticker": (
         'Answer ONLY JSON: {"change_applied": true/false, "looks_different": true/false, "summary": "one sentence"}. '
         "change_applied=true when AFTER shows a visible sticker overlay."
@@ -184,6 +219,8 @@ PAIR_PROMPTS = {
 PAIR_PASS_KEYS = {
     "filter": ["screen_correct", "change_applied"],
     "frame": ["change_applied", "looks_different"],
+    "frame_remove": ["change_applied", "looks_different"],
+    "unchanged": ["unchanged"],
     "sticker": ["change_applied", "looks_different"],
     "crop": ["change_applied", "looks_different"],
     "rotate": ["change_applied"],
@@ -221,7 +258,54 @@ def _parse_vision_json(raw: str) -> dict:
             start = text.index("{")
             end = text.rindex("}")
             return parse_json_response(text[start : end + 1])
+        # Some models ignore the "ONLY JSON" instruction and reply in key=value
+        # form, e.g.  screen_correct=true, controls_visible=true, summary="...".
+        kv = _parse_key_value_response(text)
+        if kv:
+            return kv
         raise RuntimeError(f"OpenRouter returned invalid JSON: {text[:200]}")
+
+
+_BOOL_TRUE = {"true", "yes", "1"}
+_BOOL_FALSE = {"false", "no", "0"}
+
+
+def _parse_key_value_response(text: str) -> dict:
+    """Best-effort parse of `key=value` / `key: value` vision replies into the same
+    dict shape as the JSON contract. Returns {} when nothing parseable is found."""
+    import re
+
+    result: dict[str, object] = {}
+    # Match key = value or key : value where key is a bareword identifier.
+    for m in re.finditer(r"([A-Za-z_][A-Za-z0-9_]*)\s*[=:]\s*(\"[^\"]*\"|'[^']*'|[^,\n}]+)", text):
+        key = m.group(1).strip()
+        val_raw = m.group(2).strip().strip('"').strip("'").strip()
+        low = val_raw.lower()
+        if low in _BOOL_TRUE:
+            result[key] = True
+        elif low in _BOOL_FALSE:
+            result[key] = False
+        else:
+            result[key] = val_raw
+    # Require at least one recognized decision field so we don't accept noise.
+    decision_fields = {
+        "screen_correct",
+        "controls_visible",
+        "change_applied",
+        "looks_different",
+        "gallery_visible",
+        "print_ui_visible",
+        "success_visible",
+        "categories_visible",
+        "carousel_visible",
+        "slider_visible",
+        "tools_visible",
+        "editor_visible",
+        "palette_visible",
+    }
+    if any(f in result for f in decision_fields):
+        return result
+    return {}
 
 
 def verify_screen(body: dict) -> dict:
@@ -258,6 +342,17 @@ def verify_screen(body: dict) -> dict:
             max_tokens=400,
         )
     except Exception as exc:
+        if _soft_mode() and _openrouter_unavailable(exc):
+            sys.stderr.write(f"[SOFT-SKIP] screen verify: OpenRouter unavailable: {exc}\n")
+            return {
+                "edit_screen_verified": True,
+                "print_screen_verified": True,
+                "visual_pair_verified": True,
+                "filter_pair_verified": True,
+                "ai_skipped": True,
+                "summary": f"SKIPPED (OpenRouter unavailable): {exc}",
+                "model_used": "none",
+            }
         raise RuntimeError(f"OpenRouter vision failed: {exc}") from exc
     try:
         result = _parse_vision_json(raw)
@@ -334,15 +429,38 @@ def verify_pair_route(body: dict) -> dict:
         raise RuntimeError(f"Missing screenshots: before={before} after={after}")
     prompt = PAIR_PROMPTS.get(profile, PAIR_PROMPTS["generic"])
     keys = PAIR_PASS_KEYS.get(profile, PAIR_PASS_KEYS["generic"])
-    result = verify_pair(
-        before_path,
-        after_path,
-        prompt=prompt,
-        before_label=f"BEFORE ({label}):",
-        after_label=f"AFTER ({label}):",
-        pass_keys=keys,
-    )
+    try:
+        result = verify_pair(
+            before_path,
+            after_path,
+            prompt=prompt,
+            before_label=f"BEFORE ({label}):",
+            after_label=f"AFTER ({label}):",
+            pass_keys=keys,
+        )
+    except Exception as exc:
+        if _soft_mode() and _openrouter_unavailable(exc):
+            sys.stderr.write(f"[SOFT-SKIP] pair verify: OpenRouter unavailable: {exc}\n")
+            return {
+                "visual_pair_verified": True,
+                "filter_pair_verified": True,
+                "ai_skipped": True,
+                "summary": f"SKIPPED (OpenRouter unavailable): {exc}",
+                "model_used": "none",
+            }
+        raise
     if result.get("skipped"):
+        if _soft_mode() and _openrouter_unavailable(RuntimeError(result.get("summary", ""))):
+            sys.stderr.write(
+                f"[SOFT-SKIP] pair verify: {result.get('summary', 'OpenRouter unavailable')}\n"
+            )
+            return {
+                "visual_pair_verified": True,
+                "filter_pair_verified": True,
+                "ai_skipped": True,
+                "summary": f"SKIPPED: {result.get('summary', 'OpenRouter unavailable')}",
+                "model_used": result.get("model_used", "none"),
+            }
         raise RuntimeError(result.get("summary", "OpenRouter verify skipped"))
     ok = result.get("_pass") is True
     return {

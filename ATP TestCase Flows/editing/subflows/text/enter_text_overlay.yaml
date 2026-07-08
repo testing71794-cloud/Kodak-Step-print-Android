@@ -1,25 +1,29 @@
 appId: com.kodak.steptouch
 ---
-# Type text on canvas, pick color, confirm placement (Done), then checkmark via return subflow.
+# Text tool opens with a live text cursor already on the canvas (no Abc/keyboard
+# toggle needed). Sequence verified on device (Motorola Edge, 1080x2400):
+#   focus cursor -> type -> Done (commit) -> top-right checkmark (confirm overlay)
+#   -> back on the editor toolbar with the text applied.
+# The yellow "Done" here commits the typed text (does NOT exit the editor); the
+# intermediate X / checkmark screen then confirms the placed overlay.
 - tapOn:
-    point: "50%,45%"
-    optional: true
+    point: "50%,47%"
     label: Focus text cursor on canvas
-- tapOn:
-    text: ".*(?i)abc.*"
-    optional: true
-    label: Open text keyboard via Abc
+- waitForAnimationToEnd:
+    timeout: 1000
 - inputText: "ATP"
-- hideKeyboard:
-    optional: true
-- tapOn:
-    point: "82%,88%"
-    optional: true
-    label: Red text color swatch
+- waitForAnimationToEnd:
+    timeout: 1000
 - tapOn:
     text: "Done"
     optional: true
-- hideKeyboard:
-    optional: true
+    label: Commit typed text
+- waitForAnimationToEnd:
+    timeout: 1200
+# After Done, the top-right shows a checkmark (confirm) with an X (discard) on the
+# left. Tap the checkmark to place the overlay and return to the editor toolbar.
+- tapOn:
+    point: "90%,6%"
+    label: Confirm text overlay checkmark (top-right)
 - waitForAnimationToEnd:
     timeout: 1500

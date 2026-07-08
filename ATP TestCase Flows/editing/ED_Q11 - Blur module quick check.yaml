@@ -1,0 +1,47 @@
+# TC_ID: ED_Q11 - Blur module quick check with AI
+# Quick radial-blur apply + NO BLUR remove, with AI comparison after each op.
+# NOTE: the Blur tool is a custom-rendered surface (no accessible controls), so
+# it is driven purely by coordinates and exits via the top-left back arrow, which
+# saves the edit and returns to the photo-detail screen.
+appId: com.kodak.steptouch
+name: ED_Q11 - Blur module quick check with AI
+---
+- runFlow:
+    file: subflows/prepare_editor_warm_start.yaml
+    env:
+      SCREENSHOT_BASENAME: ED_Q11_editor_ready
+      SCREEN_LABEL: ED_Q11 Edit Photo before blur
+
+# --- Apply radial blur (applies live on open) ---
+- takeScreenshot: ED_Q11_blur_before
+- runFlow: subflows/blur/open_blur_tool.yaml
+- runFlow: subflows/blur/tap_radial_blur.yaml
+- takeScreenshot: ED_Q11_blur_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_Q11_blur_before
+      AFTER_BASENAME: ED_Q11_blur_after
+      VERIFY_LABEL: ED_Q11 Radial blur applied
+      VERIFY_PROFILE: blur
+
+# --- Remove blur via NO BLUR ---
+- takeScreenshot: ED_Q11_remove_before
+- runFlow: subflows/blur/tap_no_blur.yaml
+- takeScreenshot: ED_Q11_remove_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_Q11_remove_before
+      AFTER_BASENAME: ED_Q11_remove_after
+      VERIFY_LABEL: ED_Q11 Blur removed via NO BLUR
+      VERIFY_PROFILE: generic
+
+# --- Exit blur tool (back arrow saves + returns to photo detail) ---
+- tapOn:
+    point: "5%,6%"
+    label: Exit blur tool via back arrow
+- waitForAnimationToEnd:
+    timeout: 2500
+- assertVisible:
+    text: ".*(?i)(edit|collage|print|stickers).*"

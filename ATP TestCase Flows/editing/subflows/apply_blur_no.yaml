@@ -3,7 +3,7 @@ appId: com.kodak.steptouch
 # Blur NO path: open Blur tool and select NO BLUR (no radial effect).
 - runFlow: open_blur_tool.yaml
 - tapOn:
-    text: ".*(?i)no blur.*"
+    text: "(?is).*no\\s+blur.*"
 - waitForAnimationToEnd:
     timeout: 2000
 - runFlow:

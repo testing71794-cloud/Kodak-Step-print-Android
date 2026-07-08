@@ -1,6 +1,17 @@
 appId: com.kodak.steptouch
 ---
 # Open Frames from edit toolbar; land on category picker or in-category carousel.
+# Frames sits near the left of the toolbar — if it scrolled off, reset scroll left first.
+- runFlow:
+    when:
+      notVisible: "Frames"
+    commands:
+      - runFlow: ../scroll_edit_toolbar_left.yaml
+- runFlow:
+    when:
+      notVisible: "Frames"
+    commands:
+      - runFlow: ../scroll_edit_toolbar_left.yaml
 - tapOn: "Frames"
 - waitForAnimationToEnd:
     timeout: 2000

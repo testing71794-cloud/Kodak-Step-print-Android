@@ -8,6 +8,18 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1] / "ATP TestCase Flows" / "editing"
 FLOWS = [
+    "ED_03A - Frames all-in-one comprehensive with AI.yaml",
+    "ED_Q1 - Frames module quick check.yaml",
+    "ED_Q2 - Stickers module quick check.yaml",
+    "ED_Q3 - Crop module quick check.yaml",
+    "ED_Q4 - Rotate module quick check.yaml",
+    "ED_Q5 - Flip module quick check.yaml",
+    "ED_Q6 - Brightness module quick check.yaml",
+    "ED_Q7 - Temperature module quick check.yaml",
+    "ED_Q8 - Adjust module quick check.yaml",
+    "ED_Q9 - Text module quick check.yaml",
+    "ED_Q10 - Paint module quick check.yaml",
+    "ED_Q11 - Blur module quick check.yaml",
     "ED_09A - Text comprehensive with AI.yaml",
     "ED_09B - Text screen navigation and UI.yaml",
     "ED_10A - Paint comprehensive with AI.yaml",
