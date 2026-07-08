@@ -278,7 +278,15 @@ def _apply_editing_ci_defaults(folder: str) -> None:
     """Set editing-stage defaults before flow discovery (must run before preflight log)."""
     if not _is_editing_folder(folder):
         return
-    os.environ.setdefault("ATP_FLOW_EXCLUDE", "ED_Q")
+    os.environ.setdefault(
+        "ATP_FLOW_EXCLUDE",
+        "ED_Q,"
+        "ED_02 - Apply,"
+        "ED_03 - Frames,"
+        "ED_03B,ED_03C,ED_03D,ED_03E,ED_03F,ED_03G,ED_03H,"
+        "ED_04 - Stickers,"
+        "ED_04B,ED_04C,ED_04D,ED_04E,ED_04F,ED_04G,ED_04H",
+    )
     os.environ.setdefault("EDITING_VERIFY_SOFT", "1")
     os.environ.setdefault("OPENROUTER_VISION_TIMEOUT_SEC", "25")
     os.environ.setdefault("OPENROUTER_VISION_MAX_ROUNDS", "1")

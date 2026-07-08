@@ -8,7 +8,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1] / "ATP TestCase Flows" / "editing"
 FLOWS = [
+    "ED_02A - Filter all-in-one comprehensive with AI.yaml",
     "ED_03A - Frames all-in-one comprehensive with AI.yaml",
+    "ED_04A - Stickers all-in-one comprehensive with AI.yaml",
     "ED_Q1 - Frames module quick check.yaml",
     "ED_Q2 - Stickers module quick check.yaml",
     "ED_Q3 - Crop module quick check.yaml",
