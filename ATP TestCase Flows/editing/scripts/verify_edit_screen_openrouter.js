@@ -79,6 +79,9 @@ function maestroEnvValue(name) {
   if (name === "OPENROUTER_APP_TITLE" && typeof OPENROUTER_APP_TITLE !== "undefined" && OPENROUTER_APP_TITLE) {
     return OPENROUTER_APP_TITLE;
   }
+  if (name === "OPENROUTER_VISION_FALLBACKS" && typeof OPENROUTER_VISION_FALLBACKS !== "undefined" && OPENROUTER_VISION_FALLBACKS) {
+    return OPENROUTER_VISION_FALLBACKS;
+  }
   return "";
 }
 
@@ -224,6 +227,74 @@ function findScreenshotPath(name) {
   return null;
 }
 
+var DEFAULT_VISION_FALLBACKS = [
+  "qwen/qwen2.5-vl-32b-instruct:free",
+  "qwen/qwen2.5-vl-72b-instruct:free",
+  "google/gemma-3-4b-it:free",
+  "mistralai/mistral-small-3.1-24b-instruct:free",
+];
+
+function resolveVisionModelChain() {
+  var primary = resolveEnvValue("OPENROUTER_MODEL_VISION") || "meta-llama/llama-3.2-11b-vision-instruct:free";
+  var chain = [primary];
+  var fallbacksRaw = resolveEnvValue("OPENROUTER_VISION_FALLBACKS");
+  if (fallbacksRaw && fallbacksRaw.toLowerCase() !== "none" && fallbacksRaw !== "0") {
+    fallbacksRaw.split(",").forEach(function (m) {
+      m = (m || "").trim();
+      if (m && chain.indexOf(m) < 0) {
+        chain.push(m);
+      }
+    });
+  } else if (!fallbacksRaw) {
+    DEFAULT_VISION_FALLBACKS.forEach(function (m) {
+      if (chain.indexOf(m) < 0) {
+        chain.push(m);
+      }
+    });
+  }
+  return chain;
+}
+
+function shouldTryNextVisionModel(status) {
+  return (
+    status === 400 ||
+    status === 402 ||
+    status === 404 ||
+    status === 429 ||
+    (status >= 500 && status < 600)
+  );
+}
+
+function screenVerifyPassed(result) {
+  var ok = result.screen_correct === true;
+  if (screenProfile === "gallery") {
+    ok = result.screen_correct === true && result.gallery_visible === true;
+  } else if (screenProfile === "frame_category") {
+    ok = result.screen_correct === true && result.categories_visible === true;
+  } else if (screenProfile === "frame_carousel") {
+    ok = result.screen_correct === true && result.carousel_visible === true;
+  } else if (screenProfile === "sticker_category") {
+    ok = result.screen_correct === true && result.categories_visible === true;
+  } else if (screenProfile === "sticker_carousel") {
+    ok = result.screen_correct === true && result.carousel_visible === true;
+  } else if (screenProfile === "brightness_screen") {
+    ok = result.screen_correct === true && (result.slider_visible === true || result.slider_visible === undefined);
+  } else if (screenProfile === "temperature_screen") {
+    ok = result.screen_correct === true && (result.slider_visible === true || result.slider_visible === undefined);
+  } else if (screenProfile === "adjust_tool_screen") {
+    ok = result.screen_correct === true && (result.tools_visible === true || result.tools_visible === undefined);
+  } else if (screenProfile === "blur_screen") {
+    ok = result.screen_correct === true && (result.controls_visible === true || result.controls_visible === undefined);
+  } else if (screenProfile === "text_screen") {
+    ok = result.screen_correct === true && (result.editor_visible === true || result.editor_visible === undefined);
+  } else if (screenProfile === "paint_screen") {
+    ok = result.screen_correct === true && (result.palette_visible === true || result.palette_visible === undefined);
+  } else {
+    ok = result.screen_correct === true && result.controls_visible === true;
+  }
+  return ok;
+}
+
 function applyScreenVerifyResult(result) {
   var ok = result.edit_screen_verified === true;
   output.edit_screen_verified = ok;
@@ -263,7 +334,7 @@ function verifyViaOpenRouterDirect() {
   }
 
   var promptText = PROMPTS[screenProfile] || PROMPTS.edit_screen;
-  var model = resolveEnvValue("OPENROUTER_MODEL_VISION") || "meta-llama/llama-3.2-11b-vision-instruct:free";
+  var modelChain = resolveVisionModelChain();
   var referer = resolveEnvValue("OPENROUTER_HTTP_REFERER") || "http://localhost";
   var appTitle = resolveEnvValue("OPENROUTER_APP_TITLE") || "Kodak Step Print Maestro";
 
@@ -276,73 +347,65 @@ function verifyViaOpenRouterDirect() {
   var Base64 = Java.type("java.util.Base64");
   var screenBytes = Files.readAllBytes(screenPath);
 
-  var requestBody = JSON.stringify({
-    model: model,
-    messages: [
-      { role: "system", content: "You analyze ONE Kodak Step Print screenshot for: " + screenLabel + ". " + promptText },
-      {
-        role: "user",
-        content: [
-          { type: "text", text: screenLabel + ":" },
-          { type: "image_url", image_url: { url: "data:image/png;base64," + Base64.getEncoder().encodeToString(screenBytes) } },
-        ],
+  var lastErr = "";
+  for (var mi = 0; mi < modelChain.length; mi++) {
+    var model = modelChain[mi];
+    if (mi > 0) {
+      console.log("OpenRouter vision fallback: trying model=" + model);
+    }
+
+    var requestBody = JSON.stringify({
+      model: model,
+      messages: [
+        { role: "system", content: "You analyze ONE Kodak Step Print screenshot for: " + screenLabel + ". " + promptText },
+        {
+          role: "user",
+          content: [
+            { type: "text", text: screenLabel + ":" },
+            { type: "image_url", image_url: { url: "data:image/png;base64," + Base64.getEncoder().encodeToString(screenBytes) } },
+          ],
+        },
+      ],
+      max_tokens: 300,
+    });
+
+    var response = http.post("https://openrouter.ai/api/v1/chat/completions", {
+      headers: {
+        Authorization: "Bearer " + apiKey,
+        "Content-Type": "application/json",
+        "HTTP-Referer": referer,
+        "X-Title": appTitle,
       },
-    ],
-    max_tokens: 300,
-  });
+      body: requestBody,
+    });
 
-  var response = http.post("https://openrouter.ai/api/v1/chat/completions", {
-    headers: {
-      Authorization: "Bearer " + apiKey,
-      "Content-Type": "application/json",
-      "HTTP-Referer": referer,
-      "X-Title": appTitle,
-    },
-    body: requestBody,
-  });
+    if (response.status < 200 || response.status >= 300) {
+      lastErr =
+        "OpenRouter vision HTTP " + response.status + ": " + (response.body || "").substring(0, 300);
+      if (shouldTryNextVisionModel(response.status)) {
+        console.log("OpenRouter model " + model + " failed (" + response.status + "), trying next");
+        continue;
+      }
+      throw new Error(lastErr);
+    }
 
-  if (response.status < 200 || response.status >= 300) {
-    throw new Error("OpenRouter vision HTTP " + response.status + ": " + (response.body || "").substring(0, 300));
+    var payload = json(response.body);
+    var content = payload.choices[0].message.content;
+    var result = parseJsonFromModel(content);
+    if (result === null) {
+      lastErr = "OpenRouter returned non-JSON: " + (content || "").substring(0, 300);
+      console.log("OpenRouter model " + model + " returned non-JSON, trying next");
+      continue;
+    }
+
+    applyScreenVerifyResult({
+      edit_screen_verified: screenVerifyPassed(result),
+      summary: result.summary || "",
+    });
+    return;
   }
 
-  var payload = json(response.body);
-  var content = payload.choices[0].message.content;
-  var result = parseJsonFromModel(content);
-  if (result === null) {
-    throw new Error("OpenRouter returned non-JSON: " + (content || "").substring(0, 300));
-  }
-
-  var ok = result.screen_correct === true;
-  if (screenProfile === "gallery") {
-    ok = result.screen_correct === true && result.gallery_visible === true;
-  } else if (screenProfile === "frame_category") {
-    ok = result.screen_correct === true && result.categories_visible === true;
-  } else if (screenProfile === "frame_carousel") {
-    ok = result.screen_correct === true && result.carousel_visible === true;
-  } else if (screenProfile === "sticker_category") {
-    ok = result.screen_correct === true && result.categories_visible === true;
-  } else if (screenProfile === "sticker_carousel") {
-    ok = result.screen_correct === true && result.carousel_visible === true;
-  } else if (screenProfile === "brightness_screen") {
-    ok = result.screen_correct === true && (result.slider_visible === true || result.slider_visible === undefined);
-  } else if (screenProfile === "temperature_screen") {
-    ok = result.screen_correct === true && (result.slider_visible === true || result.slider_visible === undefined);
-  } else if (screenProfile === "adjust_tool_screen") {
-    ok = result.screen_correct === true && (result.tools_visible === true || result.tools_visible === undefined);
-  } else if (screenProfile === "blur_screen") {
-    ok = result.screen_correct === true && (result.controls_visible === true || result.controls_visible === undefined);
-  } else if (screenProfile === "text_screen") {
-    ok = result.screen_correct === true && (result.editor_visible === true || result.editor_visible === undefined);
-  } else if (screenProfile === "paint_screen") {
-    ok = result.screen_correct === true && (result.palette_visible === true || result.palette_visible === undefined);
-  } else {
-    ok = result.screen_correct === true && result.controls_visible === true;
-  }
-
-  applyScreenVerifyResult({
-    edit_screen_verified: ok,
-    summary: result.summary || "",
-  });
+  throw new Error(lastErr || "OpenRouter vision: all models failed");
 }
 
 if (!screenBasename) {

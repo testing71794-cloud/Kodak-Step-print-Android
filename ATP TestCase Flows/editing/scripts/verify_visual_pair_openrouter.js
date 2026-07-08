@@ -133,6 +133,9 @@ function maestroEnvValue(name) {
   if (name === "OPENROUTER_APP_TITLE" && typeof OPENROUTER_APP_TITLE !== "undefined" && OPENROUTER_APP_TITLE) {
     return OPENROUTER_APP_TITLE;
   }
+  if (name === "OPENROUTER_VISION_FALLBACKS" && typeof OPENROUTER_VISION_FALLBACKS !== "undefined" && OPENROUTER_VISION_FALLBACKS) {
+    return OPENROUTER_VISION_FALLBACKS;
+  }
   return "";
 }
 
@@ -343,6 +346,44 @@ function passesProfile(result, cfg) {
   return true;
 }
 
+var DEFAULT_VISION_FALLBACKS = [
+  "qwen/qwen2.5-vl-32b-instruct:free",
+  "qwen/qwen2.5-vl-72b-instruct:free",
+  "google/gemma-3-4b-it:free",
+  "mistralai/mistral-small-3.1-24b-instruct:free",
+];
+
+function resolveVisionModelChain() {
+  var primary = resolveEnvValue("OPENROUTER_MODEL_VISION") || "meta-llama/llama-3.2-11b-vision-instruct:free";
+  var chain = [primary];
+  var fallbacksRaw = resolveEnvValue("OPENROUTER_VISION_FALLBACKS");
+  if (fallbacksRaw && fallbacksRaw.toLowerCase() !== "none" && fallbacksRaw !== "0") {
+    fallbacksRaw.split(",").forEach(function (m) {
+      m = (m || "").trim();
+      if (m && chain.indexOf(m) < 0) {
+        chain.push(m);
+      }
+    });
+  } else if (!fallbacksRaw) {
+    DEFAULT_VISION_FALLBACKS.forEach(function (m) {
+      if (chain.indexOf(m) < 0) {
+        chain.push(m);
+      }
+    });
+  }
+  return chain;
+}
+
+function shouldTryNextVisionModel(status) {
+  return (
+    status === 400 ||
+    status === 402 ||
+    status === 404 ||
+    status === 429 ||
+    (status >= 500 && status < 600)
+  );
+}
+
 function applyVerifyResult(result, model, cfg) {
   var ok;
   if (result.visual_pair_verified === true || result.visual_pair_verified === false) {
@@ -394,7 +435,7 @@ function verifyViaOpenRouterDirect() {
     throw new Error("OpenRouter API key not found in Maestro/OS env");
   }
 
-  var model = resolveEnvValue("OPENROUTER_MODEL_VISION") || "meta-llama/llama-3.2-11b-vision-instruct:free";
+  var modelChain = resolveVisionModelChain();
   var referer = resolveEnvValue("OPENROUTER_HTTP_REFERER") || "http://localhost";
   var appTitle = resolveEnvValue("OPENROUTER_APP_TITLE") || "Kodak Step Print Maestro";
 
@@ -416,53 +457,70 @@ function verifyViaOpenRouterDirect() {
   var prompt =
     "You analyze TWO Kodak Step Print mobile screenshots for: " + verifyLabel + ". " + cfg.prompt;
 
-  var requestBody = JSON.stringify({
-    model: model,
-    messages: [
-      { role: "system", content: prompt },
-      {
-        role: "user",
-        content: [
-          { type: "text", text: "BEFORE (" + verifyLabel + "):" },
-          {
-            type: "image_url",
-            image_url: { url: "data:image/png;base64," + Base64.getEncoder().encodeToString(beforeBytes) },
-          },
-          { type: "text", text: "AFTER (" + verifyLabel + "):" },
-          {
-            type: "image_url",
-            image_url: { url: "data:image/png;base64," + Base64.getEncoder().encodeToString(afterBytes) },
-          },
-        ],
+  var lastErr = "";
+  for (var mi = 0; mi < modelChain.length; mi++) {
+    var model = modelChain[mi];
+    if (mi > 0) {
+      console.log("OpenRouter vision fallback: trying model=" + model);
+    }
+
+    var requestBody = JSON.stringify({
+      model: model,
+      messages: [
+        { role: "system", content: prompt },
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "BEFORE (" + verifyLabel + "):" },
+            {
+              type: "image_url",
+              image_url: { url: "data:image/png;base64," + Base64.getEncoder().encodeToString(beforeBytes) },
+            },
+            { type: "text", text: "AFTER (" + verifyLabel + "):" },
+            {
+              type: "image_url",
+              image_url: { url: "data:image/png;base64," + Base64.getEncoder().encodeToString(afterBytes) },
+            },
+          ],
+        },
+      ],
+      max_tokens: 400,
+    });
+
+    var response = http.post("https://openrouter.ai/api/v1/chat/completions", {
+      headers: {
+        Authorization: "Bearer " + apiKey,
+        "Content-Type": "application/json",
+        "HTTP-Referer": referer,
+        "X-Title": appTitle,
       },
-    ],
-    max_tokens: 400,
-  });
+      body: requestBody,
+    });
 
-  var response = http.post("https://openrouter.ai/api/v1/chat/completions", {
-    headers: {
-      Authorization: "Bearer " + apiKey,
-      "Content-Type": "application/json",
-      "HTTP-Referer": referer,
-      "X-Title": appTitle,
-    },
-    body: requestBody,
-  });
+    if (response.status < 200 || response.status >= 300) {
+      lastErr =
+        "OpenRouter vision HTTP " + response.status + ": " + (response.body || "").substring(0, 300);
+      if (shouldTryNextVisionModel(response.status)) {
+        console.log("OpenRouter model " + model + " failed (" + response.status + "), trying next");
+        continue;
+      }
+      throw new Error(lastErr);
+    }
 
-  if (response.status < 200 || response.status >= 300) {
-    throw new Error(
-      "OpenRouter vision HTTP " + response.status + ": " + (response.body || "").substring(0, 300)
-    );
+    var payload = json(response.body);
+    var content = payload.choices[0].message.content;
+    var result = parseJsonFromModel(content);
+    if (result === null) {
+      lastErr = "OpenRouter returned non-JSON: " + (content || "").substring(0, 300);
+      console.log("OpenRouter model " + model + " returned non-JSON, trying next");
+      continue;
+    }
+    result.model_used = model;
+    applyVerifyResult(result, model, cfg);
+    return;
   }
 
-  var payload = json(response.body);
-  var content = payload.choices[0].message.content;
-  var result = parseJsonFromModel(content);
-  if (result === null) {
-    throw new Error("OpenRouter returned non-JSON: " + (content || "").substring(0, 300));
-  }
-  result.model_used = model;
-  applyVerifyResult(result, model, cfg);
+  throw new Error(lastErr || "OpenRouter vision: all models failed");
 }
 
 if (!beforeBasename || !afterBasename) {

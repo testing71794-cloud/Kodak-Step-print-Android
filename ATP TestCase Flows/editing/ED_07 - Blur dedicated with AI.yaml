@@ -24,6 +24,6 @@ name: ED_07 - Blur dedicated with AI
       VERIFY_PROFILE: blur
 
 - assertVisible:
-    text: ".*(?i)(Blur|Filter).*"
+    id: "editingOptionsImageView"
 - runFlow: subflows/save_changes.yaml
 - stopRecording

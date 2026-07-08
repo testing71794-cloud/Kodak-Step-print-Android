@@ -121,6 +121,27 @@ def load_config(config_path: Path | None = None) -> VisualValidationConfig:
     else:
         fallbacks = tuple(str(x) for x in fallbacks_raw if str(x).strip())
 
+    fb_env = (os.environ.get("OPENROUTER_VISION_FALLBACKS") or "").strip()
+    if fb_env:
+        if fb_env.lower() in {"0", "none", "false", "off"}:
+            fallbacks = ()
+        else:
+            fallbacks = tuple(x.strip() for x in fb_env.split(",") if x.strip())
+    elif not fallbacks:
+        if str(REPO_ROOT) not in sys.path:
+            sys.path.insert(0, str(REPO_ROOT))
+        try:
+            from intelligent_platform.config import openrouter_vision_fallback_models
+
+            fallbacks = openrouter_vision_fallback_models()
+        except Exception:
+            fallbacks = (
+                "qwen/qwen2.5-vl-32b-instruct:free",
+                "qwen/qwen2.5-vl-72b-instruct:free",
+                "google/gemma-3-4b-it:free",
+                "mistralai/mistral-small-3.1-24b-instruct:free",
+            )
+
     cache_dir = Path(_env("AI_VISUAL_CACHE_DIR") or str(yml.get("cache_dir") or ".cache/ai_visual"))
     if not cache_dir.is_absolute():
         cache_dir = REPO_ROOT / cache_dir

@@ -118,21 +118,6 @@ def call_openrouter(
     return content.strip()
 
 
-VISION_MODEL_FALLBACKS: tuple[str, ...] = (
-    "qwen/qwen2.5-vl-32b-instruct:free",
-    "google/gemma-3-12b-it:free",
-)
-
-
-def _vision_fallback_models() -> tuple[str, ...]:
-    raw = (os.environ.get("OPENROUTER_VISION_FALLBACKS") or "").strip()
-    if raw:
-        if raw.lower() in {"0", "none", "false", "off"}:
-            return ()
-        return tuple(x.strip() for x in raw.split(",") if x.strip())
-    return VISION_MODEL_FALLBACKS
-
-
 def call_openrouter_vision(
     messages: list[dict[str, str]],
     *,
@@ -144,10 +129,14 @@ def call_openrouter_vision(
     max_tokens: int = 400,
 ) -> tuple[str, str]:
     """Try primary vision model then fallbacks. Returns (content, model_used)."""
-    candidates: list[str] = []
-    for m in (model, *_vision_fallback_models()):
-        if m and m not in candidates:
-            candidates.append(m)
+    try:
+        from intelligent_platform.config import openrouter_vision_model_chain
+
+        candidates = list(openrouter_vision_model_chain())
+    except Exception:
+        candidates = [model] if model else []
+    if model and model not in candidates:
+        candidates.insert(0, model)
     # Free models are intermittently rate-limited. Keep retry rounds low so the
     # Maestro GraalJS localhost HTTP client (~60s read timeout) does not hang CI.
     max_rounds = max(1, int(os.environ.get("OPENROUTER_VISION_MAX_ROUNDS", "2")))
@@ -156,7 +145,9 @@ def call_openrouter_vision(
     last_error: Exception | None = None
     for round_idx in range(max_rounds):
         rate_limited_or_empty = False
-        for candidate in candidates:
+        for idx, candidate in enumerate(candidates):
+            if idx > 0:
+                logger.info("OpenRouter vision fallback: trying model=%s", candidate)
             try:
                 content = call_openrouter(
                     messages,

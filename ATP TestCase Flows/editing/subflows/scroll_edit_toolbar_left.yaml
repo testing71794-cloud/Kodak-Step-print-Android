@@ -1,13 +1,26 @@
 appId: com.kodak.steptouch
 ---
 # Reset the bottom edit toolbar to the left so early tools (Filter, Frames) are visible.
+# Use 96% height — same row as scroll_edit_toolbar_right (91% hits the filter thumbnail strip).
 - swipe:
-    start: "12%,91%"
-    end: "88%,91%"
+    start: "12%,96%"
+    end: "88%,96%"
+    duration: 400
     optional: true
 - swipe:
-    start: "12%,91%"
-    end: "88%,91%"
+    start: "12%,96%"
+    end: "88%,96%"
+    duration: 400
+    optional: true
+- swipe:
+    start: "12%,96%"
+    end: "88%,96%"
+    duration: 400
+    optional: true
+- swipe:
+    start: "12%,96%"
+    end: "88%,96%"
+    duration: 400
     optional: true
 - waitForAnimationToEnd:
     timeout: 1000

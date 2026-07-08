@@ -83,6 +83,40 @@ def openrouter_model_vision() -> str:
     return s or _DEFAULT_MODEL_VISION
 
 
+# Vision fallbacks tried in order when primary model returns 404/429/5xx (OpenRouter free tier).
+_DEFAULT_VISION_FALLBACKS: tuple[str, ...] = (
+    "qwen/qwen2.5-vl-32b-instruct:free",
+    "qwen/qwen2.5-vl-72b-instruct:free",
+    "google/gemma-3-4b-it:free",
+    "mistralai/mistral-small-3.1-24b-instruct:free",
+)
+
+
+def _parse_comma_model_list(raw: str) -> tuple[str, ...]:
+    return tuple(x.strip() for x in raw.split(",") if x.strip())
+
+
+def openrouter_vision_fallback_models() -> tuple[str, ...]:
+    """Extra vision models after OPENROUTER_MODEL_VISION. Set OPENROUTER_VISION_FALLBACKS=none to disable."""
+    raw = (os.environ.get("OPENROUTER_VISION_FALLBACKS") or "").strip()
+    if raw.lower() in {"0", "none", "false", "off"}:
+        return ()
+    if raw:
+        return _parse_comma_model_list(raw)
+    return _DEFAULT_VISION_FALLBACKS
+
+
+def openrouter_vision_model_chain() -> tuple[str, ...]:
+    """Primary vision model plus deduplicated fallbacks (shared by editing verify + post-Maestro AI)."""
+    seen: set[str] = set()
+    chain: list[str] = []
+    for model in (openrouter_model_vision(), *openrouter_vision_fallback_models()):
+        if model and model not in seen:
+            seen.add(model)
+            chain.append(model)
+    return tuple(chain)
+
+
 def openrouter_ssl_verify() -> bool:
     """Verify TLS certs for OpenRouter (set OPENROUTER_SSL_VERIFY=0 on corporate proxies)."""
     return _truthy("OPENROUTER_SSL_VERIFY", "1")

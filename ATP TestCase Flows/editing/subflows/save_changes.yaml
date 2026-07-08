@@ -1,6 +1,15 @@
 appId: com.kodak.steptouch
 ---
 # Exit edit and save — GA_11 sequence: Done → close → SAVE → gallery.
+- runFlow:
+    when:
+      visible:
+        id: "subEffectEditingOptionsRecyclerView"
+    commands:
+      - tapOn:
+          id: "saveRecentEditImageView"
+      - waitForAnimationToEnd:
+          timeout: 1500
 - tapOn: "Done"
 - tapOn:
     id: "image_cross"

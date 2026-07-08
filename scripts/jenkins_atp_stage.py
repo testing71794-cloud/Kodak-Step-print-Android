@@ -290,7 +290,7 @@ def _apply_editing_ci_defaults(folder: str) -> None:
     os.environ.setdefault("EDITING_VERIFY_SOFT", "1")
     os.environ.setdefault("OPENROUTER_VISION_TIMEOUT_SEC", "25")
     os.environ.setdefault("OPENROUTER_VISION_MAX_ROUNDS", "1")
-    os.environ.setdefault("OPENROUTER_VISION_FALLBACKS", "google/gemma-3-12b-it:free")
+    # Vision fallbacks: intelligent_platform.config.openrouter_vision_model_chain()
 
 
 def _prepare_editing_openrouter(folder: str) -> None:

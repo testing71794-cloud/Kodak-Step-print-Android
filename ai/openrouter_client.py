@@ -83,7 +83,9 @@ class OpenRouterVisionClient:
         last_error: Exception | None = None
         total_retries = 0
 
-        for model in models:
+        for idx, model in enumerate(models):
+            if idx > 0:
+                logger.info("OpenRouter vision fallback: trying model=%s", model)
             for attempt in range(self._config.max_retries + 1):
                 if attempt > 0:
                     total_retries += 1
