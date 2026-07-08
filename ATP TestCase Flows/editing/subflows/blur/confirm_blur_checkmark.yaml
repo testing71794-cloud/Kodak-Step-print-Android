@@ -1,13 +1,4 @@
 appId: com.kodak.steptouch
 ---
-# Confirm blur and return to the main edit toolbar.
-# Radial blur applies live on a custom surface. Switch to Adjust, apply a tiny
-# rotate (triggers checkmark), confirm — same end state as ED_06 before save.
-- tapOn: "Adjust"
-- waitForAnimationToEnd:
-    timeout: 2000
-- tapOn:
-    id: "adjustrotateImageView"
-- waitForAnimationToEnd:
-    timeout: 1500
-- runFlow: ../confirm_adjust_tool_returns_toolbar.yaml
+# Backward-compatible alias — use exit_blur_for_save after AI verify, not before.
+- runFlow: exit_blur_for_save.yaml

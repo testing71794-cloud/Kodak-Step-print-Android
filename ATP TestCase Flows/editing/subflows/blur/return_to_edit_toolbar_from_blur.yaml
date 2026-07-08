@@ -1,8 +1,8 @@
-appId: com.kodak.steptouch
----
-# Exit blur panel back to edit toolbar.
-- runFlow: confirm_blur_checkmark.yaml
-- extendedWaitUntil:
-    visible:
-      text: ".*(?i)(Blur|Filter).*"
-    timeout: 15000
+appId: com.kodak.steptouch
+---
+# Exit blur panel back to edit toolbar (post-AI verify).
+- runFlow: exit_blur_for_save.yaml
+- extendedWaitUntil:
+    visible:
+      id: "editingOptionsImageView"
+    timeout: 15000

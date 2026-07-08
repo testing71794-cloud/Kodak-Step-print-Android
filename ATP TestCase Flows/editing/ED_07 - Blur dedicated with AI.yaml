@@ -23,6 +23,8 @@ name: ED_07 - Blur dedicated with AI
       VERIFY_LABEL: ED_07 Dedicated blur
       VERIFY_PROFILE: blur
 
+# Exit blur panel for save only after AI verified the radial blur on the preview.
+- runFlow: subflows/blur/exit_blur_for_save.yaml
 - assertVisible:
     id: "editingOptionsImageView"
 - runFlow: subflows/save_changes.yaml

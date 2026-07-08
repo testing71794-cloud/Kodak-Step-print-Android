@@ -134,6 +134,7 @@ name: ED_10 - All editing modules with AI
       AFTER_BASENAME: ED_10_blur_after
       VERIFY_LABEL: ED_10 Blur module
       VERIFY_PROFILE: blur
+- runFlow: subflows/blur/exit_blur_for_save.yaml
 
 # Text
 - takeScreenshot: ED_10_text_before

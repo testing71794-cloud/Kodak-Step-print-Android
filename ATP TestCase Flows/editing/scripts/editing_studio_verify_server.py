@@ -211,7 +211,8 @@ PAIR_PROMPTS = {
     ),
     "blur": (
         'Answer ONLY JSON: {"change_applied": true/false, "looks_different": true/false, "summary": "one sentence"}. '
-        "change_applied=true when AFTER shows blur effect vs BEFORE."
+        "Compare ONLY the photo preview inside the white frame. Ignore blur-tool chrome (NO BLUR button, radial control, bottom toolbar labels). "
+        "change_applied=true when AFTER shows a radial blur/focus effect on the photo preview that BEFORE lacks."
     ),
     "save": (
         'Answer ONLY JSON: {"saved_to_gallery": true/false, "looks_different": true/false, "summary": "one sentence"}. '
