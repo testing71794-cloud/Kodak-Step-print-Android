@@ -1,0 +1,29 @@
+# TC_ID: ED_14 - Frames dedicated with AI verification
+# Dedicated Frames-only editing test with OpenRouter pair verification.
+appId: com.kodak.steptouch
+name: ED_14 - Frames dedicated with AI
+---
+- startRecording:
+    path: ED_14_frames_dedicated
+    optional: true
+- runFlow:
+    file: subflows/prepare_editor_warm_start.yaml
+    env:
+      SCREENSHOT_BASENAME: ED_14_editor_ready
+      SCREEN_LABEL: ED_14 Edit Photo before frames
+
+- takeScreenshot: ED_14_frame_before
+- runFlow: subflows/apply_frame.yaml
+- takeScreenshot: ED_14_frame_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_14_frame_before
+      AFTER_BASENAME: ED_14_frame_after
+      VERIFY_LABEL: ED_14 Dedicated frame
+      VERIFY_PROFILE: frame
+
+- assertVisible:
+    id: "filterEditingOptionsImageView"
+- runFlow: subflows/save_changes.yaml
+- stopRecording

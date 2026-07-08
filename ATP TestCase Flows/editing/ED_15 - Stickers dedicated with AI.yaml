@@ -1,0 +1,29 @@
+# TC_ID: ED_15 - Stickers dedicated with AI verification
+# Dedicated Stickers-only editing test with OpenRouter pair verification.
+appId: com.kodak.steptouch
+name: ED_15 - Stickers dedicated with AI
+---
+- startRecording:
+    path: ED_15_stickers_dedicated
+    optional: true
+- runFlow:
+    file: subflows/prepare_editor_warm_start.yaml
+    env:
+      SCREENSHOT_BASENAME: ED_15_editor_ready
+      SCREEN_LABEL: ED_15 Edit Photo before stickers
+
+- takeScreenshot: ED_15_sticker_before
+- runFlow: subflows/apply_sticker.yaml
+- takeScreenshot: ED_15_sticker_after
+- runFlow:
+    file: subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ED_15_sticker_before
+      AFTER_BASENAME: ED_15_sticker_after
+      VERIFY_LABEL: ED_15 Dedicated sticker
+      VERIFY_PROFILE: sticker
+
+- assertVisible:
+    text: ".*(?i)(Stickers|Filter|Frames).*"
+- runFlow: subflows/save_changes.yaml
+- stopRecording
