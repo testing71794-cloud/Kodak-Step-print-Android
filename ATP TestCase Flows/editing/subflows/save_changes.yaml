@@ -1,15 +1,19 @@
 appId: com.kodak.steptouch
 ---
 # Exit edit and save — GA_11 sequence: Done → close → SAVE → gallery.
+# Only tap checkmark when it is visible (filter carousel alone is normal on edit screen).
 - runFlow:
     when:
       visible:
-        id: "subEffectEditingOptionsRecyclerView"
+        id: "saveRecentEditImageView"
     commands:
       - tapOn:
           id: "saveRecentEditImageView"
       - waitForAnimationToEnd:
           timeout: 1500
+- extendedWaitUntil:
+    visible: "Done"
+    timeout: 10000
 - tapOn: "Done"
 - tapOn:
     id: "image_cross"
