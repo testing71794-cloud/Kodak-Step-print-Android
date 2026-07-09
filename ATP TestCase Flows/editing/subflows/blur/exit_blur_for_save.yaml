@@ -1,14 +1,14 @@
-appId: com.kodak.steptouch
----
-# Exit blur panel so yellow Done is reachable for save_changes.
-# Run ONLY after blur AI pair verify — not before the after screenshot.
-# Blur uses a custom surface without saveRecentEditImageView; switch to Adjust,
-# apply a small rotate to surface the checkmark, then confirm back to toolbar.
-- tapOn: "Adjust"
-- waitForAnimationToEnd:
-    timeout: 2000
-- tapOn:
-    id: "adjustrotateImageView"
-- waitForAnimationToEnd:
-    timeout: 1500
-- runFlow: ../confirm_adjust_tool_returns_toolbar.yaml
+appId: com.kodak.steptouch
+---
+# Exit blur panel so yellow Done is reachable for save_changes.
+# Run ONLY after blur AI pair verify — not before the after screenshot.
+# Blur uses a custom surface without saveRecentEditImageView; switch to Adjust,
+# apply a small rotate to surface the checkmark, then confirm back to toolbar.
+- tapOn: "Adjust"
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn:
+    id: "adjustrotateImageView"
+- waitForAnimationToEnd:
+    timeout: 1500
+- runFlow: ../confirm_adjust_tool_returns_toolbar.yaml

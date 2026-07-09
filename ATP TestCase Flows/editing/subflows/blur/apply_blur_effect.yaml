@@ -1,6 +1,6 @@
-appId: com.kodak.steptouch
----
-# Open Blur and apply radial blur (live preview). Does NOT exit the blur panel —
-# take before/after screenshots and run AI verify first, then exit_blur_for_save.
-- runFlow: open_blur_tool.yaml
-- runFlow: tap_radial_blur.yaml
+appId: com.kodak.steptouch
+---
+# Open Blur and apply radial blur (live preview). Does NOT exit the blur panel —
+# take before/after screenshots and run AI verify first, then exit_blur_for_save.
+- runFlow: open_blur_tool.yaml
+- runFlow: tap_radial_blur.yaml

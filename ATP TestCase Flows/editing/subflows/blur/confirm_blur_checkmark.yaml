@@ -1,4 +1,4 @@
-appId: com.kodak.steptouch
----
-# Backward-compatible alias — use exit_blur_for_save after AI verify, not before.
-- runFlow: exit_blur_for_save.yaml
+appId: com.kodak.steptouch
+---
+# Backward-compatible alias — use exit_blur_for_save after AI verify, not before.
+- runFlow: exit_blur_for_save.yaml
