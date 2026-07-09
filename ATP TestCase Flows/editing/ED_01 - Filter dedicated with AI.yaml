@@ -6,19 +6,11 @@ name: ED_01 - Filter dedicated with AI
 - startRecording:
     path: ED_01_filter_dedicated
     optional: true
-- launchApp:
-    clearState: true
-- runFlow: ../signup-login/subflows/reach_gallery_after_onboarding_skip.yaml
 - runFlow:
-    when:
-      visible: "No Thanks"
-    commands:
-      - tapOn: "No Thanks"
-- assertVisible:
-    text: ".*(?i)my gallery.*"
-- runFlow: subflows/enter_edit_mode.yaml
-- assertVisible:
-    id: "filterEditingOptionsImageView"
+    file: subflows/prepare_editor_warm_start.yaml
+    env:
+      SCREENSHOT_BASENAME: ED_01_editor_ready
+      SCREEN_LABEL: ED_01 Edit Photo before filter
 
 - takeScreenshot: ED_01_filter_before
 - runFlow:

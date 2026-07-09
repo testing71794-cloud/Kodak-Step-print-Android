@@ -1,0 +1,52 @@
+# TC_ID: PM_02 - All Deny Opens Settings with AI
+# ATP Steps: 1. Deny all permissions (don't ask again) → 2. Permission Required → 3. OK → 4. AI verify settings
+# ATP Expected: Permission Required modal then Android app settings; both confirmed by AI
+# Precondition: launchApp clearState: true, permissions all: deny
+appId: com.kodak.steptouch
+name: PM_02 - All Deny Opens Settings with AI
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: deny
+- runFlow: subflows/dismiss_app_intro_if_visible.yaml
+- runFlow: subflows/ensure_kodak_app_ready.yaml
+- runFlow:
+    when:
+      visible: ".*(?i)permission required.*"
+    commands:
+      - takeScreenshot: PM_02_permission_required
+      - runFlow:
+          file: subflows/verify_permission_screen_with_ai.yaml
+          env:
+            SCREEN_BASENAME: PM_02_permission_required
+            SCREEN_LABEL: PM_02 Permission Required modal
+            SCREEN_PROFILE: permission_required
+      - runFlow: subflows/tap_permission_required_ok.yaml
+      - takeScreenshot: PM_02_app_settings
+      - runFlow:
+          file: subflows/verify_permission_screen_with_ai.yaml
+          env:
+            SCREEN_BASENAME: PM_02_app_settings
+            SCREEN_LABEL: PM_02 Android app settings
+            SCREEN_PROFILE: android_app_settings
+- runFlow:
+    when:
+      notVisible: ".*(?i)permission required.*"
+    commands:
+      - runFlow: subflows/deny_all_to_permission_required.yaml
+      - takeScreenshot: PM_02_permission_required
+      - runFlow:
+          file: subflows/verify_permission_screen_with_ai.yaml
+          env:
+            SCREEN_BASENAME: PM_02_permission_required
+            SCREEN_LABEL: PM_02 Permission Required modal
+            SCREEN_PROFILE: permission_required
+      - runFlow: subflows/tap_permission_required_ok.yaml
+      - takeScreenshot: PM_02_app_settings
+      - runFlow:
+          file: subflows/verify_permission_screen_with_ai.yaml
+          env:
+            SCREEN_BASENAME: PM_02_app_settings
+            SCREEN_LABEL: PM_02 Android app settings
+            SCREEN_PROFILE: android_app_settings

@@ -208,18 +208,10 @@ if "!PINCH_MODE!"=="appium" (
 
   netstat -an | findstr /C:":!APPIUM_PORT! " | findstr LISTENING >nul 2>&1
 
-  if errorlevel 1 (
-
-    echo [INFO] Starting Appium on port !APPIUM_PORT! via "!APPIUM_BIN!" ...
-
-    start "Appium" /B cmd /c "set ANDROID_HOME=%ANDROID_HOME%&& set ANDROID_SDK_ROOT=%ANDROID_SDK_ROOT%&& set APPIUM_SKIP_CHROMEDRIVER_INSTALL=1&& ""!APPIUM_BIN!"" --address 127.0.0.1 --port !APPIUM_PORT!"
-
-    ping 127.0.0.1 -n 8 >nul
-
-  ) else (
-
-    echo [INFO] Appium already listening on port !APPIUM_PORT!
-
+  if not errorlevel 1 (
+    echo [INFO] Stopping stale Appium on port !APPIUM_PORT! before Maestro pre-pinch...
+    for /f "tokens=5" %%P in ('netstat -ano 2^>nul ^| findstr ":!APPIUM_PORT!" ^| findstr "LISTENING"') do taskkill /F /PID %%P >nul 2>&1
+    ping 127.0.0.1 -n 3 >nul
   )
 
 ) else (
@@ -242,11 +234,14 @@ if errorlevel 1 exit /b 1
 
 echo [INFO] Waiting for Maestro to release UiAutomation...
 
-ping 127.0.0.1 -n 4 >nul
+ping 127.0.0.1 -n 6 >nul
 
 
 
 if "!PINCH_MODE!"=="appium" (
+  echo [INFO] Starting Appium on port !APPIUM_PORT! for W3C pinch...
+  start "Appium" /B cmd /c "set ANDROID_HOME=%ANDROID_HOME%&& set ANDROID_SDK_ROOT=%ANDROID_SDK_ROOT%&& set APPIUM_SKIP_CHROMEDRIVER_INSTALL=1&& ""!APPIUM_BIN!"" --address 127.0.0.1 --port !APPIUM_PORT!"
+  ping 127.0.0.1 -n 8 >nul
   set "GALLERY_PINCH=1"
   set "PINCH_STYLE=diagonal"
   set "PINCH_GESTURE_PERCENT=1.0"

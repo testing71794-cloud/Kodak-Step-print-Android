@@ -1,0 +1,34 @@
+appId: com.kodak.steptouch
+---
+# Reach MY GALLERY for pinch tests. Cold-starts with allow-all when gallery is blocked (e.g. after PM_02 deny).
+- runFlow:
+    when:
+      visible: "Edit"
+    commands:
+      - pressKey: back
+      - waitForAnimationToEnd:
+          timeout: 2000
+
+- runFlow:
+    when:
+      visible: ".*(?i)my gallery.*"
+    commands:
+      - waitForAnimationToEnd:
+          timeout: 2000
+
+- runFlow:
+    when:
+      notVisible: ".*(?i)my gallery.*"
+    commands:
+      - launchApp:
+          clearState: true
+          permissions:
+            all: deny
+      - runFlow: ../../permission/subflows/dismiss_app_intro_if_visible.yaml
+      - runFlow: ../../permission/subflows/complete_onboarding_for_permission.yaml
+      - runFlow: ../../permission/subflows/allow_all_permissions_sequence.yaml
+
+- extendedWaitUntil:
+    visible: ".*(?i)my gallery.*"
+    timeout: 60000
+- tapOn: ".*(?i)my gallery.*"

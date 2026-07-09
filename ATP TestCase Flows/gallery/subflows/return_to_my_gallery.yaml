@@ -20,7 +20,7 @@ appId: com.kodak.steptouch
     visible: "MY GALLERY"
     timeout: 15000
 - tapOn: "MY GALLERY"
-- runFlow: wait_for_gallery_grid.yaml
+- runFlow: wait_for_gallery_grid_visible.yaml
 - extendedWaitUntil:
     visible:
       id: "ivItemGridImage"

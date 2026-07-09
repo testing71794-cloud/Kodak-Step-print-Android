@@ -1,0 +1,21 @@
+# TC_ID: PM_01 - All Permissions Allow with AI
+# ATP Steps: 1. Complete onboarding → 2. Allow all permissions → 3. AI verify MY GALLERY
+# ATP Expected: User reaches MY GALLERY; OpenRouter confirms gallery screen
+# Precondition: launchApp clearState: true, permissions all: deny
+appId: com.kodak.steptouch
+name: PM_01 - All Permissions Allow with AI
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: deny
+- runFlow: subflows/dismiss_app_intro_if_visible.yaml
+- runFlow: subflows/complete_onboarding_for_permission.yaml
+- runFlow: subflows/allow_all_permissions_sequence.yaml
+- takeScreenshot: PM_01_my_gallery
+- runFlow:
+    file: subflows/verify_permission_screen_with_ai.yaml
+    env:
+      SCREEN_BASENAME: PM_01_my_gallery
+      SCREEN_LABEL: PM_01 MY GALLERY after allow all
+      SCREEN_PROFILE: gallery

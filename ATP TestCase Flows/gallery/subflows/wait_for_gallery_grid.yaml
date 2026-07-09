@@ -1,9 +1,4 @@
 appId: com.kodak.steptouch
 ---
-- tapOn:
-    point: "50%, 28%"
-    label: Gallery view option 2
-- extendedWaitUntil:
-    visible:
-      id: "ivItemGridImage"
-    timeout: 2000
+- runFlow: ensure_gallery_has_photo_for_pinch.yaml
+- runFlow: wait_for_gallery_grid_visible.yaml

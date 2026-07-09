@@ -1,0 +1,10 @@
+appId: com.kodak.steptouch
+---
+# Single-screen OpenRouter verification for permission module (gallery, Permission Required, app settings).
+- runScript:
+    file: ../scripts/verify_permission_screen_openrouter.js
+    env:
+      SCREEN_BASENAME: ${SCREEN_BASENAME}
+      SCREEN_LABEL: ${SCREEN_LABEL}
+      SCREEN_PROFILE: ${SCREEN_PROFILE}
+- assertTrue: ${output.permission_screen_verified}

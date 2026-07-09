@@ -1,0 +1,11 @@
+appId: com.kodak.steptouch
+---
+# Permission Required modal → OK → wait for Android app settings.
+- assertVisible: "Permission Required"
+- assertVisible: ".*(?i)some permissions are needed.*"
+- tapOn: "OK"
+- waitForAnimationToEnd:
+    timeout: 5000
+- extendedWaitUntil:
+    visible: ".*(?i)(permissions|force stop|open|uninstall|app info|app battery usage|manage app).*"
+    timeout: 45000

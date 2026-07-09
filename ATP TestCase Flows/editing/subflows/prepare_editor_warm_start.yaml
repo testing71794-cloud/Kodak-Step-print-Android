@@ -3,18 +3,16 @@ appId: com.kodak.steptouch
 # Warm start: preserve session, reach gallery, enter edit mode, AI-verify editor screen.
 - launchApp:
     clearState: false
-- runFlow:
-    when:
-      visible: "No Thanks"
-    commands:
-      - tapOn: "No Thanks"
+- runFlow: reach_editing_gallery.yaml
+- runFlow: return_to_editing_gallery.yaml
 - extendedWaitUntil:
-    visible:
-      text: ".*(?i)my gallery.*"
-    timeout: 30000
+    visible: ".*(?i)my gallery.*"
+    timeout: 15000
 - assertVisible:
     text: ".*(?i)my gallery.*"
 - runFlow: enter_edit_mode.yaml
+- assertVisible:
+    id: "filterEditingOptionsImageView"
 - takeScreenshot: ${SCREENSHOT_BASENAME}
 - runFlow:
     file: verify_edit_screen_with_ai.yaml

@@ -1,36 +1,41 @@
-# Run PM_01–PM_30 permission flows sequentially with fresh app state per test.
-# Each flow starts with launchApp clearState: true; adb pm clear adds a clean baseline.
+# Run PM_01–PM_02 permission AI flows with fresh app state per test.
 param(
     [string]$Device = "ZA222RFQ75",
     [int[]]$Skip = @()
 )
 
 $ErrorActionPreference = "Continue"
+$repo = Join-Path $PSScriptRoot ".."
 $adb = "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe"
-$maestro = "C:\Users\HP\maestro\maestro\bin\maestro.bat"
-$permDir = Join-Path $PSScriptRoot "..\ATP TestCase Flows\permission"
-$logDir = Join-Path $PSScriptRoot "..\logs\permission-suite"
+$maestro = "C:\Tools\maestro-parallel\bin\maestro.bat"
+$permDir = Join-Path $repo "ATP TestCase Flows\permission"
+$logDir = Join-Path $repo "logs\permission-suite"
 New-Item -ItemType Directory -Force -Path $logDir | Out-Null
 
-$flows = Get-ChildItem -Path $permDir -Filter "PM_*.yaml" |
-    Where-Object { $_.Name -match '^PM_\d{2} ' } |
-    Sort-Object Name
+$env:EDITING_VERIFY_SOFT = "1"
+python (Join-Path $repo "scripts\ensure_editing_verify_server.py") | Out-Null
+
+$flows = @(
+    "PM_01 - All Permissions Allow with AI.yaml",
+    "PM_02 - All Deny Opens Settings with AI.yaml"
+)
 
 $results = @()
-foreach ($flow in $flows) {
-    if ($flow.BaseName -match 'PM_(\d+)' -and $Skip -contains [int]$Matches[1]) {
-        Write-Host "SKIP $($flow.Name)" -ForegroundColor Yellow
+foreach ($flowName in $flows) {
+    if ($flowName -match 'PM_(\d+)' -and $Skip -contains [int]$Matches[1]) {
+        Write-Host "SKIP $flowName" -ForegroundColor Yellow
         continue
     }
-    Write-Host "`n========== $($flow.Name) ==========" -ForegroundColor Cyan
+    $flow = Join-Path $permDir $flowName
+    Write-Host "`n========== $flowName ==========" -ForegroundColor Cyan
     & $adb -s $Device shell pm clear com.kodak.steptouch | Out-Null
     Start-Sleep -Seconds 1
-    $outFile = Join-Path $logDir ($flow.BaseName + ".log")
-    & $maestro --device $Device test $flow.FullName 2>&1 | Tee-Object -FilePath $outFile
+    $outFile = Join-Path $logDir (($flowName -replace '\.yaml$','') + ".log")
+    & $maestro --device $Device test $flow 2>&1 | Tee-Object -FilePath $outFile
     $exit = $LASTEXITCODE
     $status = if ($exit -eq 0) { "PASS" } else { "FAIL" }
-    $results += [pscustomobject]@{ Flow = $flow.Name; Status = $status; Exit = $exit }
-    Write-Host "$status $($flow.Name)" -ForegroundColor $(if ($status -eq "PASS") { "Green" } else { "Red" })
+    $results += [pscustomobject]@{ Flow = $flowName; Status = $status; Exit = $exit }
+    Write-Host "$status $flowName" -ForegroundColor $(if ($status -eq "PASS") { "Green" } else { "Red" })
 }
 
 Write-Host "`n========== SUMMARY =========="

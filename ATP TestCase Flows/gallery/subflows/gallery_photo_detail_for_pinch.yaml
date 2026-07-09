@@ -7,10 +7,10 @@ appId: com.kodak.steptouch
     timeout: 10000
 - tapOn:
     id: "ivItemGridImage"
-    index: 4
+    index: 0
 - tapOn:
     id: "relativeLayoutItem"
-    index: 4
+    index: 0
     optional: true
 - tapOn:
     point: "50%, 45%"

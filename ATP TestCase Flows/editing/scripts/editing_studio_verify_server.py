@@ -152,6 +152,41 @@ SCREEN_PROMPTS = {
         "screen_correct=true when Kodak Edit Photo Paint tool is open with photo preview and brush controls (color swatches and brush size). "
         "palette_visible=true when color swatches or brush size bars are visible below the photo."
     ),
+    "barbie_theme": (
+        'Answer ONLY JSON: {"screen_correct": true/false, "barbie_theme_visible": true/false, "summary": "one sentence"}. '
+        "screen_correct=true when Kodak Step Print shows Barbie-themed UI (pink accents, Barbie logo, or Barbie x Kodak styling) on MY GALLERY or main app screen. "
+        "barbie_theme_visible=true when pink/Barbie branding is clearly visible on header, toolbar, or gallery chrome."
+    ),
+    "barbie_intro": (
+        'Answer ONLY JSON: {"screen_correct": true/false, "intro_visible": true/false, "summary": "one sentence"}. '
+        "screen_correct=true when first-time Barbie printer intro shows Barbie x Kodak Step Slim printer welcome/banner. "
+        "intro_visible=true when Barbie and Kodak co-branding intro text or banner is visible."
+    ),
+    "barbie_splash": (
+        'Answer ONLY JSON: {"screen_correct": true/false, "splash_visible": true/false, "summary": "one sentence"}. '
+        "screen_correct=true when Barbie-branded launch/splash screen with Barbie x Kodak imagery is shown on app open. "
+        "splash_visible=true when full-screen Barbie pink/branding splash is visible."
+    ),
+    "barbie_frame_category": (
+        'Answer ONLY JSON: {"screen_correct": true/false, "barbie_category_visible": true/false, "summary": "one sentence"}. '
+        "screen_correct=true when Select Frame Category screen shows a Barbie frame category card/thumbnail. "
+        "barbie_category_visible=true when a category labeled Barbie or with Barbie styling is visible."
+    ),
+    "barbie_sticker_category": (
+        'Answer ONLY JSON: {"screen_correct": true/false, "barbie_category_visible": true/false, "summary": "one sentence"}. '
+        "screen_correct=true when Select Sticker Category screen shows a Barbie sticker category card/thumbnail. "
+        "barbie_category_visible=true when a category labeled Barbie or with Barbie styling is visible."
+    ),
+    "permission_required": (
+        'Answer ONLY JSON: {"screen_correct": true/false, "modal_visible": true/false, "summary": "one sentence"}. '
+        "screen_correct=true when Kodak Step Print shows in-app Permission Required dialog with OK button. "
+        "modal_visible=true when Permission Required title or text that some permissions are needed is visible."
+    ),
+    "android_app_settings": (
+        'Answer ONLY JSON: {"screen_correct": true/false, "settings_visible": true/false, "summary": "one sentence"}. '
+        "screen_correct=true when Android system App info / application settings screen for Kodak Step Print is shown. "
+        "settings_visible=true when Permissions, Force stop, Open, Uninstall, or App info controls are visible."
+    ),
 }
 
 PAIR_PROMPTS = {
@@ -260,6 +295,12 @@ def _parse_vision_json(raw: str) -> dict:
                 "success_visible": True,
                 "categories_visible": True,
                 "carousel_visible": True,
+                "barbie_theme_visible": True,
+                "intro_visible": True,
+                "splash_visible": True,
+                "barbie_category_visible": True,
+                "modal_visible": True,
+                "settings_visible": True,
                 "summary": "OpenRouter moderation pass-through (non-JSON response)",
             }
         if "{" in text and "}" in text:
@@ -310,6 +351,12 @@ def _parse_key_value_response(text: str) -> dict:
         "tools_visible",
         "editor_visible",
         "palette_visible",
+        "barbie_theme_visible",
+        "intro_visible",
+        "splash_visible",
+        "barbie_category_visible",
+        "modal_visible",
+        "settings_visible",
     }
     if any(f in result for f in decision_fields):
         return result
@@ -355,6 +402,8 @@ def verify_screen(body: dict) -> dict:
             return {
                 "edit_screen_verified": True,
                 "print_screen_verified": True,
+                "barbie_screen_verified": True,
+                "permission_screen_verified": True,
                 "visual_pair_verified": True,
                 "filter_pair_verified": True,
                 "ai_skipped": True,
@@ -412,11 +461,35 @@ def verify_screen(body: dict) -> dict:
         ok = result.get("screen_correct") is True and (
             result.get("palette_visible") is True or result.get("palette_visible") is None
         )
+    elif profile == "barbie_theme":
+        ok = result.get("screen_correct") is True and result.get("barbie_theme_visible") is True
+    elif profile == "barbie_intro":
+        ok = result.get("screen_correct") is True and result.get("intro_visible") is True
+    elif profile == "barbie_splash":
+        ok = result.get("screen_correct") is True and result.get("splash_visible") is True
+    elif profile == "barbie_frame_category":
+        ok = result.get("screen_correct") is True and (
+            result.get("barbie_category_visible") is True or result.get("barbie_category_visible") is None
+        )
+    elif profile == "barbie_sticker_category":
+        ok = result.get("screen_correct") is True and (
+            result.get("barbie_category_visible") is True or result.get("barbie_category_visible") is None
+        )
+    elif profile == "permission_required":
+        ok = result.get("screen_correct") is True and (
+            result.get("modal_visible") is True or result.get("modal_visible") is None
+        )
+    elif profile == "android_app_settings":
+        ok = result.get("screen_correct") is True and (
+            result.get("settings_visible") is True or result.get("settings_visible") is None
+        )
     else:
         ok = result.get("screen_correct") is True and result.get("controls_visible") is True
     return {
         "edit_screen_verified": ok,
         "print_screen_verified": ok,
+        "barbie_screen_verified": ok,
+        "permission_screen_verified": ok,
         "visual_pair_verified": ok,
         "filter_pair_verified": ok,
         "summary": result.get("summary", ""),
@@ -492,12 +565,21 @@ class _Handler(BaseHTTPRequestHandler):
             self.send_error(400, "Invalid JSON body")
             return
         try:
-            if self.path in ("/verify/ed_screen", "/verify/print_screen"):
+            if self.path in (
+                "/verify/ed_screen",
+                "/verify/print_screen",
+                "/verify/barbie_screen",
+                "/verify/permission_screen",
+            ):
                 result = verify_screen(body)
             elif self.path == "/verify/ed_pair":
                 result = verify_pair_route(body)
             else:
-                self.send_error(404, "Use POST /verify/ed_screen, /verify/print_screen, or /verify/ed_pair")
+                self.send_error(
+                    404,
+                    "Use POST /verify/ed_screen, /verify/print_screen, /verify/barbie_screen, "
+                    "/verify/permission_screen, or /verify/ed_pair",
+                )
                 return
         except Exception as exc:
             payload = json.dumps({"error": str(exc)}).encode("utf-8")
@@ -518,7 +600,7 @@ class _Handler(BaseHTTPRequestHandler):
 def main() -> int:
     server = ThreadingHTTPServer((_HOST, _PORT), _Handler)
     print(f"Editing OpenRouter verify server on http://{_HOST}:{_PORT}", flush=True)
-    print("Endpoints: POST /verify/ed_screen, /verify/print_screen, /verify/ed_pair", flush=True)
+    print("Endpoints: POST /verify/ed_screen, /verify/print_screen, /verify/barbie_screen, /verify/permission_screen, /verify/ed_pair", flush=True)
     server.serve_forever()
     return 0
 
