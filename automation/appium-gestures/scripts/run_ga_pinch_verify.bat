@@ -84,9 +84,11 @@ if defined NODE_HOME set "PATH=%NODE_HOME%;%PATH%"
 
 if exist "%NPM_GLOBAL%" set "PATH=%NPM_GLOBAL%;%PATH%"
 
-if defined ADB_HOME for %%I in ("%ADB_HOME%") do if not defined ANDROID_HOME set "ANDROID_HOME=%%~dpI.."
-
-
+if not defined ANDROID_HOME if defined ADB_HOME (
+  for %%I in ("%ADB_HOME%\..") do set "ANDROID_HOME=%%~fI"
+)
+if not defined ANDROID_HOME set "ANDROID_HOME=%LOCALAPPDATA%\Android\Sdk"
+for %%I in ("%ANDROID_HOME%") do set "ANDROID_HOME=%%~fI"
 
 set "MAESTRO_BIN=C:\Tools\maestro-parallel\bin\maestro.bat"
 
@@ -95,8 +97,6 @@ if defined ATP_MAESTRO_PARALLEL_HOME if exist "%ATP_MAESTRO_PARALLEL_HOME%\maest
 if defined MAESTRO_HOME if exist "%MAESTRO_HOME%\maestro.bat" set "MAESTRO_BIN=%MAESTRO_HOME%\maestro.bat"
 
 if not exist "%MAESTRO_BIN%" set "MAESTRO_BIN=C:\Users\HP\maestro\maestro\bin\maestro.bat"
-
-if not defined ANDROID_HOME set "ANDROID_HOME=%LOCALAPPDATA%\Android\Sdk"
 
 if not defined ANDROID_SDK_ROOT set "ANDROID_SDK_ROOT=%ANDROID_HOME%"
 

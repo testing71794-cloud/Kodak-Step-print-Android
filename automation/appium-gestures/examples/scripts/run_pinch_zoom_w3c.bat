@@ -10,9 +10,12 @@ if not defined NPM_GLOBAL set "NPM_GLOBAL=C:\Tools\npm-global"
 if not defined NODE_HOME if exist "C:\Program Files\nodejs\node.exe" set "NODE_HOME=C:\Program Files\nodejs"
 if defined NODE_HOME set "PATH=%NODE_HOME%;%PATH%"
 if exist "%NPM_GLOBAL%" set "PATH=%NPM_GLOBAL%;%PATH%"
+if not defined ANDROID_HOME if defined ADB_HOME (
+  for %%I in ("%ADB_HOME%\..") do set "ANDROID_HOME=%%~fI"
+)
 if not defined ANDROID_HOME set "ANDROID_HOME=%LOCALAPPDATA%\Android\Sdk"
+for %%I in ("%ANDROID_HOME%") do set "ANDROID_HOME=%%~fI"
 if not defined ANDROID_SDK_ROOT set "ANDROID_SDK_ROOT=%ANDROID_HOME%"
-if defined ADB_HOME for %%I in ("%ADB_HOME%") do if not defined ANDROID_HOME set "ANDROID_HOME=%%~dpI.."
 
 set "NODE_EXE=node"
 if defined NODE_HOME if exist "%NODE_HOME%\node.exe" set "NODE_EXE=%NODE_HOME%\node.exe"
