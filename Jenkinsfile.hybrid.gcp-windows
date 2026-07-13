@@ -222,8 +222,10 @@ pipeline {
 
         stage('Install Windows device dependencies (light)') {
             agent {
-                label params.DEVICES_AGENT
-                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                node {
+                    label params.DEVICES_AGENT
+                    customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                }
             }
             steps {
                 script {
@@ -267,8 +269,10 @@ pipeline {
 
         stage('Pre-run Disk Cleanup') {
             agent {
-                label params.DEVICES_AGENT
-                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                node {
+                    label params.DEVICES_AGENT
+                    customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                }
             }
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
@@ -279,8 +283,10 @@ pipeline {
 
         stage('Environment Precheck') {
             agent {
-                label params.DEVICES_AGENT
-                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                node {
+                    label params.DEVICES_AGENT
+                    customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                }
             }
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
@@ -295,8 +301,10 @@ pipeline {
 
         stage('Detect Connected Devices') {
             agent {
-                label params.DEVICES_AGENT
-                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                node {
+                    label params.DEVICES_AGENT
+                    customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                }
             }
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
@@ -313,8 +321,10 @@ pipeline {
         stage('Onboarding') {
             when { expression { return params.RUN_ATP_ONBOARDING } }
             agent {
-                label params.DEVICES_AGENT
-                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                node {
+                    label params.DEVICES_AGENT
+                    customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                }
             }
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
@@ -330,8 +340,10 @@ pipeline {
         stage('SignUp_Login') {
             when { expression { return params.RUN_ATP_SIGNUP_LOGIN } }
             agent {
-                label params.DEVICES_AGENT
-                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                node {
+                    label params.DEVICES_AGENT
+                    customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                }
             }
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
@@ -347,8 +359,10 @@ pipeline {
         stage('Camera') {
             when { expression { return params.RUN_ATP_CAMERA } }
             agent {
-                label params.DEVICES_AGENT
-                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                node {
+                    label params.DEVICES_AGENT
+                    customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                }
             }
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
@@ -364,8 +378,10 @@ pipeline {
         stage('Collage') {
             when { expression { return params.RUN_ATP_COLLAGE } }
             agent {
-                label params.DEVICES_AGENT
-                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                node {
+                    label params.DEVICES_AGENT
+                    customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                }
             }
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
@@ -381,8 +397,10 @@ pipeline {
         stage('Gallery') {
             when { expression { return params.RUN_ATP_GALLERY } }
             agent {
-                label params.DEVICES_AGENT
-                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                node {
+                    label params.DEVICES_AGENT
+                    customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                }
             }
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
@@ -405,8 +423,10 @@ pipeline {
         stage('PreCut') {
             when { expression { return params.RUN_ATP_PRECUT } }
             agent {
-                label params.DEVICES_AGENT
-                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                node {
+                    label params.DEVICES_AGENT
+                    customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                }
             }
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
@@ -422,8 +442,10 @@ pipeline {
         stage('Editing') {
             when { expression { return params.RUN_ATP_EDITING } }
             agent {
-                label params.DEVICES_AGENT
-                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                node {
+                    label params.DEVICES_AGENT
+                    customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                }
             }
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
@@ -448,8 +470,10 @@ pipeline {
         stage('Printing') {
             when { expression { return params.RUN_ATP_PRINTING } }
             agent {
-                label params.DEVICES_AGENT
-                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                node {
+                    label params.DEVICES_AGENT
+                    customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                }
             }
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
@@ -474,8 +498,10 @@ pipeline {
         stage('Settings') {
             when { expression { return params.RUN_ATP_SETTINGS } }
             agent {
-                label params.DEVICES_AGENT
-                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                node {
+                    label params.DEVICES_AGENT
+                    customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                }
             }
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
@@ -491,8 +517,10 @@ pipeline {
         stage('AI Step Print Agent') {
             when { expression { return params.RUN_AI_AGENT } }
             agent {
-                label params.DEVICES_AGENT
-                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                node {
+                    label params.DEVICES_AGENT
+                    customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                }
             }
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
@@ -514,8 +542,10 @@ pipeline {
         stage('Test AI Connection') {
             when { expression { return params.RUN_AI_ANALYSIS } }
             agent {
-                label params.DEVICES_AGENT
-                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                node {
+                    label params.DEVICES_AGENT
+                    customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                }
             }
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
@@ -531,8 +561,10 @@ pipeline {
         stage('AI Failure Analysis + Smart Retry') {
             when { expression { return params.RUN_AI_ANALYSIS } }
             agent {
-                label params.DEVICES_AGENT
-                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                node {
+                    label params.DEVICES_AGENT
+                    customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                }
             }
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
@@ -547,8 +579,10 @@ pipeline {
 
         stage('Stash device run outputs for GCP post-processing') {
             agent {
-                label params.DEVICES_AGENT
-                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                node {
+                    label params.DEVICES_AGENT
+                    customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                }
             }
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
@@ -659,8 +693,10 @@ pipeline {
         // Runs after archiveArtifacts: frees agent workspace only (Jenkins archived builds unchanged).
         stage('Post-build workspace cleanup (C: agent disk)') {
             agent {
-                label params.DEVICES_AGENT
-                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                node {
+                    label params.DEVICES_AGENT
+                    customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+                }
             }
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
