@@ -28,4 +28,9 @@ if not exist "%PS1%" (
   exit /b 0
 )
 powershell -NoProfile -ExecutionPolicy Bypass -File "%PS1%" -Workspace "%WS%" -Mode %MODE%
-exit /b %ERRORLEVEL%
+set "EC=%ERRORLEVEL%"
+if not "%EC%"=="0" (
+  echo [wipe-ws] WARN: wipe exited %EC% (continuing pipeline)
+  exit /b 0
+)
+exit /b 0

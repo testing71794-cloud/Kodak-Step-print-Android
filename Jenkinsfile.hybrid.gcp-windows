@@ -228,41 +228,19 @@ pipeline {
                 }
             }
             steps {
-                script {
-                    def ws = params.WINDOWS_DEVICE_WORKSPACE
-                    def legacy = params.LEGACY_WINDOWS_WORKSPACE?.trim()
+                // Fresh customWorkspace path: unstash first (no deleteDir). Wipe is best-effort only.
+                unstash 'repo'
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     bat """
                         @echo off
-                        set "WS=${ws}"
-                        if not exist "%WS%" mkdir "%WS%"
-                        if exist "%JENKINS_HOME%\\kodak-atp-tools\\jenkins_ci_wipe_workspace.bat" (
-                          call "%JENKINS_HOME%\\kodak-atp-tools\\jenkins_ci_wipe_workspace.bat" "%WS%" Full
-                        ) else if exist "%WS%\\scripts\\jenkins_ci_wipe_workspace.bat" (
-                          call "%WS%\\scripts\\jenkins_ci_wipe_workspace.bat" "%WS%" Full
-                        ) else (
-                          echo [wipe-ws] bootstrap: empty workspace only ^(first run — agent tools install next^)
-                          if exist "%WS%\\*" (
-                            powershell -NoProfile -ExecutionPolicy Bypass -Command "$ws='${ws}'; $e=Join-Path $env:TEMP ('je'+[guid]::NewGuid().ToString('n')); New-Item -ItemType Directory -Path $e -Force | Out-Null; cmd /c \"attrib -R `\"$ws\\*`\" /S /D >nul 2>&1\"; robocopy $e $ws /MIR /R:2 /W:2 /NFL /NDL /NJH /NJS /NP | Out-Null; Remove-Item $e -Recurse -Force -EA SilentlyContinue"
-                          )
+                        if exist scripts\\jenkins_ci_wipe_workspace.bat (
+                          call scripts\\jenkins_ci_wipe_workspace.bat "${env.WORKSPACE}" ReleaseOnly
                         )
-                    """
-                    if (legacy) {
-                        bat """
-                            @echo off
-                            if exist "%JENKINS_HOME%\\kodak-atp-tools\\jenkins_ci_wipe_workspace.bat" (
-                              call "%JENKINS_HOME%\\kodak-atp-tools\\jenkins_ci_wipe_workspace.bat" "${legacy}" Full
-                            ) else (
-                              echo [wipe-ws] legacy path migration skipped ^(agent tools not installed yet^): ${legacy}
-                            )
-                        """
-                    }
-                }
-                unstash 'repo'
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    bat """
                         call scripts\\install_jenkins_agent_tools.bat
-                        call scripts\\jenkins_ci_install_windows_device.bat "${env.WORKSPACE}"
                     """
+                }
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    bat """call scripts\\jenkins_ci_install_windows_device.bat "${env.WORKSPACE}" """
                 }
             }
         }
@@ -711,7 +689,9 @@ pipeline {
                             bat """
                                 @echo off
                                 if exist "%JENKINS_HOME%\\kodak-atp-tools\\jenkins_ci_wipe_workspace.bat" (
-                                  call "%JENKINS_HOME%\\kodak-atp-tools\\jenkins_ci_wipe_workspace.bat" "${legacy}" ReleaseOnly
+                                  call "%JENKINS_HOME%\\kodak-atp-tools\\jenkins_ci_wipe_workspace.bat" "${legacy}" Full
+                                ) else if exist scripts\\jenkins_ci_wipe_workspace.bat (
+                                  call scripts\\jenkins_ci_wipe_workspace.bat "${legacy}" Full
                                 )
                             """
                         }

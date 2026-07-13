@@ -219,4 +219,9 @@ if (-not $ws) {
 Write-WipeLog "Mode=$Mode Target=$ws"
 $ok = Invoke-WorkspaceWipe -WorkspacePath $ws
 if ($ok) { exit 0 }
+if ($Mode -eq 'ReleaseOnly') {
+    Write-WipeLog "ReleaseOnly finished with warnings (non-fatal)"
+    exit 0
+}
+Write-WipeLog "ERROR: Full wipe incomplete for $ws"
 exit 1
