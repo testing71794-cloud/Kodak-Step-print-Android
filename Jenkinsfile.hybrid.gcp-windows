@@ -2,6 +2,10 @@
 // Default production job must keep Script Path: Jenkinsfile (unchanged).
 // See docs/DISTRIBUTED_GCP_WINDOWS_ARCHITECTURE.md
 //
+// Windows workspace: do NOT rely on Jenkins deleteDir() (CompositeIOException on locked files).
+// Use customWorkspace (no spaces) + scripts/jenkins_ci_wipe_workspace.bat instead.
+// In the Jenkins job UI, disable: "Wipe out repository & force clone" / workspace wipe before build.
+//
 // Strip common mistake: parameter value "OPENROUTER_CREDENTIALS_ID = OPENROUTER_API_KEY" (Jenkins would look up that full string as credential ID).
 def normalizeOpenRouterCredsId = { Object raw ->
     if (raw == null) {
@@ -124,6 +128,16 @@ pipeline {
             choices: ['devices', 'my-pc-devices'],
             description: 'Label of the Jenkins agent connected to real USB phones. Default: devices'
         )
+        string(
+            name: 'WINDOWS_DEVICE_WORKSPACE',
+            defaultValue: 'C:/Jenkins/ws/kodak-atp-android',
+            description: 'Fixed Windows Maestro workspace (no spaces). Replaces default job workspace path.'
+        )
+        string(
+            name: 'LEGACY_WINDOWS_WORKSPACE',
+            defaultValue: 'C:/Jenkins/workspace/Kodak Step Print Android',
+            description: 'Old default job workspace; unlocked and wiped each build during migration.'
+        )
         string(name: 'APP_PACKAGE', defaultValue: 'com.kodak.steptouch', description: 'App package id for Maestro/app launch checks')
         string(name: 'MAESTRO_CMD', defaultValue: 'maestro.bat', description: 'Maestro launcher (e.g. maestro.bat).')
         string(name: 'MAESTRO_HOME', defaultValue: 'C:\\Users\\HP\\maestro\\maestro\\bin', description: 'Folder containing maestro.bat.')
@@ -207,18 +221,55 @@ pipeline {
         }
 
         stage('Install Windows device dependencies (light)') {
-            agent { label params.DEVICES_AGENT }
+            agent {
+                label params.DEVICES_AGENT
+                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+            }
             steps {
-                deleteDir()
+                script {
+                    def ws = params.WINDOWS_DEVICE_WORKSPACE
+                    def legacy = params.LEGACY_WINDOWS_WORKSPACE?.trim()
+                    bat """
+                        @echo off
+                        set "WS=${ws}"
+                        if not exist "%WS%" mkdir "%WS%"
+                        if exist "%JENKINS_HOME%\\kodak-atp-tools\\jenkins_ci_wipe_workspace.bat" (
+                          call "%JENKINS_HOME%\\kodak-atp-tools\\jenkins_ci_wipe_workspace.bat" "%WS%" Full
+                        ) else if exist "%WS%\\scripts\\jenkins_ci_wipe_workspace.bat" (
+                          call "%WS%\\scripts\\jenkins_ci_wipe_workspace.bat" "%WS%" Full
+                        ) else (
+                          echo [wipe-ws] bootstrap: empty workspace only ^(first run — agent tools install next^)
+                          if exist "%WS%\\*" (
+                            powershell -NoProfile -ExecutionPolicy Bypass -Command "$ws='${ws}'; $e=Join-Path $env:TEMP ('je'+[guid]::NewGuid().ToString('n')); New-Item -ItemType Directory -Path $e -Force | Out-Null; cmd /c \"attrib -R `\"$ws\\*`\" /S /D >nul 2>&1\"; robocopy $e $ws /MIR /R:2 /W:2 /NFL /NDL /NJH /NJS /NP | Out-Null; Remove-Item $e -Recurse -Force -EA SilentlyContinue"
+                          )
+                        )
+                    """
+                    if (legacy) {
+                        bat """
+                            @echo off
+                            if exist "%JENKINS_HOME%\\kodak-atp-tools\\jenkins_ci_wipe_workspace.bat" (
+                              call "%JENKINS_HOME%\\kodak-atp-tools\\jenkins_ci_wipe_workspace.bat" "${legacy}" Full
+                            ) else (
+                              echo [wipe-ws] legacy path migration skipped ^(agent tools not installed yet^): ${legacy}
+                            )
+                        """
+                    }
+                }
                 unstash 'repo'
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    bat """call scripts\\jenkins_ci_install_windows_device.bat "${env.WORKSPACE}" """
+                    bat """
+                        call scripts\\install_jenkins_agent_tools.bat
+                        call scripts\\jenkins_ci_install_windows_device.bat "${env.WORKSPACE}"
+                    """
                 }
             }
         }
 
         stage('Pre-run Disk Cleanup') {
-            agent { label params.DEVICES_AGENT }
+            agent {
+                label params.DEVICES_AGENT
+                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+            }
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     bat """call scripts\\jenkins_ci_cleanup_pre.bat "${env.WORKSPACE}" """
@@ -227,7 +278,10 @@ pipeline {
         }
 
         stage('Environment Precheck') {
-            agent { label params.DEVICES_AGENT }
+            agent {
+                label params.DEVICES_AGENT
+                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+            }
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                     script {
@@ -240,7 +294,10 @@ pipeline {
         }
 
         stage('Detect Connected Devices') {
-            agent { label params.DEVICES_AGENT }
+            agent {
+                label params.DEVICES_AGENT
+                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+            }
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                     script {
@@ -255,7 +312,10 @@ pipeline {
 
         stage('Onboarding') {
             when { expression { return params.RUN_ATP_ONBOARDING } }
-            agent { label params.DEVICES_AGENT }
+            agent {
+                label params.DEVICES_AGENT
+                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+            }
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     script {
@@ -269,7 +329,10 @@ pipeline {
 
         stage('SignUp_Login') {
             when { expression { return params.RUN_ATP_SIGNUP_LOGIN } }
-            agent { label params.DEVICES_AGENT }
+            agent {
+                label params.DEVICES_AGENT
+                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+            }
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     script {
@@ -283,7 +346,10 @@ pipeline {
 
         stage('Camera') {
             when { expression { return params.RUN_ATP_CAMERA } }
-            agent { label params.DEVICES_AGENT }
+            agent {
+                label params.DEVICES_AGENT
+                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+            }
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     script {
@@ -297,7 +363,10 @@ pipeline {
 
         stage('Collage') {
             when { expression { return params.RUN_ATP_COLLAGE } }
-            agent { label params.DEVICES_AGENT }
+            agent {
+                label params.DEVICES_AGENT
+                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+            }
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     script {
@@ -311,7 +380,10 @@ pipeline {
 
         stage('Gallery') {
             when { expression { return params.RUN_ATP_GALLERY } }
-            agent { label params.DEVICES_AGENT }
+            agent {
+                label params.DEVICES_AGENT
+                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+            }
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     script {
@@ -332,7 +404,10 @@ pipeline {
 
         stage('PreCut') {
             when { expression { return params.RUN_ATP_PRECUT } }
-            agent { label params.DEVICES_AGENT }
+            agent {
+                label params.DEVICES_AGENT
+                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+            }
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     script {
@@ -346,7 +421,10 @@ pipeline {
 
         stage('Editing') {
             when { expression { return params.RUN_ATP_EDITING } }
-            agent { label params.DEVICES_AGENT }
+            agent {
+                label params.DEVICES_AGENT
+                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+            }
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     script {
@@ -369,7 +447,10 @@ pipeline {
 
         stage('Printing') {
             when { expression { return params.RUN_ATP_PRINTING } }
-            agent { label params.DEVICES_AGENT }
+            agent {
+                label params.DEVICES_AGENT
+                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+            }
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     script {
@@ -392,7 +473,10 @@ pipeline {
 
         stage('Settings') {
             when { expression { return params.RUN_ATP_SETTINGS } }
-            agent { label params.DEVICES_AGENT }
+            agent {
+                label params.DEVICES_AGENT
+                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+            }
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     script {
@@ -406,7 +490,10 @@ pipeline {
 
         stage('AI Step Print Agent') {
             when { expression { return params.RUN_AI_AGENT } }
-            agent { label params.DEVICES_AGENT }
+            agent {
+                label params.DEVICES_AGENT
+                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+            }
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     script {
@@ -426,7 +513,10 @@ pipeline {
 
         stage('Test AI Connection') {
             when { expression { return params.RUN_AI_ANALYSIS } }
-            agent { label params.DEVICES_AGENT }
+            agent {
+                label params.DEVICES_AGENT
+                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+            }
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     script {
@@ -440,7 +530,10 @@ pipeline {
 
         stage('AI Failure Analysis + Smart Retry') {
             when { expression { return params.RUN_AI_ANALYSIS } }
-            agent { label params.DEVICES_AGENT }
+            agent {
+                label params.DEVICES_AGENT
+                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+            }
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     script {
@@ -453,7 +546,10 @@ pipeline {
         }
 
         stage('Stash device run outputs for GCP post-processing') {
-            agent { label params.DEVICES_AGENT }
+            agent {
+                label params.DEVICES_AGENT
+                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+            }
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     stash name: 'run-outputs', includes: 'reports/**,status/**,build-summary/**,.maestro/**,detected_devices.txt,*.flag', allowEmpty: true
@@ -562,10 +658,28 @@ pipeline {
 
         // Runs after archiveArtifacts: frees agent workspace only (Jenkins archived builds unchanged).
         stage('Post-build workspace cleanup (C: agent disk)') {
-            agent { label params.DEVICES_AGENT }
+            agent {
+                label params.DEVICES_AGENT
+                customWorkspace params.WINDOWS_DEVICE_WORKSPACE
+            }
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                    bat """call scripts\\jenkins_ci_cleanup_post.bat "${env.WORKSPACE}" """
+                    script {
+                        def legacy = params.LEGACY_WINDOWS_WORKSPACE?.trim()
+                        bat """
+                            @echo off
+                            call scripts\\jenkins_ci_release_workspace.bat "${env.WORKSPACE}"
+                            call scripts\\jenkins_ci_cleanup_post.bat "${env.WORKSPACE}"
+                        """
+                        if (legacy) {
+                            bat """
+                                @echo off
+                                if exist "%JENKINS_HOME%\\kodak-atp-tools\\jenkins_ci_wipe_workspace.bat" (
+                                  call "%JENKINS_HOME%\\kodak-atp-tools\\jenkins_ci_wipe_workspace.bat" "${legacy}" ReleaseOnly
+                                )
+                            """
+                        }
+                    }
                 }
             }
         }
