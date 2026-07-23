@@ -1,0 +1,14 @@
+appId: com.kodak.steptouch
+---
+# Stickers → Barbie category → select sticker (no confirm/Done).
+- tapOn: "Stickers"
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn: "Barbie"
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn:
+    id: "imageViewStricker"
+    index: 1
+- waitForAnimationToEnd:
+    timeout: 2000

@@ -43,22 +43,8 @@ name: PR_03 - Multi-Select Images Print
 - runFlow: subflows/pairing_optional.yaml
 - waitForAnimationToEnd:
     timeout: 2000
-- extendedWaitUntil:
-    visible: "Select"
-    timeout: 2000
-- tapOn: "Select"
-- extendedWaitUntil:
-    visible:
-      id: "ivItemGridImage"
-    timeout: 2000
-- tapOn:
-    id: "ivItemGridImage"
-- tapOn:
-    id: "ivItemGridImage"
-    index: 1
-- tapOn:
-    id: "ivItemGridImage"
-    index: 2
+- runFlow: subflows/ensure_gallery_has_three_photos.yaml
+- runFlow: subflows/select_three_photos_for_print.yaml
 - tapOn:
     id: "textViewPrint"
     optional: true
@@ -84,10 +70,7 @@ name: PR_03 - Multi-Select Images Print
             - tapOn: "OK"
             - waitForAnimationToEnd:
                 timeout: 2000
-- assertVisible:
-    id: "ivItemGridImage"
-    index: 6
-    optional: true
+- runFlow: subflows/assert_print_progress_grid.yaml
 - runFlow:
     when:
       visible: "Print Successful"

@@ -1,0 +1,52 @@
+appId: com.kodak.steptouch
+---
+# Connect Barbie printer without forcing disconnect first (printer already paired on device).
+# Env: BT_DEVICE_NAME or BT_BARBIE_DEVICE_NAME
+- tapOn:
+    id: "imageViewConnection"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 2000
+- runFlow:
+    when:
+      visible: "Printer Not Connected"
+    commands:
+      - tapOn: "Connect"
+      - waitForAnimationToEnd:
+          timeout: 2000
+- runFlow:
+    when:
+      visible: "Connect"
+    commands:
+      - tapOn: "Connect"
+      - waitForAnimationToEnd:
+          timeout: 2000
+- runFlow:
+    when:
+      visible: "Searching for your device..."
+    commands:
+      - extendedWaitUntil:
+          notVisible: "Searching for your device..."
+          timeout: 8000
+      - waitForAnimationToEnd:
+          timeout: 2000
+- runFlow:
+    when:
+      visible: "We couldn't find"
+    commands:
+      - tapOn: "Search Again"
+      - waitForAnimationToEnd:
+          timeout: 2000
+- runFlow:
+    when:
+      notVisible:
+        id: "linearLayoutConnection"
+    commands:
+      - runFlow: pick_barbie_printer.yaml
+      - waitForAnimationToEnd:
+          timeout: 2000
+      - runFlow: confirm_pairing_required.yaml
+- assertVisible:
+    id: "linearLayoutConnection"
+- assertNotVisible:
+    text: "Printer Not Connected"

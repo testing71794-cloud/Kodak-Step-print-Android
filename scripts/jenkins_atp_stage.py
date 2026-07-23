@@ -293,6 +293,30 @@ def _apply_editing_ci_defaults(folder: str) -> None:
     # Vision fallbacks: intelligent_platform.config.openrouter_vision_model_chain()
 
 
+def _is_barbie_folder(folder: str) -> bool:
+    resolved = resolve_atp_subfolder(REPO, folder)
+    key = (resolved or folder or "").strip().lower()
+    return key == "barbie"
+
+
+def _apply_barbie_ci_defaults(folder: str) -> None:
+    """Set Barbie-stage defaults before flow discovery (must run before preflight log)."""
+    if not _is_barbie_folder(folder):
+        return
+    os.environ.setdefault("EDITING_VERIFY_SOFT", "1")
+    os.environ.setdefault("OPENROUTER_VISION_TIMEOUT_SEC", "25")
+    os.environ.setdefault("OPENROUTER_VISION_MAX_ROUNDS", "1")
+
+
+def _apply_printing_ci_defaults(folder: str) -> None:
+    """Set printing-stage defaults before flow discovery (must run before preflight log)."""
+    if not _is_printing_folder(folder):
+        return
+    os.environ.setdefault("EDITING_VERIFY_SOFT", "1")
+    os.environ.setdefault("OPENROUTER_VISION_TIMEOUT_SEC", "25")
+    os.environ.setdefault("OPENROUTER_VISION_MAX_ROUNDS", "1")
+
+
 def _prepare_editing_openrouter(folder: str) -> None:
     """GraalJS host access + editing verify server for ED_* OpenRouter vision verify."""
     if not _is_editing_folder(folder):
@@ -348,11 +372,15 @@ def _prepare_printing_openrouter(folder: str) -> None:
     spec.loader.exec_module(mod)
 
     mod.apply_editing_openrouter_env()
+    _apply_printing_ci_defaults(folder)
     print(
         "[jenkins_atp_stage] printing OpenRouter: "
         f"MAESTRO_CLI_DANGEROUS_GRAALJS_ALLOW_HOST_ACCESS={os.environ.get('MAESTRO_CLI_DANGEROUS_GRAALJS_ALLOW_HOST_ACCESS', '')} "
         f"OPENROUTER_MODEL_VISION={os.environ.get('OPENROUTER_MODEL_VISION', '')} "
-        f"EDITING_VERIFY_PORT={os.environ.get('EDITING_VERIFY_PORT', '8767')}",
+        f"EDITING_VERIFY_PORT={os.environ.get('EDITING_VERIFY_PORT', '8767')} "
+        f"EDITING_VERIFY_SOFT={os.environ.get('EDITING_VERIFY_SOFT', '')} "
+        f"OPENROUTER_VISION_TIMEOUT_SEC={os.environ.get('OPENROUTER_VISION_TIMEOUT_SEC', '')} "
+        f"OPENROUTER_VISION_MAX_ROUNDS={os.environ.get('OPENROUTER_VISION_MAX_ROUNDS', '')}",
         flush=True,
     )
     if os.environ.get("ATP_PRINTING_VERIFY_SERVER", "1").strip().lower() in (
@@ -370,10 +398,53 @@ def _prepare_printing_openrouter(folder: str) -> None:
         )
 
 
+def _prepare_barbie_openrouter(folder: str) -> None:
+    """GraalJS host access + shared verify server for BA_* OpenRouter vision verify."""
+    if not _is_barbie_folder(folder):
+        return
+    import importlib.util
+
+    mod_path = REPO / "scripts" / "ensure_editing_verify_server.py"
+    spec = importlib.util.spec_from_file_location("ensure_editing_verify_server", mod_path)
+    if spec is None or spec.loader is None:
+        print(f"[jenkins_atp_stage] WARN: cannot load {mod_path}", flush=True)
+        return
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+
+    mod.apply_editing_openrouter_env()
+    _apply_barbie_ci_defaults(folder)
+    print(
+        "[jenkins_atp_stage] barbie OpenRouter: "
+        f"MAESTRO_CLI_DANGEROUS_GRAALJS_ALLOW_HOST_ACCESS={os.environ.get('MAESTRO_CLI_DANGEROUS_GRAALJS_ALLOW_HOST_ACCESS', '')} "
+        f"OPENROUTER_MODEL_VISION={os.environ.get('OPENROUTER_MODEL_VISION', '')} "
+        f"EDITING_VERIFY_PORT={os.environ.get('EDITING_VERIFY_PORT', '8767')} "
+        f"EDITING_VERIFY_SOFT={os.environ.get('EDITING_VERIFY_SOFT', '')} "
+        f"OPENROUTER_VISION_TIMEOUT_SEC={os.environ.get('OPENROUTER_VISION_TIMEOUT_SEC', '')} "
+        f"OPENROUTER_VISION_MAX_ROUNDS={os.environ.get('OPENROUTER_VISION_MAX_ROUNDS', '')}",
+        flush=True,
+    )
+    if os.environ.get("ATP_BARBIE_VERIFY_SERVER", "1").strip().lower() in (
+        "0",
+        "false",
+        "no",
+        "off",
+    ):
+        print("[jenkins_atp_stage] ATP_BARBIE_VERIFY_SERVER=0 — skip barbie verify server", flush=True)
+        return
+    if not mod.ensure_editing_verify_server(REPO):
+        print(
+            "[jenkins_atp_stage] WARN: verify server not ready; BA_* may use GraalJS direct OpenRouter",
+            flush=True,
+        )
+
+
 def cmd_run(folder: str, app: str, clear_state: str, maestro_cmd: str) -> int:
     resolved = resolve_atp_subfolder(REPO, folder)
     sid = folder_to_suite_id(resolved or folder)
     _apply_editing_ci_defaults(folder)
+    _apply_printing_ci_defaults(folder)
+    _apply_barbie_ci_defaults(folder)
     _log_folder_discovery(folder, resolved)
     yaml_rc = _validate_maestro_yaml_preflight()
     if yaml_rc != 0:
@@ -383,6 +454,7 @@ def cmd_run(folder: str, app: str, clear_state: str, maestro_cmd: str) -> int:
     _prepare_gallery_appium(folder)
     _prepare_editing_openrouter(folder)
     _prepare_printing_openrouter(folder)
+    _prepare_barbie_openrouter(folder)
     _refresh_devices_on_this_agent(REPO)
     _log_orchestrator_fingerprint(REPO)
     maestro_argv = [

@@ -10,8 +10,36 @@ name: BA_04 - Barbie Frames
 - launchApp:
     clearState: false
 - runFlow: subflows/dismiss_barbie_intro_if_visible.yaml
+- runFlow: subflows/ensure_barbie_printer_ready.yaml
 - runFlow: subflows/select_photo_and_open_edit.yaml
-- runFlow: subflows/apply_barbie_frame.yaml
+- takeScreenshot: BA_04_before_barbie_frame
+- tapOn: "Frames"
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn: "Barbie"
+- waitForAnimationToEnd:
+    timeout: 2000
+- takeScreenshot: BA_04_barbie_frame_category
+- runFlow:
+    file: subflows/verify_barbie_screen_with_ai.yaml
+    env:
+      SCREEN_BASENAME: BA_04_barbie_frame_category
+      SCREEN_LABEL: BA_04 Barbie frame category
+      SCREEN_PROFILE: barbie_frame_category
+- tapOn:
+    id: "imageViewFilter"
+    index: 2
+- waitForAnimationToEnd:
+    timeout: 2000
+- takeScreenshot: BA_04_after_barbie_frame
+- runFlow:
+    file: subflows/verify_barbie_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: BA_04_before_barbie_frame
+      AFTER_BASENAME: BA_04_after_barbie_frame
+      VERIFY_LABEL: BA_04 Barbie frame apply
+      VERIFY_PROFILE: frame
+- runFlow: subflows/confirm_barbie_frame.yaml
 - assertVisible:
     id: "filterEditingOptionsImageView"
     optional: true

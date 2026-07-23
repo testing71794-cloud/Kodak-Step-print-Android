@@ -63,31 +63,7 @@ name: PR_02 - Multiple Copies Print
     text: "OK"
     optional: true
 
-- waitForAnimationToEnd:
-    timeout: 2000
-- tapOn:
-    point: 75%,90%
-- waitForAnimationToEnd:
-    timeout: 2000
-- runFlow:
-    when:
-      visible: "Number of Copies"
-    commands:
-      - tapOn:
-          id: "textViewAddCopy"
-      - tapOn:
-          id: "textViewAddCopy"
-      - assertVisible:
-          id: "text_noOfcopies"
-          text: "3"
-      - tapOn: "Print"
-      - waitForAnimationToEnd:
-          timeout: 2000
-- waitForAnimationToEnd:
-    timeout: 2000
-
-- waitForAnimationToEnd:
-    timeout: 2000
+- runFlow: subflows/set_three_copies_and_print.yaml
 - waitForAnimationToEnd:
     timeout: 2000
 - repeat:
@@ -100,9 +76,7 @@ name: PR_02 - Multiple Copies Print
             - tapOn: "OK"
             - waitForAnimationToEnd:
                 timeout: 2000
-- assertVisible:
-    id: "ivItemGridImage"
-    index: 6
+- runFlow: subflows/assert_print_progress_grid.yaml
 - runFlow:
     when:
       visible: "Print Successful"

@@ -1,0 +1,10 @@
+appId: com.kodak.steptouch
+---
+# Before/after OpenRouter pair verification for Barbie frame/sticker apply.
+- runFlow:
+    file: ../../editing/subflows/verify_visual_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: ${BEFORE_BASENAME}
+      AFTER_BASENAME: ${AFTER_BASENAME}
+      VERIFY_LABEL: ${VERIFY_LABEL}
+      VERIFY_PROFILE: ${VERIFY_PROFILE}

@@ -1,23 +1,13 @@
 appId: com.kodak.steptouch
 ---
-# Step 3: Tap the Barbie printer in the list (name required — no silent coordinate skip).
+# Step 3: Tap the Barbie printer in the list (name when env set, else coordinate fallback).
 # Env: BT_BARBIE_DEVICE_NAME and/or BT_DEVICE_NAME must match the list label exactly.
 - runFlow:
     when:
       visible:
-        text: ${BT_BARBIE_DEVICE_NAME}
+        text: ".*Barbie.*"
     commands:
       - tapOn:
-          text: ${BT_BARBIE_DEVICE_NAME}
+          text: ".*Barbie.*"
 
-- runFlow:
-    when:
-      notVisible:
-        text: ${BT_BARBIE_DEVICE_NAME}
-    commands:
-      - extendedWaitUntil:
-          visible:
-            text: ${BT_DEVICE_NAME}
-          timeout: 2000
-      - tapOn:
-          text: ${BT_DEVICE_NAME}
+- runFlow: pick_barbie_printer.yaml

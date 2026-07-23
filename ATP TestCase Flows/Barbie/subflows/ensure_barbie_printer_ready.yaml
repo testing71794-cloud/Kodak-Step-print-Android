@@ -1,0 +1,54 @@
+appId: com.kodak.steptouch
+---
+# Printer must already be on gallery — call reach_barbie_gallery.yaml first.
+- runFlow: return_to_barbie_gallery.yaml
+- runFlow:
+    when:
+      notVisible:
+        id: "ivItemGridImage"
+    commands:
+      - runFlow: reach_barbie_gallery.yaml
+- extendedWaitUntil:
+    visible:
+      id: "imageViewConnection"
+    timeout: 10000
+    optional: true
+- runFlow:
+    when:
+      visible:
+        id: "linearLayoutConnection"
+    commands:
+      - runFlow: assert_barbie_theme_enabled.yaml
+- runFlow:
+    when:
+      notVisible:
+        id: "linearLayoutConnection"
+    commands:
+      - tapOn:
+          id: "imageViewConnection"
+      - waitForAnimationToEnd:
+          timeout: 2000
+      - extendedWaitUntil:
+          visible:
+            id: "linearLayoutConnection"
+          timeout: 8000
+          optional: true
+      - runFlow:
+          when:
+            visible:
+              id: "linearLayoutConnection"
+          commands:
+            - tapOn:
+                id: "back_button"
+                optional: true
+            - tapOn:
+                id: "linearLayoutBack"
+                optional: true
+            - runFlow: assert_barbie_theme_enabled.yaml
+      - runFlow:
+          when:
+            notVisible:
+              id: "linearLayoutConnection"
+          commands:
+            - runFlow: connect_barbie_if_needed.yaml
+            - runFlow: assert_barbie_theme_enabled.yaml

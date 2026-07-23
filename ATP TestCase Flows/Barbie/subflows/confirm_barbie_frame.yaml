@@ -1,0 +1,10 @@
+appId: com.kodak.steptouch
+---
+- tapOn:
+    id: "saveRecentEditImageView"
+    optional: true
+- tapOn:
+    text: "Done"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 2000

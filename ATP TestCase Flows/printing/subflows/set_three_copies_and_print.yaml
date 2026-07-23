@@ -1,0 +1,38 @@
+appId: com.kodak.steptouch
+---
+# Open copies sheet, set count to 3, and start print (fallback paths for different preview layouts).
+- tapOn:
+    point: "75%,90%"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 2000
+- extendedWaitUntil:
+    visible: "Number of Copies"
+    timeout: 5000
+    optional: true
+- runFlow:
+    when:
+      notVisible: "Number of Copies"
+    commands:
+      - tapOn:
+          text: "Print"
+          optional: true
+      - waitForAnimationToEnd:
+          timeout: 2000
+      - extendedWaitUntil:
+          visible: "Number of Copies"
+          timeout: 5000
+- runFlow:
+    when:
+      visible: "Number of Copies"
+    commands:
+      - tapOn:
+          id: "textViewAddCopy"
+      - tapOn:
+          id: "textViewAddCopy"
+      - assertVisible:
+          id: "text_noOfcopies"
+          text: "3"
+      - tapOn: "Print"
+      - waitForAnimationToEnd:
+          timeout: 2000

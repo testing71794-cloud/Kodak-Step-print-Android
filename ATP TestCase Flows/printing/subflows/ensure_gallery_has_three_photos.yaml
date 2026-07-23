@@ -1,0 +1,47 @@
+appId: com.kodak.steptouch
+---
+# Multi-select print needs 3+ gallery thumbnails; seed via camera if grid is sparse.
+- extendedWaitUntil:
+    visible:
+      id: "ivItemGridImage"
+    timeout: 10000
+    optional: true
+- runFlow:
+    when:
+      notVisible:
+        id: "ivItemGridImage"
+    commands:
+      - runFlow: ../../precut/subflows/capture_photo_to_gallery.yaml
+      - extendedWaitUntil:
+          visible:
+            id: "ivItemGridImage"
+          timeout: 15000
+- runFlow:
+    when:
+      notVisible:
+        id: "ivItemGridImage"
+        index: 1
+    commands:
+      - runFlow: ../../precut/subflows/capture_photo_to_gallery.yaml
+      - extendedWaitUntil:
+          visible:
+            id: "ivItemGridImage"
+            index: 1
+          timeout: 15000
+- runFlow:
+    when:
+      notVisible:
+        id: "ivItemGridImage"
+        index: 2
+    commands:
+      - runFlow: ../../precut/subflows/capture_photo_to_gallery.yaml
+      - extendedWaitUntil:
+          visible:
+            id: "ivItemGridImage"
+            index: 2
+          timeout: 15000
+- extendedWaitUntil:
+    visible:
+      id: "ivItemGridImage"
+      index: 2
+    timeout: 10000

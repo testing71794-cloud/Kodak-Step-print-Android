@@ -14,3 +14,10 @@ name: BA_01 - Connect Barbie printer
 - assertVisible: "My gallery"
 - runFlow: subflows/connect_barbie_printer.yaml
 - runFlow: subflows/assert_barbie_theme_enabled.yaml
+- takeScreenshot: BA_01_barbie_theme
+- runFlow:
+    file: subflows/verify_barbie_screen_with_ai.yaml
+    env:
+      SCREEN_BASENAME: BA_01_barbie_theme
+      SCREEN_LABEL: BA_01 Barbie theme after connect
+      SCREEN_PROFILE: barbie_theme

@@ -10,8 +10,36 @@ name: BA_05 - Barbie Stickers
 - launchApp:
     clearState: false
 - runFlow: subflows/dismiss_barbie_intro_if_visible.yaml
+- runFlow: subflows/ensure_barbie_printer_ready.yaml
 - runFlow: subflows/select_photo_and_open_edit.yaml
-- runFlow: subflows/apply_barbie_sticker.yaml
+- takeScreenshot: BA_05_before_barbie_sticker
+- tapOn: "Stickers"
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn: "Barbie"
+- waitForAnimationToEnd:
+    timeout: 2000
+- takeScreenshot: BA_05_barbie_sticker_category
+- runFlow:
+    file: subflows/verify_barbie_screen_with_ai.yaml
+    env:
+      SCREEN_BASENAME: BA_05_barbie_sticker_category
+      SCREEN_LABEL: BA_05 Barbie sticker category
+      SCREEN_PROFILE: barbie_sticker_category
+- tapOn:
+    id: "imageViewStricker"
+    index: 1
+- waitForAnimationToEnd:
+    timeout: 2000
+- takeScreenshot: BA_05_after_barbie_sticker
+- runFlow:
+    file: subflows/verify_barbie_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: BA_05_before_barbie_sticker
+      AFTER_BASENAME: BA_05_after_barbie_sticker
+      VERIFY_LABEL: BA_05 Barbie sticker apply
+      VERIFY_PROFILE: sticker
+- runFlow: subflows/confirm_barbie_sticker.yaml
 - assertVisible:
     id: "filterEditingOptionsImageView"
     optional: true

@@ -1,0 +1,14 @@
+appId: com.kodak.steptouch
+---
+# Frames → Barbie category → select frame (no confirm/Done).
+- tapOn: "Frames"
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn: "Barbie"
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn:
+    id: "imageViewFilter"
+    index: 2
+- waitForAnimationToEnd:
+    timeout: 2000

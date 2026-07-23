@@ -8,9 +8,16 @@ appId: com.kodak.steptouch
 name: BA_02 - Intro screen
 ---
 - launchApp:
-    clearState: true
+    clearState: false
+- runFlow: subflows/ensure_barbie_printer_ready.yaml
 - runFlow: subflows/reach_gallery_for_barbie.yaml
 - tapOn:
-    point: 15%,26%
+    point: "15%,26%"
 - runFlow: subflows/assert_barbie_intro_banner.yaml
-
+- takeScreenshot: BA_02_barbie_intro
+- runFlow:
+    file: subflows/verify_barbie_screen_with_ai.yaml
+    env:
+      SCREEN_BASENAME: BA_02_barbie_intro
+      SCREEN_LABEL: BA_02 Barbie intro banner
+      SCREEN_PROFILE: barbie_intro

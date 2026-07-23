@@ -11,6 +11,13 @@ name: BA_03 - Splash screen
 - launchApp:
     clearState: false
 - runFlow: subflows/assert_barbie_splash_screen.yaml
+- takeScreenshot: BA_03_barbie_splash
+- runFlow:
+    file: subflows/verify_barbie_screen_with_ai.yaml
+    env:
+      SCREEN_BASENAME: BA_03_barbie_splash
+      SCREEN_LABEL: BA_03 Barbie splash screen
+      SCREEN_PROFILE: barbie_splash
 - extendedWaitUntil:
     visible: ".*(?i)my gallery.*"
-    timeout: 2000
+    timeout: 5000

@@ -124,10 +124,7 @@ name: PR_04 - Camera Capture Print
             - tapOn: "OK"
             - waitForAnimationToEnd:
                 timeout: 2000
-- assertVisible:
-    id: "ivItemGridImage"
-    index: 6
-    optional: true
+- runFlow: subflows/assert_print_progress_grid.yaml
 - runFlow:
     when:
       visible: "Print Successful"

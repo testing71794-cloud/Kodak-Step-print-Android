@@ -78,9 +78,7 @@ name: PR_01 - Single Print
             - tapOn: "OK"
             - waitForAnimationToEnd:
                 timeout: 2000
-- assertVisible:
-    id: "ivItemGridImage"
-    index: 6
+- runFlow: subflows/assert_print_progress_grid.yaml
 - runFlow:
     when:
       visible: "Print Successful"

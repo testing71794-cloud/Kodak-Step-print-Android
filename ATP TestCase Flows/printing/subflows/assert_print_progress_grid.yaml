@@ -1,0 +1,16 @@
+appId: com.kodak.steptouch
+---
+# Print queue / progress grid: require at least one thumbnail; index 6 is layout-dependent.
+- waitForAnimationToEnd:
+    timeout: 2000
+- extendedWaitUntil:
+    visible:
+      id: "ivItemGridImage"
+    timeout: 15000
+- assertVisible:
+    id: "ivItemGridImage"
+    index: 0
+- assertVisible:
+    id: "ivItemGridImage"
+    index: 6
+    optional: true

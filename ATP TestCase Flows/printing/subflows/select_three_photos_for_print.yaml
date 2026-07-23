@@ -1,0 +1,36 @@
+appId: com.kodak.steptouch
+---
+- extendedWaitUntil:
+    visible: "Select"
+    timeout: 5000
+- tapOn: "Select"
+- waitForAnimationToEnd:
+    timeout: 2000
+- extendedWaitUntil:
+    visible:
+      id: "ivItemGridImage"
+    timeout: 5000
+- tapOn:
+    id: "ivItemGridImage"
+- waitForAnimationToEnd:
+    timeout: 1000
+- extendedWaitUntil:
+    visible:
+      id: "ivItemGridImage"
+      index: 1
+    timeout: 5000
+- tapOn:
+    id: "ivItemGridImage"
+    index: 1
+- waitForAnimationToEnd:
+    timeout: 1000
+- extendedWaitUntil:
+    visible:
+      id: "ivItemGridImage"
+      index: 2
+    timeout: 5000
+- tapOn:
+    id: "ivItemGridImage"
+    index: 2
+- waitForAnimationToEnd:
+    timeout: 2000

@@ -74,9 +74,7 @@ name: PR_AI_01 - Print screen AI verification
             - tapOn: "OK"
             - waitForAnimationToEnd:
                 timeout: 2000
-- assertVisible:
-    id: "ivItemGridImage"
-    index: 6
+- runFlow: subflows/assert_print_progress_grid.yaml
 - takeScreenshot: PR_AI_01_print_preview
 - runFlow:
     file: subflows/verify_print_screen_with_ai.yaml

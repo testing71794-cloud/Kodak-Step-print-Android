@@ -1,0 +1,28 @@
+appId: com.kodak.steptouch
+---
+# Return to MY GALLERY from photo detail / edit overlay.
+- runFlow:
+    when:
+      notVisible:
+        id: "imageViewConnection"
+    commands:
+      - tapOn:
+          point: "6%,8%"
+          label: Photo detail close (X)
+          optional: true
+      - tapOn:
+          id: "back_button"
+          optional: true
+      - tapOn:
+          id: "linearLayoutBack"
+          optional: true
+      - pressKey:
+          key: back
+          optional: true
+      - waitForAnimationToEnd:
+          timeout: 2000
+      - extendedWaitUntil:
+          visible:
+            id: "ivItemGridImage"
+          timeout: 8000
+          optional: true

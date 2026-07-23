@@ -1,0 +1,79 @@
+# TC_ID: BA_AI_01 - Barbie theme AI verification
+# ATP Steps: gallery Barbie theme AI → frame apply AI pair → sticker apply AI pair
+# ATP Expected: OpenRouter confirms Barbie theme UI and Barbie frame/sticker edits
+# Env: BT_BARBIE_DEVICE_NAME / BT_DEVICE_NAME (only if printer not already connected)
+appId: com.kodak.steptouch
+name: BA_AI_01 - Barbie theme AI verification
+---
+- launchApp:
+    clearState: false
+- runFlow: subflows/reach_barbie_gallery.yaml
+- runFlow: subflows/ensure_barbie_printer_ready.yaml
+- extendedWaitUntil:
+    visible: ".*(?i)my gallery.*"
+    timeout: 5000
+- takeScreenshot: BA_AI_01_barbie_gallery_theme
+- runFlow:
+    file: subflows/verify_barbie_screen_with_ai.yaml
+    env:
+      SCREEN_BASENAME: BA_AI_01_barbie_gallery_theme
+      SCREEN_LABEL: BA_AI_01 Barbie gallery theme
+      SCREEN_PROFILE: barbie_theme
+- runFlow: subflows/select_photo_and_open_edit.yaml
+- takeScreenshot: BA_AI_01_before_barbie_frame
+- tapOn: "Frames"
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn: "Barbie"
+- waitForAnimationToEnd:
+    timeout: 2000
+- takeScreenshot: BA_AI_01_barbie_frame_category
+- runFlow:
+    file: subflows/verify_barbie_screen_with_ai.yaml
+    env:
+      SCREEN_BASENAME: BA_AI_01_barbie_frame_category
+      SCREEN_LABEL: BA_AI_01 Barbie frame category
+      SCREEN_PROFILE: barbie_frame_category
+- tapOn:
+    id: "imageViewFilter"
+    index: 2
+- waitForAnimationToEnd:
+    timeout: 2000
+- takeScreenshot: BA_AI_01_after_barbie_frame
+- runFlow:
+    file: subflows/verify_barbie_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: BA_AI_01_before_barbie_frame
+      AFTER_BASENAME: BA_AI_01_after_barbie_frame
+      VERIFY_LABEL: BA_AI_01 Barbie frame apply
+      VERIFY_PROFILE: frame
+- runFlow: subflows/confirm_barbie_frame.yaml
+- takeScreenshot: BA_AI_01_before_barbie_sticker
+- runFlow: subflows/reopen_edit_toolbar_for_stickers.yaml
+- tapOn: "Stickers"
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn: "Barbie"
+- waitForAnimationToEnd:
+    timeout: 2000
+- takeScreenshot: BA_AI_01_barbie_sticker_category
+- runFlow:
+    file: subflows/verify_barbie_screen_with_ai.yaml
+    env:
+      SCREEN_BASENAME: BA_AI_01_barbie_sticker_category
+      SCREEN_LABEL: BA_AI_01 Barbie sticker category
+      SCREEN_PROFILE: barbie_sticker_category
+- tapOn:
+    id: "imageViewStricker"
+    index: 1
+- waitForAnimationToEnd:
+    timeout: 2000
+- takeScreenshot: BA_AI_01_after_barbie_sticker
+- runFlow:
+    file: subflows/verify_barbie_pair_with_ai.yaml
+    env:
+      BEFORE_BASENAME: BA_AI_01_before_barbie_sticker
+      AFTER_BASENAME: BA_AI_01_after_barbie_sticker
+      VERIFY_LABEL: BA_AI_01 Barbie sticker apply
+      VERIFY_PROFILE: sticker
+- runFlow: subflows/confirm_barbie_sticker.yaml

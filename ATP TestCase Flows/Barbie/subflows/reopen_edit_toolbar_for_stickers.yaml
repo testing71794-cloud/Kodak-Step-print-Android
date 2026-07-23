@@ -1,0 +1,27 @@
+appId: com.kodak.steptouch
+---
+# Re-open edit toolbar when Done/frame confirm returned to photo preview.
+- runFlow:
+    when:
+      notVisible: "Stickers"
+    commands:
+      - tapOn:
+          id: "linearlayout_edit_photo"
+          optional: true
+      - tapOn:
+          text: "Edit"
+          optional: true
+      - extendedWaitUntil:
+          visible:
+            id: "filterEditingOptionsImageView"
+          timeout: 5000
+      - runFlow:
+          when:
+            notVisible: "Stickers"
+          commands:
+            - runFlow: ../../editing/subflows/scroll_edit_toolbar_right.yaml
+      - runFlow:
+          when:
+            notVisible: "Stickers"
+          commands:
+            - runFlow: ../../editing/subflows/scroll_edit_toolbar_left.yaml

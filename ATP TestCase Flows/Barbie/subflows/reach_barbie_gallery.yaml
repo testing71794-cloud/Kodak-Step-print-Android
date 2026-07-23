@@ -1,0 +1,58 @@
+appId: com.kodak.steptouch
+---
+# Reach MY GALLERY without exiting the app (no blind back presses).
+- waitForAnimationToEnd:
+    timeout: 3000
+- runFlow:
+    when:
+      visible: "No Thanks"
+    commands:
+      - tapOn: "No Thanks"
+      - waitForAnimationToEnd:
+          timeout: 2000
+- runFlow:
+    when:
+      visible: "Create an account"
+    commands:
+      - runFlow: ../../connection/subflows/reach_gallery_after_onboarding_skip_for_connection.yaml
+- extendedWaitUntil:
+    visible:
+      id: "ivItemGridImage"
+    timeout: 20000
+    optional: true
+- extendedWaitUntil:
+    visible: ".*(?i)my gallery.*"
+    timeout: 5000
+    optional: true
+- runFlow:
+    when:
+      notVisible:
+        id: "ivItemGridImage"
+    commands:
+      - launchApp:
+          clearState: false
+      - waitForAnimationToEnd:
+          timeout: 3000
+      - runFlow:
+          when:
+            visible: "No Thanks"
+          commands:
+            - tapOn: "No Thanks"
+      - runFlow:
+          when:
+            visible: "Create an account"
+          commands:
+            - runFlow: ../../connection/subflows/reach_gallery_after_onboarding_skip_for_connection.yaml
+      - extendedWaitUntil:
+          visible:
+            id: "linearLayoutBarbie"
+          timeout: 8000
+          optional: true
+      - extendedWaitUntil:
+          visible:
+            id: "ivItemGridImage"
+          timeout: 25000
+      - extendedWaitUntil:
+          visible: ".*(?i)my gallery.*"
+          timeout: 10000
+          optional: true
