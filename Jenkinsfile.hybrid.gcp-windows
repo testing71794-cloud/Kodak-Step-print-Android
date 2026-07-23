@@ -69,11 +69,13 @@ def atpSuiteIdsList = {
 
 /** Shared Maestro/Java/ADB env list — deduped to avoid Jenkins CPS MethodTooLargeException on large pipelines. */
 def maestroEnvList() {
-    def maestroJava = (params.JAVA_HOME_OVERRIDE?.trim()) ?: 'C:\\Users\\HP\\.jdks\\jbr-17.0.8'
     def envList = []
-    envList << "MAESTRO_JAVA_HOME=${maestroJava}"
-    envList << "JAVA_HOME=${maestroJava}"
-    envList << "PATH+JAVA=${maestroJava}\\bin"
+    def maestroJava = params.JAVA_HOME_OVERRIDE?.trim()
+    if (maestroJava) {
+        envList << "MAESTRO_JAVA_HOME=${maestroJava}"
+        envList << "JAVA_HOME=${maestroJava}"
+        envList << "PATH+JAVA=${maestroJava}\\bin"
+    }
     if (params.MAESTRO_HOME?.trim()) { envList << "MAESTRO_HOME=${params.MAESTRO_HOME}" }
     if (params.ANDROID_HOME?.trim()) {
         envList << "ANDROID_HOME=${params.ANDROID_HOME}"
@@ -142,7 +144,7 @@ pipeline {
         string(name: 'MAESTRO_CMD', defaultValue: 'maestro.bat', description: 'Maestro launcher (e.g. maestro.bat).')
         string(name: 'MAESTRO_HOME', defaultValue: 'C:\\Users\\HP\\maestro\\maestro\\bin', description: 'Folder containing maestro.bat.')
         string(name: 'ANDROID_HOME', defaultValue: 'C:\\Users\\HP\\AppData\\Local\\Android\\Sdk', description: 'Android SDK root.')
-        string(name: 'JAVA_HOME_OVERRIDE', defaultValue: 'C:\\Users\\HP\\.jdks\\jbr-17.0.8', description: 'JDK for Maestro (MAESTRO_JAVA_HOME/JAVA_HOME). Default is jbr-17.0.8.')
+        string(name: 'JAVA_HOME_OVERRIDE', defaultValue: '', description: 'Optional JDK for Maestro (MAESTRO_JAVA_HOME). Leave empty to auto-detect JDK 17+ on the agent.')
         booleanParam(name: 'RUN_ATP_ONBOARDING', defaultValue: false, description: 'ATP TestCase Flows/onboarding')
         booleanParam(name: 'RUN_ATP_SIGNUP_LOGIN', defaultValue: false, description: 'ATP TestCase Flows/signup-login')
         booleanParam(name: 'RUN_ATP_CAMERA', defaultValue: false, description: 'ATP TestCase Flows/camera')

@@ -5,14 +5,61 @@ REM Optional %1 = Maestro launcher (MAESTRO_CMD): bare name or full path to maes
 REM MAESTRO_JAVA_HOME = optional JDK for Maestro (set by Jenkins when JAVA_HOME_OVERRIDE is used).
 REM Do not inherit machine JAVA_HOME alone — agents often have JRE 8; Maestro needs JDK 17+.
 
-REM --- Java ---
+REM --- Java (Maestro needs JDK 17+). Resolution order:
+REM   1) MAESTRO_JAVA_HOME / Jenkins JAVA_HOME_OVERRIDE
+REM   2) Existing JAVA_HOME when java.exe exists
+REM   3) Common Adoptium / JetBrains install paths on the agent
+REM   4) First java.exe from PATH (where java)
 if not "%MAESTRO_JAVA_HOME%"=="" (
   if exist "%MAESTRO_JAVA_HOME%\bin\java.exe" (
     set "JAVA_HOME=%MAESTRO_JAVA_HOME%"
     goto :java_ok
   )
 )
-set "JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot"
+if not "%JAVA_HOME%"=="" (
+  if exist "%JAVA_HOME%\bin\java.exe" goto :java_ok
+)
+for /d %%D in ("C:\Program Files\Eclipse Adoptium\jdk-17*") do (
+  if exist "%%D\bin\java.exe" (
+    set "JAVA_HOME=%%D"
+    goto :java_ok
+  )
+)
+for /d %%D in ("%USERPROFILE%\.jdks\jbr-17*") do (
+  if exist "%%D\bin\java.exe" (
+    set "JAVA_HOME=%%D"
+    goto :java_ok
+  )
+)
+for /d %%D in ("C:\Program Files\Eclipse Adoptium\jdk-21*") do (
+  if exist "%%D\bin\java.exe" (
+    set "JAVA_HOME=%%D"
+    goto :java_ok
+  )
+)
+for /d %%D in ("%USERPROFILE%\.jdks\jbr-21*") do (
+  if exist "%%D\bin\java.exe" (
+    set "JAVA_HOME=%%D"
+    goto :java_ok
+  )
+)
+for /d %%D in ("C:\Program Files\Eclipse Adoptium\jdk-25*") do (
+  if exist "%%D\bin\java.exe" (
+    set "JAVA_HOME=%%D"
+    goto :java_ok
+  )
+)
+for /f "delims=" %%W in ('where java 2^>nul') do (
+  for %%P in ("%%~dpW..") do (
+    if exist "%%~fP\bin\java.exe" (
+      set "JAVA_HOME=%%~fP"
+      goto :java_ok
+    )
+  )
+)
+echo ERROR: Java 17+ not found. Install Temurin JDK 17/21 or set MAESTRO_JAVA_HOME / JAVA_HOME_OVERRIDE.
+endlocal & exit /b 1
+
 :java_ok
 if not exist "%JAVA_HOME%\bin\java.exe" (
   echo ERROR: Java not found at "%JAVA_HOME%"
