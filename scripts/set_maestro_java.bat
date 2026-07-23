@@ -79,6 +79,17 @@ if not "%ATP_MAESTRO_PARALLEL_HOME%"=="" (
   )
 )
 
+if exist "C:\Tools\maestro-parallel\bin\maestro.bat" (
+  set "ATP_MAESTRO_PARALLEL_HOME=C:\Tools\maestro-parallel\bin"
+  set "MAESTRO_HOME=C:\Tools\maestro-parallel\bin"
+  goto :maestro_ok
+)
+if exist "C:\Tools\maestro-parallel\bin\maestro.cmd" (
+  set "ATP_MAESTRO_PARALLEL_HOME=C:\Tools\maestro-parallel\bin"
+  set "MAESTRO_HOME=C:\Tools\maestro-parallel\bin"
+  goto :maestro_ok
+)
+
 if not "%MAESTRO_HOME%"=="" (
   if exist "%MAESTRO_HOME%\maestro.bat" goto :maestro_ok
   if exist "%MAESTRO_HOME%\maestro.cmd" goto :maestro_ok
