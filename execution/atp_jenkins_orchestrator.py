@@ -993,9 +993,25 @@ def run_atp_folder_blocking(
     os.environ["ATP_ORCH_DEVICES"] = ",".join(devices)
     exec_mode = _device_execution_mode(len(devices))
     sched_mode = _scheduler_mode()
-    # Resolve MAESTRO_HOME / capability before launcher (overrides stale Jenkins MAESTRO_HOME).
-    if len(devices) >= 1:
-        assert_native_parallel_ready(device_count=len(devices), devices=devices, repo=repo)
+    # Always resolve MAESTRO_HOME before launcher (Jenkins often passes bare "maestro.bat"
+    # with empty agent MAESTRO_HOME). assert_native_parallel_ready skips work when
+    # device_count <= 1, so single-device runs must resolve here explicitly.
+    try:
+        from .maestro_install_resolver import resolve_maestro_for_parallel
+
+        resolve_maestro_for_parallel(
+            maestro_cmd=maestro_cmd,
+            device_count=len(devices),
+        )
+    except Exception as e:
+        print(f"[ATP] maestro home pre-resolve warning: {e}", flush=True)
+    if len(devices) > 1:
+        assert_native_parallel_ready(
+            device_count=len(devices),
+            devices=devices,
+            repo=repo,
+            maestro_cmd=maestro_cmd,
+        )
     try:
         maestro_launch = resolve_maestro_launcher(maestro_cmd)
     except Exception as e:

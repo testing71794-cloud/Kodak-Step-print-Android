@@ -212,15 +212,70 @@ def pre_maestro_cleanup(
 
 
 def resolve_maestro_launcher(maestro_cmd: str) -> Path:
-    """Match run_atp_testcase_flows.ps1 Resolve-MaestroLauncherPath (MAESTRO_HOME)."""
+    """Resolve maestro.bat/.cmd from an absolute path, MAESTRO_HOME, PATH, or install discovery.
+
+    Jenkins often passes a bare name (``maestro.bat``) without MAESTRO_HOME set on the
+    agent. Match ``scripts/set_maestro_java.bat`` discovery so single-device ATP runs work.
+    """
     raw = (maestro_cmd or "").strip().strip('"')
     if raw:
         p = Path(raw)
         if p.is_file():
+            os.environ.setdefault("MAESTRO_HOME", str(p.resolve().parent))
             return p.resolve()
+        which = shutil.which(raw)
+        if which:
+            found = Path(which).resolve()
+            os.environ.setdefault("MAESTRO_HOME", str(found.parent))
+            return found
+
     mh = os.environ.get("MAESTRO_HOME", "").strip().strip('"')
     if not mh:
-        raise RuntimeError("MAESTRO_HOME is not set and maestro_cmd is not a valid file path.")
+        # Same defaults as set_maestro_java.bat / maestro_install_resolver.
+        for key in ("ATP_MAESTRO_PARALLEL_HOME",):
+            cand_home = (os.environ.get(key) or "").strip().strip('"')
+            if cand_home and (Path(cand_home) / "maestro.bat").is_file():
+                mh = cand_home
+                break
+            if cand_home and (Path(cand_home) / "maestro.cmd").is_file():
+                mh = cand_home
+                break
+        if not mh:
+            for cand_home in (
+                Path(r"C:\Tools\maestro-parallel\bin"),
+                Path(r"C:\Tools\maestro-parallel\maestro\bin"),
+                Path(os.environ.get("USERPROFILE", "")) / "maestro" / "maestro" / "bin",
+            ):
+                if (cand_home / "maestro.bat").is_file() or (cand_home / "maestro.cmd").is_file():
+                    mh = str(cand_home)
+                    break
+        if not mh:
+            which = shutil.which("maestro.bat") or shutil.which("maestro.cmd")
+            if which:
+                mh = str(Path(which).resolve().parent)
+        if not mh:
+            try:
+                from .maestro_install_resolver import resolve_maestro_for_parallel
+
+                selected = resolve_maestro_for_parallel(
+                    maestro_cmd=raw or None,
+                    device_count=max(int(os.environ.get("ATP_ORCH_DEVICE_COUNT") or "1"), 1),
+                )
+                if selected is not None:
+                    mh = str(selected.bin_dir)
+            except Exception:
+                mh = ""
+        if mh:
+            os.environ["MAESTRO_HOME"] = mh
+            print(f"[ATP] MAESTRO_HOME resolved for launcher: {mh}", flush=True)
+        else:
+            raise RuntimeError(
+                "MAESTRO_HOME is not set and maestro_cmd is not a valid file path. "
+                "Set Jenkins MAESTRO_HOME / ATP_MAESTRO_PARALLEL_HOME to the folder that "
+                "contains maestro.bat (e.g. C:\\Tools\\maestro-parallel\\bin), or pass the "
+                "full path as MAESTRO_CMD."
+            )
+
     base = Path(mh)
     for name in ("maestro.bat", "maestro.cmd"):
         cand = base / name
