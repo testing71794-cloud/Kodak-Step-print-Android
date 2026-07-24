@@ -1,0 +1,4 @@
+# Windows cmd.exe requires CRLF. LF-only .bat files break "call :label" /
+# "goto :label" with: The system cannot find the batch label specified.
+*.bat text eol=crlf
+*.cmd text eol=crlf

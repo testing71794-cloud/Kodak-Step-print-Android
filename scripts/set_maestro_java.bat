@@ -4,8 +4,12 @@ setlocal EnableExtensions EnableDelayedExpansion
 REM Optional %1 = Maestro launcher (MAESTRO_CMD): bare name or full path to maestro.bat / maestro.cmd
 REM MAESTRO_JAVA_HOME = optional JDK for Maestro (set by Jenkins when JAVA_HOME_OVERRIDE is used).
 
-call :resolve_java || exit /b 1
-call :resolve_maestro "%~1" || exit /b 1
+REM Do not use "call :label || ..." — with LF line endings (or some CMD builds)
+REM that fails with: The system cannot find the batch label specified.
+call :resolve_java
+if errorlevel 1 exit /b 1
+call :resolve_maestro "%~1"
+if errorlevel 1 exit /b 1
 call :resolve_adb
 
 set "PATH=%JAVA_HOME%\bin;%MAESTRO_HOME%;%PATH%"
